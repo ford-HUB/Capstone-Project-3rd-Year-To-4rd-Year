@@ -3,8 +3,9 @@ import OptionModal from '../../components/modal/OptionModal'
 import { asset } from '../../assets/asset'
 import { v4 as uuidv4 } from 'uuid'
 import Cookie from 'js-cookie'
-// import Alert from '../../components/guest/Alert'
-
+import ErrorAlert from '../../components/ErrorAlert'
+import SuccessAlert from '../../components/SuccessAlert'
+import WarningAlert from '../../components/WarningAlert'
 
 const LoginForm = () => {
     const [open, setOpen] = React.useState(true)
@@ -15,8 +16,10 @@ const LoginForm = () => {
     const [password, setPassword] = React.useState('')
     const [rememberMe, setRememberMe] = React.useState(false)
 
-    // Action Alert
-    // const [Alert, setAlert] = React.useState(true)
+    // Action Notification
+    const [showError, setError] = React.useState(false)
+    const [showSuccess, setSuccess] = React.useState(false)
+    const [showWarning, setWarning] = React.useState(false)
 
     const setCookie = () => {
         const generateToken = uuidv4()
@@ -56,10 +59,24 @@ const LoginForm = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault()
+        if (username === '' || password === '') {
+            throw setWarning(true)
+        }
+
         setUsername('')
         setPassword('')
         setRememberMe(false)
         console.log({ username, password, rememberMe })
+
+        // if form is successfuly submitte then it will throw
+        setSuccess(true)
+
+        // fading the throw alert
+        throw setInterval(() => {
+            setSuccess(false)
+            setError(false)
+            setWarning(false)
+        }, 5000)
 
     }
 
@@ -77,6 +94,9 @@ const LoginForm = () => {
     return (
         <>
             <OptionModal open={open}>
+                <ErrorAlert open={showError} />
+                <SuccessAlert open={showSuccess} />
+                <WarningAlert open={showWarning} />
                 <div className="content flex justify-between">
                     <div className="logo px-2 py-4">
                         <img src={asset.logo} alt="UCLM CARES"
@@ -145,9 +165,21 @@ const LoginForm = () => {
                         </div>
                     </form>
                 </div>
-                <div className="fallVisit flex justify-start mt-1.5 ">
-                    <span className='inline-flex text-[11px] text-slate-600'>Do you want to be guest?</span>
-                    <button onClick={() => setCookie()} className='link text-[11px] flex item-center ml-[3px] text-blue-600'>Click here</button>
+                <div className="fallVisit flex justify-between mt-1.5 ">
+                    <div className="leftFooter flex items-center text-[11px] text-slate-600">
+                        <span className='text-[11px] text-slate-600'>Do you want to be guest?</span>
+                        <button onClick={() => setCookie()} className='text-[11px] flex item-center ml-[3px] text-blue-600 hover:link transition-all duration-300'>Click here</button>
+                    </div>
+
+                    <div className="rightFooter flex items-center">
+                        <button onClick={null} className='text-[11px] flex item-center text-slate-600 cursor-pointer hover:text-blue-600 transition-colors duration-300 hover:link'>Go to registration</button>
+                    </div>
+                </div>
+
+                <div className="forgetPassword flex justify-center items-center">
+                    <button onClick={null} className='absolute bottom-[-25px] left-30 text-[12px] text-gray-900 cursor-pointer font-[Roboto] hover:text-slate-600 transition-colors duration-300'>
+                        Forget Password?
+                    </button>
                 </div>
 
             </OptionModal>

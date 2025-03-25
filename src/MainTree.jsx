@@ -16,7 +16,9 @@ const MainTree = [
     },
     {
         path: '/Timeline',
-        element: <LoginWrapper></LoginWrapper>,
+        element: <LoginWrapper>
+            <Timeline />
+        </LoginWrapper>,
         navbar: 'guest'
     },
     {

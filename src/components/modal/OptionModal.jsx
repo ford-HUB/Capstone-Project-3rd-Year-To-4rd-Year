@@ -9,7 +9,7 @@ const OptionModal = ({ open, setOpen, children }) => {
                 ${open ? 'visible bg-black/20' : 'invisible'}`} onClick={() => setOpen}
             >
                 {/* Modal Interface */}
-                <div onClick={(e) => stopPropagation()}
+                <div onClick={(e) => e.stopPropagation()}
                     className={`bg-white rounded-xl shadow p-6 transition-all 
                     ${open ? 'scale-100 opacity-100' : 'scale-125 opacity-0'}`}>
                     {children}
