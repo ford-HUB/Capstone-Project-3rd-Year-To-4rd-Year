@@ -5,6 +5,7 @@ import Timeline from './pages/guest/Timeline'
 import Programs from './pages/guest/Programs'
 import UpComingEvents from './pages/guest/UpComingEvents'
 import LoginWrapper from './utils/LoginWrapper'
+import Registration from './pages/guest/Registration'
 
 const MainTree = [
     {
@@ -34,6 +35,10 @@ const MainTree = [
             <UpComingEvents />
         </LoginWrapper>,
         navbar: 'guest'
+    },
+    {
+        path: '/registrationForm',
+        element: <Registration />
     },
 
 

@@ -1,4 +1,3 @@
-import { asset } from '../../assets/asset'
 
 const OptionModal = ({ open, setOpen, children }) => {
     return (

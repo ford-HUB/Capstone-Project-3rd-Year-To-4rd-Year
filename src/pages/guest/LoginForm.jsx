@@ -6,6 +6,7 @@ import Cookie from 'js-cookie'
 import ErrorAlert from '../../components/ErrorAlert'
 import SuccessAlert from '../../components/SuccessAlert'
 import WarningAlert from '../../components/WarningAlert'
+import { useNavigate } from 'react-router-dom'
 
 const LoginForm = () => {
     const [open, setOpen] = React.useState(true)
@@ -29,6 +30,9 @@ const LoginForm = () => {
         console.log(token)
 
     }
+
+    // Define Naviate Link
+    const navigate = useNavigate()
 
     //checking triggered remember me checkbox
     // console.log(null)
@@ -78,6 +82,11 @@ const LoginForm = () => {
             setWarning(false)
         }, 5000)
 
+    }
+
+    const handleNextPage = () => {
+        return navigate('/registrationForm')
+        // console.log('testing')
     }
 
     React.useEffect(() => {
@@ -172,7 +181,7 @@ const LoginForm = () => {
                     </div>
 
                     <div className="rightFooter flex items-center">
-                        <button onClick={null} className='text-[11px] flex item-center text-slate-600 cursor-pointer hover:text-blue-600 transition-colors duration-300 hover:link'>Go to registration</button>
+                        <button onClick={() => handleNextPage()} className='text-[11px] flex item-center text-slate-600 cursor-pointer hover:text-blue-600 transition-colors duration-300 hover:link'>Go to registration</button>
                     </div>
                 </div>
 
