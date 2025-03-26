@@ -1,11 +1,11 @@
 import React from 'react'
 
-const ErrorAlert = ({ open }) => {
+const ErrorAlert = ({ open, children }) => {
     return (
         <>
             {
                 open ? <div role="alert" className="alert alert-error alert-soft">
-                    <span>Invalid Credentials</span>
+                    <span>{children}</span>
                 </div> : null
             }
         </>

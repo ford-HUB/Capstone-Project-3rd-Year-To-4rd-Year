@@ -1,11 +1,11 @@
 import React from 'react'
 
-const SuccessAlert = ({ open }) => {
+const SuccessAlert = ({ open, children }) => {
     return (
         <>
             {
                 open ? <div role="alert" className="alert alert-success alert-soft">
-                    <span>Account Successfuly Logged In</span>
+                    <span>{ children }</span>
                 </div> : null
             }
         </>

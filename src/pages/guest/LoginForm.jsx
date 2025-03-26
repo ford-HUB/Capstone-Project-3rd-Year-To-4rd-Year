@@ -103,9 +103,9 @@ const LoginForm = () => {
     return (
         <>
             <OptionModal open={open}>
-                <ErrorAlert open={showError} />
-                <SuccessAlert open={showSuccess} />
-                <WarningAlert open={showWarning} />
+                <ErrorAlert open={showError}>Invalid Credentials</ErrorAlert>
+                <SuccessAlert open={showSuccess}>Account Successfuly Logged In</SuccessAlert>
+                <WarningAlert open={showWarning}>Fill Out the Blank</WarningAlert>
                 <div className="content flex justify-between">
                     <div className="logo px-2 py-4">
                         <img src={asset.logo} alt="UCLM CARES"
