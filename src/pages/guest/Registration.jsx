@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { Upload, LogIn } from 'lucide-react';
 import { asset } from '../../assets/asset';
+import { useNavigate } from 'react-router-dom';
 
 const Registration = () => {
+    const navigate = useNavigate()
+
     const [formData, setFormData] = useState({
         studentId: '',
         firstName: '',
         lastName: '',
-        suffix: '',
+        middleName: '',
         department: '',
         courseAndYear: '',
         email: '',
@@ -23,11 +26,11 @@ const Registration = () => {
     };
 
     const handleFileUpload = (e) => {
-        const file = e.target.files[0];
-        setFormData(prevState => ({
+        const file = e.target.files?.[0];
+        file ? setFormData(prevState => ({
             ...prevState,
-            studentIdFile: file
-        }));
+            studentIdFile: URL.createObjectURL(file)
+        })) : undefined
     };
 
     const handleSubmit = (e) => {
@@ -36,10 +39,14 @@ const Registration = () => {
         console.log(formData);
     };
 
+    const handleNextPage = (e) => {
+        e.preventDefault()
+        return navigate('/')
+    }
+
     return (
         <div className="min-h-screen">
-            {/* Navbar */}
-            <nav className="bg-blue-600 text-white shadow-md">
+            <nav className="bg-blue-600 text-white shadow-md sticky top-0 z[100]">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-14">
                         <div className="flex items-center">
@@ -53,9 +60,7 @@ const Registration = () => {
                             </div>
                         </div>
                         <div>
-                            <button
-                                className="flex items-center bg-white text-blue-600 px-4 py-2 rounded-md hover:bg-gray-100 transition duration-300"
-                            >
+                            <button onClick={handleNextPage} className="flex items-center bg-white cursor-pointer text-blue-600 px-4 py-2 rounded-md hover:bg-gray-100 transition duration-300">
                                 <LogIn className="mr-2 h-5 w-5" />
                                 Login
                             </button>
@@ -67,9 +72,18 @@ const Registration = () => {
             {/* Registration Form */}
             <div className="container mx-auto px-4 py-8 flex items-center justify-center">
                 <div className="bg-white shadow-md rounded-lg w-full max-w-2xl p-8">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+                    {/* <div className="statement flex justify-center">
+                        <p className='text-[12px]'>University Of Cebu Lapu-lapu Mandaue</p>
+                    </div> */}
+                    <div className="logo flex justify-start">
+                        <img src={asset.logo} alt='logo' className=' flex items-center h-12 w-12' />
+                        <img src={asset.uclmLogo} alt='logo' className=' flex items-center h-12 w-12' />
+                    </div>
+
+                    <div className="header flex justify-center items-center pb-8">                        <h2 className="text-2xl flex font-bold text-gray-800 text-center">
                         Student Registration Form
                     </h2>
+                    </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -137,13 +151,13 @@ const Registration = () => {
 
                             <div>
                                 <label htmlFor="suffix" className="block text-sm font-medium text-gray-700 mb-2">
-                                    Suffix
+                                    Middle Initial
                                 </label>
                                 <input
                                     type="text"
-                                    id="suffix"
-                                    name="suffix"
-                                    value={formData.suffix}
+                                    id="middleName"
+                                    name="middleName"
+                                    value={formData.middleName}
                                     onChange={handleInputChange}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
@@ -182,43 +196,71 @@ const Registration = () => {
                                     value={formData.courseAndYear}
                                     onChange={handleInputChange}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    required
                                 />
                             </div>
                         </div>
 
-                        <div>
-                            <label htmlFor="studentIdUpload" className="block text-sm font-medium text-gray-700 mb-2">
-                                Upload Student ID *
-                            </label>
-                            <div className="flex items-center justify-center w-full">
-                                <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                        <Upload className="w-10 h-10 text-gray-400 mb-3" />
-                                        <p className="mb-2 text-sm text-gray-500">
-                                            <span className="font-semibold">Click to upload</span> or drag and drop
-                                        </p>
-                                        <p className="text-xs text-gray-500">
-                                            PNG, JPG, or PDF (MAX. 5MB)
-                                        </p>
+                        {
+                            formData.studentIdFile ?
+                                <div className="imageContainer flex flex-col justify-center items-center">
+                                    <div className="p-4 border-none bg-white rounded-md drop-shadow-2xl ">
+                                        <img src={formData.studentIdFile}
+                                            alt='Student ID Image'
+                                            className='rounded-md h-[15rem]'
+                                        />
                                     </div>
-                                    <input
-                                        type="file"
-                                        id="studentIdUpload"
-                                        name="studentIdFile"
-                                        accept=".png,.jpg,.jpeg,.pdf"
-                                        onChange={handleFileUpload}
-                                        className="hidden"
-                                        required
-                                    />
-                                </label>
-                            </div>
-                            {formData.studentIdFile && (
-                                <p className="text-sm text-gray-500 mt-2">
-                                    Uploaded: {formData.studentIdFile.name}
-                                </p>
-                            )}
-                        </div>
+                                    <div className='absolute opacity-30'>
+                                        <div className="flex items-center justify-center mt-4">
+                                            <label className="flex flex-col items-center justify-center w-[26.6rem] h-[15rem] border-2 mb-4 border-gray-100 border-dashed rounded-lg cursor-pointer hover:bg-slate-50 transition-colors duration-300">
+                                                <div className="flex flex-col items-center justify-center pt-5 pb-6 px-4">
+                                                    <Upload className="w-10 h-10 text-gray-400 mb-3" />
+                                                    <p className="mb-2 text-sm text-gray-500">
+                                                        <span className="font-semibold">Click to Re Upload</span> or drag and drop
+                                                    </p>
+                                                    <p className="text-xs text-gray-500">
+                                                        PNG, JPG, or PDF (MAX. 5MB)
+                                                    </p>
+                                                </div>
+                                                <input
+                                                    type="file"
+                                                    id="studentIdUpload"
+                                                    name="studentIdFile"
+                                                    accept=".png,.jpg,.jpeg,.pdf"
+                                                    onChange={handleFileUpload}
+                                                    className="hidden"
+                                                />
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                : <div>
+                                    <label htmlFor="studentIdUpload" className="block text-sm font-medium text-gray-700 mb-2">
+                                        Upload Student ID *
+                                    </label>
+                                    <div className="flex items-center justify-center w-full">
+                                        <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                                <Upload className="w-10 h-10 text-gray-400 mb-3" />
+                                                <p className="mb-2 text-sm text-gray-500">
+                                                    <span className="font-semibold">Click to upload</span> or drag and drop
+                                                </p>
+                                                <p className="text-xs text-gray-500">
+                                                    PNG, JPG, or PDF (MAX. 5MB)
+                                                </p>
+                                            </div>
+                                            <input
+                                                type="file"
+                                                id="studentIdUpload"
+                                                name="studentIdFile"
+                                                accept=".png,.jpg,.jpeg,.pdf"
+                                                onChange={handleFileUpload}
+                                                className="hidden"
+                                            />
+                                        </label>
+                                    </div>
+                                </div>
+                        }
 
                         <div className="text-center">
                             <button
