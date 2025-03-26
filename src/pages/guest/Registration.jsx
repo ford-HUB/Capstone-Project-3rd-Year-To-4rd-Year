@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 
 const Registration = () => {
     const navigate = useNavigate()
+    const [isValid, setValid] = React.useState(false)
+    const [isGmail, setGmail] = React.useState(false)
 
     const [formData, setFormData] = useState({
         studentId: '',
@@ -25,6 +27,33 @@ const Registration = () => {
         }));
     };
 
+    const handleStudentId = (e) => {
+        const { name, value } = e.target;
+
+        // this condition restrict the user to input any char string
+        if (name === 'studentId' && /^\d*$/.test(value)) {
+            return setFormData(prevState => ({
+                ...prevState, [name]: value
+            }))
+        }
+        return
+    }
+
+    const handleEmail = (e) => {
+        const { name, value } = e.target
+
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+        if (name === 'email' && emailRegex.test(value)) {
+            setFormData(prevState => ({
+                ...prevState, [name]: value.toLowerCase()
+            }))
+            setValid(true)
+            return
+        }
+
+        return
+    }
+
     const handleFileUpload = (e) => {
         const file = e.target.files?.[0];
         file ? setFormData(prevState => ({
@@ -36,7 +65,14 @@ const Registration = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         // Handle form submission logic here
-        console.log(formData);
+        if (formData.studentIdFile === null) {
+
+            return document.querySelector('#asteriskSymbol').style.color = 'red'
+        }
+
+        console.log(formData)
+        return
+
     };
 
     const handleNextPage = (e) => {
@@ -91,12 +127,15 @@ const Registration = () => {
                                 <label htmlFor="studentId" className="block text-sm font-medium text-gray-700 mb-2">
                                     Student ID Number *
                                 </label>
+                                <div className="errorCatcher">
+
+                                </div>
                                 <input
                                     type="text"
                                     id="studentId"
                                     name="studentId"
                                     value={formData.studentId}
-                                    onChange={handleInputChange}
+                                    onChange={handleStudentId}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md  focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     required
                                 />
@@ -111,9 +150,9 @@ const Registration = () => {
                                     id="email"
                                     name="email"
                                     value={formData.email}
-                                    onChange={handleInputChange}
+                                    onChange={handleEmail}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    required
+                                // required
                                 />
                             </div>
                         </div>
@@ -150,7 +189,7 @@ const Registration = () => {
                             </div>
 
                             <div>
-                                <label htmlFor="suffix" className="block text-sm font-medium text-gray-700 mb-2">
+                                <label htmlFor="middleName" className="block text-sm font-medium text-gray-700 mb-2">
                                     Middle Initial
                                 </label>
                                 <input
@@ -227,7 +266,7 @@ const Registration = () => {
                                                     name="studentIdFile"
                                                     accept=".png,.jpg,.jpeg,.pdf"
                                                     onChange={handleFileUpload}
-                                                    className="hidden"
+                                                    className="hidden required"
                                                 />
                                             </label>
                                         </div>
@@ -235,10 +274,10 @@ const Registration = () => {
                                 </div>
 
                                 : <div>
-                                    <label htmlFor="studentIdUpload" className="block text-sm font-medium text-gray-700 mb-2">
-                                        Upload Student ID *
+                                    <label id='labelUploadStudentID' htmlFor="studentIdUpload" className="block text-sm font-medium text-gray-700 mb-2">
+                                        Upload Student ID <span id='asteriskSymbol'>*</span>
                                     </label>
-                                    <div className="flex items-center justify-center w-full">
+                                    <div className="EmptyImageContainer flex items-center justify-center w-full">
                                         <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
                                             <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                                 <Upload className="w-10 h-10 text-gray-400 mb-3" />
