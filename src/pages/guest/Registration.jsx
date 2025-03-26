@@ -2,11 +2,15 @@ import React, { useState } from 'react';
 import { Upload, LogIn } from 'lucide-react';
 import { asset } from '../../assets/asset';
 import { useNavigate } from 'react-router-dom';
+import extractImageId from '../../services/orcService'
 
 const Registration = () => {
     const navigate = useNavigate()
-    const [isValid, setValid] = React.useState(false)
-    const [isGmail, setGmail] = React.useState(false)
+
+    // image Proccessing State
+    const [extractedText, setText] = React.useState('')
+    const [isVerified, setVerified] = React.useState(false)
+    const [isLoading, setLoading] = React.useState(false)
 
     const [formData, setFormData] = useState({
         studentId: '',
@@ -47,7 +51,6 @@ const Registration = () => {
             setFormData(prevState => ({
                 ...prevState, [name]: value.toLowerCase()
             }))
-            setValid(true)
             return
         }
 
@@ -62,18 +65,46 @@ const Registration = () => {
         })) : undefined
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Handle form submission logic here
-        if (formData.studentIdFile === null) {
 
-            return document.querySelector('#asteriskSymbol').style.color = 'red'
+        // Check if the file is provided
+        if (!formData.studentIdFile) {
+            document.querySelector('#asteriskSymbol').style.color = 'red';
+            return; // Stop the function if no file is selected
         }
 
-        console.log(formData)
-        return
+        // Start loading
+        setLoading(true);
 
+        try {
+            // Extract text from the image
+            const receiveFromExtract = await extractImageId(formData.studentIdFile);
+            setText(receiveFromExtract);
+
+            if (receiveFromExtract) {
+                const studentName = `${formData.firstName} ${formData.middleName} ${formData.lastName}`
+                    .trim()
+                    .toLowerCase();
+
+                // Check if extracted text contains the name
+                const isMatch = receiveFromExtract.toLowerCase().includes(studentName);
+                setVerified(isMatch);
+
+                console.log('Extracted text:', receiveFromExtract);
+            } else {
+                console.error('No text extracted from the image.');
+                setVerified(false);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            setVerified(false);
+        } finally {
+            // Stop loading after process
+            setLoading(false);
+        }
     };
+
 
     const handleNextPage = (e) => {
         e.preventDefault()
