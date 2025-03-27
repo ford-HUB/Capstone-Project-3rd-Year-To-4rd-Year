@@ -6,6 +6,7 @@ import Programs from './pages/guest/Programs'
 import UpComingEvents from './pages/guest/UpComingEvents'
 import LoginWrapper from './utils/LoginWrapper'
 import Registration from './pages/guest/Registration'
+import ProtectedGuest from './utils/ProtectedGuest'
 
 const MainTree = [
     {
@@ -16,24 +17,31 @@ const MainTree = [
         navbar: 'guest'
     },
     {
-        path: '/Timeline',
-        element: <LoginWrapper>
+        path: '/home/guest/:id',
+        element: <ProtectedGuest>
+            <Home />
+        </ProtectedGuest>,
+        navbar: 'guest'
+    },
+    {
+        path: '/timeline/guest/:id',
+        element: <ProtectedGuest>
             <Timeline />
-        </LoginWrapper>,
+        </ProtectedGuest>,
         navbar: 'guest'
     },
     {
-        path: '/Programs',
-        element: <LoginWrapper>
+        path: '/programs/guest/:id',
+        element: <ProtectedGuest>
             <Programs />
-        </LoginWrapper>,
+        </ProtectedGuest>,
         navbar: 'guest'
     },
     {
-        path: '/UpComing-Events',
-        element: <LoginWrapper>
+        path: '/upcomingEvents/guest/:id',
+        element: <ProtectedGuest>
             <UpComingEvents />
-        </LoginWrapper>,
+        </ProtectedGuest>,
         navbar: 'guest'
     },
     {

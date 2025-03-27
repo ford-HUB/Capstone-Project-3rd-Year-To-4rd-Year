@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import OptionModal from '../modal/OptionModal'
 
-const Navbar = () => {
+const Navbar = ({ idRoute }) => {
     const location = useLocation()
     // This check the current active path of our url and do a specification below na
     const isActive = (path) => location.pathname === path
@@ -19,10 +19,10 @@ const Navbar = () => {
                 </div>
 
                 <div className="navLinks flex justify-center items-center text-sm/6">
-                    <Link to={'/'} className={`px-5 ${isActive('/') ? `text-blue-600` : `hover:text-blue-600 transition-colors duration-300`}`}>Home</Link>
-                    <Link to={'/Timeline'} className={`px-5 ${isActive('/Timeline') ? `text-blue-600` : `hover:text-blue-600 transition-colors duration-300`}`}>Timeline</Link>
-                    <Link to={'/Programs'} className={`px-5 ${isActive('/Programs') ? `text-blue-600` : `hover:text-blue-600 transition-colors duration-300`}`}>Programs</Link>
-                    <Link to={'/UpComing-Events'} className={`px-3 ${isActive('/UpComing-Events') ? `text-blue-600` : `hover:text-blue-600 transition-colors duration-300`}`}>Up Coming Events</Link>
+                    <Link to={`/home/guest/${idRoute}`} className={`px-5 ${isActive(`/home/guest/${idRoute}`) ? `text-blue-600` : `hover:text-blue-600 transition-colors duration-300`}`}>Home</Link>
+                    <Link to={`/timeline/guest/${idRoute}`} className={`px-5 ${isActive(`/timeline/guest/${idRoute}`) ? `text-blue-600` : `hover:text-blue-600 transition-colors duration-300`}`}>Timeline</Link>
+                    <Link to={`/programs/guest/${idRoute}`} className={`px-5 ${isActive(`/programs/guest/${idRoute}`) ? `text-blue-600` : `hover:text-blue-600 transition-colors duration-300`}`}>Programs</Link>
+                    <Link to={`/upcomingEvents/guest/${idRoute}`} className={`px-3 ${isActive(`/upcomingEvents/guest/${idRoute}`) ? `text-blue-600` : `hover:text-blue-600 transition-colors duration-300`}`}>Up Coming Events</Link>
                 </div>
 
                 <div className="sideContainer flex justify-end items-center text-md/6 text-white">

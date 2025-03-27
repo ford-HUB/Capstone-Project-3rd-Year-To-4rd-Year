@@ -22,17 +22,19 @@ const LoginForm = () => {
     const [showSuccess, setSuccess] = React.useState(false)
     const [showWarning, setWarning] = React.useState(false)
 
+    // Define Naviate Link
+    const navigate = useNavigate()
+
     const setCookie = () => {
         const generateToken = uuidv4()
-        Cookie.set('token', generateToken, { expires: 3 / (60 * 60 * 24) })
+        Cookie.set('token', generateToken, { expires: 30 / (60 * 60 * 24) })
         setToken(generateToken)
         setOpen(false)
+
+        navigate(`/home/guest/${generateToken}`)
         console.log(token)
 
     }
-
-    // Define Naviate Link
-    const navigate = useNavigate()
 
     //checking triggered remember me checkbox
     // console.log(null)
