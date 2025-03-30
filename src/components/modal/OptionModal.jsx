@@ -10,7 +10,7 @@ const OptionModal = ({ open, setOpen, children }) => {
                 {/* Modal Interface */}
                 <div onClick={(e) => e.stopPropagation()}
                     className={`bg-white rounded-xl shadow p-6 transition-all 
-                    ${open ? 'scale-100 opacity-100' : 'scale-125 opacity-0'}`}>
+                    ${open ? 'scale-100 opacity-100 duration-300' : 'scale-125 opacity-0 duration-50'}`}>
                     {children}
                 </div>
             </div>

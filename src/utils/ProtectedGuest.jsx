@@ -16,15 +16,15 @@ const ProtectedGuest = ({ children }) => {
                     setLogin(false)
                 } else if (currentToken !== id) {
                     console.log(`Token Expired: ${currentToken}`);
-                    setLogin(true) // setting login into true after the page is loaded
+                    setLogin(true) // redirect to login if the token is expired
                 }
             } else {
-                setLogin(true)
+                setLogin(true) // redirect to login if there is no token
             }
         }, 1000)
 
-        return () => clearInterval(checkToken)
-    }, [id])
+        return () => clearInterval(checkToken) // clear the Interval realTime
+    }, [id]) // watch out the id changes
     return (
         <>
             {

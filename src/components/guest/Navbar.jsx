@@ -1,14 +1,21 @@
 import { asset } from '../../assets/asset'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import OptionModal from '../modal/OptionModal'
 
 const Navbar = ({ idRoute }) => {
     const location = useLocation()
+    const navigate = useNavigate()
     // This check the current active path of our url and do a specification below na
     const isActive = (path) => location.pathname === path
 
     const [open, setOpen] = useState(false)
+
+    const GoToLogin = () => {
+        navigate('/') // unfinish
+        setOpen(false)
+        return
+    }
 
     return (
         <>
@@ -59,9 +66,9 @@ const Navbar = ({ idRoute }) => {
                 </div>
 
                 <div className="OptionSelection flex justify-center items-center pt-8 flex-col">
-                    <button className='bg-blue-600 rounded-md text-white w-full px-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white'
+                    <button onClick={GoToLogin} className='bg-blue-600 rounded-md text-white w-full px-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white'
                     >Participant</button>
-                    <button className='bg-blue-600 rounded-md my-3 text-white w-full px-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white'
+                    <button onClick={GoToLogin} className='bg-blue-600 rounded-md my-3 text-white w-full px-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white'
                     >Donor</button>
                 </div>
             </OptionModal>

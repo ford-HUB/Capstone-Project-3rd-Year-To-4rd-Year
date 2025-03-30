@@ -9,13 +9,17 @@ const MainLayout = () => {
     const renderNavbar = () => {
         switch (checkRoute?.navbar) {
             case 'guest':
+                // it check the path of our URL kung asa siya na location path if nay mo match
+                // then e return niya ang '/location/path/id
                 const match = matchPath('/home/guest/:id', location.pathname) ||
                     matchPath('/timeline/guest/:id', location.pathname) ||
                     matchPath('/programs/guest/:id', location.pathname) ||
                     matchPath('/upcomingEvents/guest/:id', location.pathname)
 
-                const id = match?.params?.id
-                return <Navbar idRoute={id} /> // this will return navbar for guest visitor
+                // optional chaining for not throwing any errors
+                // insteed it throw the undefine or null
+                const id = match?.params?.id // pass the token id to functional compo navbar
+                return <Navbar idRoute={id} /> // 
             default:
                 return null;
         }

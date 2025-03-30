@@ -5,47 +5,52 @@ import Timeline from './pages/guest/Timeline'
 import Programs from './pages/guest/Programs'
 import UpComingEvents from './pages/guest/UpComingEvents'
 import LoginWrapper from './utils/LoginWrapper'
-import Registration from './pages/guest/Registration'
+import Registration from './pages/participant/Registration'
 import ProtectedGuest from './utils/ProtectedGuest'
 
 const MainTree = [
     {
         path: '/',
-        element: <LoginWrapper>
-            <Home />
-        </LoginWrapper>,
+        element:
+            <LoginWrapper>
+                <Home />
+            </LoginWrapper>,
         navbar: 'guest'
     },
     {
         path: '/home/guest/:id',
-        element: <ProtectedGuest>
-            <Home />
-        </ProtectedGuest>,
+        element:
+            <ProtectedGuest>
+                <Home />
+            </ProtectedGuest>,
         navbar: 'guest'
     },
     {
         path: '/timeline/guest/:id',
-        element: <ProtectedGuest>
-            <Timeline />
-        </ProtectedGuest>,
+        element:
+            <ProtectedGuest>
+                <Timeline />
+            </ProtectedGuest>,
         navbar: 'guest'
     },
     {
         path: '/programs/guest/:id',
-        element: <ProtectedGuest>
-            <Programs />
-        </ProtectedGuest>,
+        element:
+            <ProtectedGuest>
+                <Programs />
+            </ProtectedGuest>,
         navbar: 'guest'
     },
     {
         path: '/upcomingEvents/guest/:id',
-        element: <ProtectedGuest>
-            <UpComingEvents />
-        </ProtectedGuest>,
+        element:
+            <ProtectedGuest>
+                <UpComingEvents />
+            </ProtectedGuest>,
         navbar: 'guest'
     },
     {
-        path: '/registrationForm',
+        path: '/register-account',
         element: <Registration />
     },
 

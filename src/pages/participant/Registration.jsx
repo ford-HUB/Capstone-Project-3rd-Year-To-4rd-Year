@@ -77,6 +77,7 @@ const Registration = () => {
         // Check if the file is provided
         if (!formData.studentIdFile) {
             document.querySelector('#asteriskSymbol').style.color = 'red';
+            document.querySelector('#errorMessage').style.display = 'block'
             return; // Stop if no file is selected
         }
 
@@ -105,9 +106,19 @@ const Registration = () => {
             // Check if the cleaned extracted text contains the name
             if (cleanedText.toLowerCase().includes(studentName)) {
                 setVerified(true);
-                console.log(formData)
                 console.log('Student name verified successfully!');
+                console.log(formData)
                 setSuccess(true)
+                setFormData({
+                    studentId: '',
+                    firstName: '',
+                    lastName: '',
+                    middleName: '',
+                    department: '',
+                    courseAndYear: '',
+                    email: '',
+                    studentIdFile: null
+                })
             } else {
                 console.log('School Id does not match to your form data');
                 setVerified(false);
@@ -119,16 +130,6 @@ const Registration = () => {
         } finally {
             // Stop loading after process
             setLoading(false);
-            setFormData({
-                studentId: '',
-                firstName: '',
-                lastName: '',
-                middleName: '',
-                department: '',
-                courseAndYear: '',
-                email: '',
-                studentIdFile: null
-            })
         }
 
         setInterval(() => {

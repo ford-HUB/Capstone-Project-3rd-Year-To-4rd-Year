@@ -7,6 +7,8 @@ import ErrorAlert from '../../components/ErrorAlert'
 import SuccessAlert from '../../components/SuccessAlert'
 import WarningAlert from '../../components/WarningAlert'
 import { useNavigate } from 'react-router-dom'
+import DonorRegistration from '../donor/donorRegistration'
+
 
 const LoginForm = () => {
     const [open, setOpen] = React.useState(true)
@@ -24,6 +26,21 @@ const LoginForm = () => {
 
     // Define Naviate Link
     const navigate = useNavigate()
+
+    // Page To Posistion Page
+    const [isNextPage, setNextPage] = React.useState(false)
+    const [isDonor, setDonor] = React.useState(false)
+
+    const GoToDonor = () => {
+        setDonor(true)
+        setNextPage(false)
+        return
+    }
+
+    const GoToParticipant = () => {
+        navigate('/register-account')
+        return
+    }
 
     const setCookie = () => {
         const generateToken = uuidv4()
@@ -66,7 +83,7 @@ const LoginForm = () => {
     const handleSubmit = (e) => {
         e.preventDefault()
         if (username === '' || password === '') {
-            throw setWarning(true)
+            return setWarning(true)
         }
 
         setUsername('')
@@ -86,11 +103,6 @@ const LoginForm = () => {
 
     }
 
-    const handleNextPage = () => {
-        return navigate('/registrationForm')
-        // console.log('testing')
-    }
-
     React.useEffect(() => {
         if (token) {
             console.log(`our token ${Cookie.get('token')}`)
@@ -104,6 +116,7 @@ const LoginForm = () => {
 
     return (
         <>
+
             <OptionModal open={open}>
                 <ErrorAlert open={showError}>Invalid Credentials</ErrorAlert>
                 <SuccessAlert open={showSuccess}>Account Successfuly Logged In</SuccessAlert>
@@ -183,7 +196,7 @@ const LoginForm = () => {
                     </div>
 
                     <div className="rightFooter flex items-center">
-                        <button onClick={() => handleNextPage()} className='text-[11px] flex item-center text-slate-600 cursor-pointer hover:text-blue-600 transition-colors duration-300 hover:link'>Go to registration</button>
+                        <button onClick={() => setNextPage(true)} className='text-[11px] flex item-center text-slate-600 cursor-pointer hover:text-blue-600 transition-colors duration-300 hover:link'>Go to registration</button>
                     </div>
                 </div>
 
@@ -192,8 +205,54 @@ const LoginForm = () => {
                         Forget Password?
                     </button>
                 </div>
-
             </OptionModal>
+
+
+
+
+
+
+            <OptionModal open={isNextPage} >
+                <div className="content flex justify-between">
+                    <div className="exit absolute right-5 top-2.5 cursor-pointer">
+                        {/* <BackspaceIcon fontSize='small' sx={{ color: 'slategray' }} onClick={() => setOpen(false)} /> */}
+                        <svg onClick={() => setNextPage(false)} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="size-4 mt-1.5">
+                            <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z" />
+                        </svg>
+
+
+                    </div>
+                    <div className="logo px-2 py-4">
+                        <img src={asset.logo} alt="UCLM CARES"
+                            className='h-24 w-24' />
+                    </div>
+
+                    <div className="titleContainer flex justify-end flex-col py-5 pl-2.5">
+                        <span className='flex justify-center items-end text-slate-500 text-[12px]'>Welcome To University Of Cebu</span>
+                        <h1 className='text-[26px] font-base'>Become <br /> One</h1>
+                    </div>
+                </div>
+
+                <div className="divisor w-full flex items-center justify-center mt-4">
+                    <hr className="w-full border-t border-slate-300" />
+                    <span className="absolute bg-white px-2 my- 3 text-sm font-base text-gray-400">
+                        Choose Your Position
+                    </span>
+                </div>
+
+                <div className="OptionSelection flex justify-center items-center pt-8 flex-col">
+                    <button onClick={GoToParticipant} className='bg-blue-600 rounded-md text-white w-full px-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white'
+                    >Participant</button>
+                    <button onClick={GoToDonor} className='bg-blue-600 rounded-md my-3 text-white w-full px-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white'
+                    >Donor</button>
+                </div>
+            </OptionModal>
+
+            {
+                isDonor && <DonorRegistration />
+            }
+
+
         </>
     )
 }
