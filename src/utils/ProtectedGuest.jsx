@@ -30,6 +30,7 @@ const ProtectedGuest = ({ children }) => {
             {
                 showLogin && <LoginForm />
             }
+
             {children}
         </>
     )

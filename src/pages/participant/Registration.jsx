@@ -87,7 +87,8 @@ const Registration = () => {
         try {
             // Extract text from the image
             const receiveFromExtract = await extractImageId(formData.studentIdFile);
-            //@ Debugging console.log('Raw Extracted Data:', receiveFromExtract);
+            // @ Debugging
+            console.log('Raw Extracted Data:', receiveFromExtract);
 
             // Check if extracted text is valid
             if (!receiveFromExtract || typeof receiveFromExtract !== 'string') {

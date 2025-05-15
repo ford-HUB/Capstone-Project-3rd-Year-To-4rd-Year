@@ -44,7 +44,7 @@ const LoginForm = () => {
 
     const setCookie = () => {
         const generateToken = uuidv4()
-        Cookie.set('token', generateToken, { expires: 30 / (60 * 60 * 24) })
+        Cookie.set('token', generateToken, { expires: 30 / (24 * 60) })
         setToken(generateToken)
         setOpen(false)
 
@@ -179,7 +179,7 @@ const LoginForm = () => {
                                 checked={rememberMe}
                                 onChange={(e) => setRememberMe(e.target.checked)}
                             />
-                            <span className='text-[12px]'>Remember me</span>
+                            <span className='text-[12px]'>Remember me</span>`
                         </label>
 
                         <div className="OptionSelection flex justify-center items-center mt-1 flex-col">
