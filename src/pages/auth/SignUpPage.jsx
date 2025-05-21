@@ -333,7 +333,7 @@ const SignUpPage = () => {
                   >
                     Gender
                   </label>
-                  <fieldset className="fieldset bg-base-100 border-base-300 rounded-box w-64 border py-2 px-2">
+                  <fieldset className="fieldset border-base-300 rounded-box w-64 border py-2 px-2 bg-white">
                   <label className="label">
                     <input
                     type="radio"
