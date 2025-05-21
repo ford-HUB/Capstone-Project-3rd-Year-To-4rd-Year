@@ -334,23 +334,23 @@ const SignUpPage = () => {
                     Gender
                   </label>
                   <fieldset className="fieldset border-base-300 rounded-box w-64 border py-2 px-2 bg-white outline-none">
-                  <label className="label">
+                  <label className="label text-gray-500">
                     <input
                     type="radio"
                     value={'M'}
                     onChange={formData.gender}
                     name="male"
-                    className="radio text-gray-500"
+                    className="radio"
                     defaultChecked/>
                     Male
                   </label>
-                  <label className="label">
+                  <label className="label text-gray-500">
                     <input
                     type="radio"
                     value={'F'}
                     onChange={formData.gender}
                     name="male"
-                    className="radio text-gray-500" />
+                    className="radio" />
                     Female
                   </label>
                 </fieldset>
