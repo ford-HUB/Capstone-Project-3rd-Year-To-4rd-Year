@@ -6,10 +6,11 @@ import extractImageId from "../../services/orcService";
 import CleanReGex from "../../utils/CleanReGex";
 import OptionModal from "../../components/modal/OptionModal";
 import Loader from "../../components/modal/Loader";
+import { useDepartment } from "../../context/useDepartmentContext";
 
-const Registration = () => {
+const SignUpPage = () => {
   const navigate = useNavigate();
-
+  const { departmentCourses } = useDepartment()
   // image Proccessing State
   const [isVerified, setVerified] = React.useState(false);
   const [isLoading, setLoading] = React.useState(false);
@@ -22,8 +23,11 @@ const Registration = () => {
     firstName: "",
     lastName: "",
     middleName: "",
+    age: "",
+    gender: "",
     department: "",
-    courseAndYear: "",
+    course: "",
+    year: "",
     email: "",
     studentIdFile: null,
   });
@@ -46,21 +50,6 @@ const Registration = () => {
         [name]: value,
       }));
     }
-    return;
-  };
-
-  const handleEmail = (e) => {
-    const { name, value } = e.target;
-
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (name === "email" && emailRegex.test(value)) {
-      setFormData((prevState) => ({
-        ...prevState,
-        [name]: value.toLowerCase(),
-      }));
-      return;
-    }
-
     return;
   };
 
@@ -258,7 +247,7 @@ const Registration = () => {
                     id="email"
                     name="email"
                     value={formData.email}
-                    onChange={handleEmail}
+                    onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     // required
                   />
@@ -319,8 +308,56 @@ const Registration = () => {
                   />
                 </div>
               </div>
-
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label
+                    htmlFor="age"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Age
+                  </label>
+                  <input
+                    type="text"
+                    id="age"
+                    name="age"
+                    value={formData.age}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="gender"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Gender
+                  </label>
+                  <fieldset className="fieldset bg-base-100 border-base-300 rounded-box w-64 border py-2 px-2">
+                  <label className="label">
+                    <input
+                    type="radio"
+                    value={'M'}
+                    onChange={formData.gender}
+                    name="male"
+                    className="radio"
+                    defaultChecked/>
+                    Male
+                  </label>
+                  <label className="label">
+                    <input
+                    type="radio"
+                    value={'F'}
+                    onChange={formData.gender}
+                    name="male"
+                    className="radio" />
+                    Female
+                  </label>
+                </fieldset>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label
                     htmlFor="department"
@@ -336,11 +373,37 @@ const Registration = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   >
-                    <option value="">Select Department</option>
-                    <option value="Computer Science">Computer Science</option>
-                    <option value="Engineering">Engineering</option>
-                    <option value="Business">Business</option>
-                    <option value="Arts">Arts</option>
+                    <option disabled value={''}>Select Department</option>
+                  {
+                    Object.keys(departmentCourses).map((department) => (
+                      <option key={department} value={department}>{department}</option>
+                    ))
+                  }
+
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="department"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Course *
+                  </label>
+                  <select
+                    id="department"
+                    name="department"
+                    value={formData.course}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option disabled value={''}>Select Course</option>
+                    {
+                      (departmentCourses[formData.department] || []).map((course) => (
+                        <option key={course} value={course}>{course}</option>
+                      ))
+                    }
                   </select>
                 </div>
 
@@ -349,16 +412,24 @@ const Registration = () => {
                     htmlFor="courseAndYear"
                     className="block text-sm font-medium text-gray-700 mb-2"
                   >
-                    Course & Year *
+                    Year *
                   </label>
-                  <input
-                    type="text"
-                    id="courseAndYear"
-                    name="courseAndYear"
-                    value={formData.courseAndYear}
+                  <select
+                    id="year"
+                    name="year"
+                    value={formData.year}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                    required
+                  >
+                    <option disabled value={''}>Year Level</option>
+                    <option value={1}>1</option>
+                    <option value={2}>2</option>
+                    <option value={3}>3</option>
+                    <option value={4}>4</option>
+
+                    
+                  </select>
                 </div>
               </div>
 
@@ -449,4 +520,4 @@ const Registration = () => {
   );
 };
 
-export default Registration;
+export default SignUpPage;

@@ -35,11 +35,8 @@ export default function UCLMCaresUI() {
 
   return (
     <div className="bg-gray-100 min-h-screen pt-12 ">
-      {/* Content container - no fixed height, allows full page scrolling */}
       <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg">
-        {/* Logo watermark */}
         <div className="relative ">
-          {/* Content sections with increased spacing */}
           <div className="relative z-10">
             {missionContent.map((section, index) => (
               <div 
