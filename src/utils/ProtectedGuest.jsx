@@ -1,5 +1,5 @@
 import React from 'react'
-import LoginForm from '../pages/guest/LoginForm'
+import LoginPage from '../pages/auth/LoginPage'
 import { useParams } from 'react-router-dom'
 import Cookie from 'js-cookie'
 
@@ -28,7 +28,7 @@ const ProtectedGuest = ({ children }) => {
     return (
         <>
             {
-                showLogin && <LoginForm />
+                showLogin && <LoginPage />
             }
 
             {children}

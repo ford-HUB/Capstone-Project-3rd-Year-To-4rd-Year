@@ -1,5 +1,5 @@
 import { useLocation, Routes, Route, matchPath } from "react-router-dom"
-import Navbar from "./components/guest/Navbar"
+import Navbar from "./components/global/Navbar"
 import MainTree from './MainTree'
 
 const MainLayout = () => {

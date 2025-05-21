@@ -1,11 +1,11 @@
 import React from 'react'
-import Home from './pages/guest/Home'
+import GuestHome from './pages/guest/GuestHome'
 import Fallback from './pages/fallback'
 import Timeline from './pages/guest/Timeline'
 import Programs from './pages/guest/Programs'
 import UpComingEvents from './pages/guest/UpComingEvents'
 import LoginWrapper from './utils/LoginWrapper'
-import Registration from './pages/participant/Registration'
+import SignUpPage from './pages/auth/SignUpPage'
 import ProtectedGuest from './utils/ProtectedGuest'
 
 const MainTree = [
@@ -13,7 +13,7 @@ const MainTree = [
         path: '/',
         element:
             <LoginWrapper>
-                <Home />
+                <GuestHome />
             </LoginWrapper>,
         navbar: 'guest'
     },
@@ -21,7 +21,7 @@ const MainTree = [
         path: '/home/guest/:id',
         element:
             <ProtectedGuest>
-                <Home />
+                <GuestHome />
             </ProtectedGuest>,
         navbar: 'guest'
     },
@@ -51,7 +51,7 @@ const MainTree = [
     },
     {
         path: '/register-account',
-        element: <Registration />
+        element: <SignUpPage />
     },
 
 

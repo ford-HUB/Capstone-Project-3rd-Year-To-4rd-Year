@@ -1,5 +1,5 @@
 import React from 'react'
-import LoginForm from '../pages/guest/LoginForm'
+import LoginPage from '../pages/auth/LoginPage'
 
 const LoginWrapper = ({ children }) => {
     const [showLogin, setLogin] = React.useState(false)
@@ -11,7 +11,7 @@ const LoginWrapper = ({ children }) => {
     return (
         <>
             {
-                showLogin && <LoginForm />
+                showLogin && <LoginPage />
             }
             {children}
         </>

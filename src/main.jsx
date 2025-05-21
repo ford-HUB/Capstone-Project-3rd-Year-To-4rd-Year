@@ -3,10 +3,15 @@ import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
 import { BrowserRouter } from 'react-router-dom'
 
+// @Context
+import { DepartmentProvider } from './context/departmentContext.jsx'
+
 createRoot(document.getElementById('root')).render(
-  <BrowserRouter>
-    <StrictMode>
-      <App />
-    </StrictMode>
-  </BrowserRouter>,
+  <DepartmentProvider>
+    <BrowserRouter>
+      <StrictMode>
+       <App />
+      </StrictMode>
+    </BrowserRouter>
+  </DepartmentProvider>
 )

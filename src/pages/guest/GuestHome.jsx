@@ -1,7 +1,7 @@
 import React from 'react'
 import { asset } from '../../assets/asset'
 
-const Home = () => {
+const GuestHome = () => {
     return (
         <>
             <div className="homeContainer flex h-screen w-screen fixed overflow-visible">
@@ -36,4 +36,4 @@ const Home = () => {
     )
 }
 
-export default Home
+export default GuestHome

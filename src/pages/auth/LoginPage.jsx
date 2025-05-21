@@ -3,14 +3,15 @@ import OptionModal from '../../components/modal/OptionModal'
 import { asset } from '../../assets/asset'
 import { v4 as uuidv4 } from 'uuid'
 import Cookie from 'js-cookie'
-import ErrorAlert from '../../components/ErrorAlert'
-import SuccessAlert from '../../components/SuccessAlert'
-import WarningAlert from '../../components/WarningAlert'
+import ErrorAlert from '../../components/global/ErrorAlert'
+import SuccessAlert from '../../components/global/SuccessAlert'
+import WarningAlert from '../../components/global/WarningAlert'
 import { useNavigate } from 'react-router-dom'
 import DonorRegistration from '../donor/donorRegistration'
 
 
-const LoginForm = () => {
+const LoginPage
+ = () => {
     const [open, setOpen] = React.useState(true)
     const [token, setToken] = React.useState()
 
@@ -128,7 +129,7 @@ const LoginForm = () => {
                     </div>
                     <div className="titleContainer flex justify-end flex-col py-5 pl-2.5">
                         <span className='flex justify-center items-end text-slate-500 text-[12px]'>Welcome To University Of Cebu</span>
-                        <h1 className='text-[26px] font-base'>Login<br /> Account</h1>
+                        <h1 className='text-black text-[26px] font-base'>Login<br /> Account</h1>
                     </div>
                 </div>
 
@@ -150,7 +151,7 @@ const LoginForm = () => {
                             </svg>
 
                             <input
-                                className="input input-bordered w-full pl-10 focus:outline-none"
+                                className="input input-bordered w-full pl-10 focus:outline-none bg-white text-gray-500 border-gray-300"
                                 type="text"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
@@ -167,7 +168,7 @@ const LoginForm = () => {
                             </svg>
 
                             <input
-                                className="input input-bordered w-full pl-10 focus:outline-none"
+                                className="input input-bordered w-full pl-10 focus:outline-none bg-white text-gray-500 border-gray-300"
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
@@ -175,11 +176,11 @@ const LoginForm = () => {
                             />
                         </div>
                         <label className="fieldset-label flex justify-end items-center mt-1.5">
-                            <input type="checkbox" className="checkbox w-4 h-4"
+                            <input type="checkbox" className="checkbox checkbox-xs text-gray-500 mr-0.5 border-gray-100"
                                 checked={rememberMe}
                                 onChange={(e) => setRememberMe(e.target.checked)}
                             />
-                            <span className='text-[12px]'>Remember me</span>`
+                            <span className='text-gray-500 text-[11px]'>Remember me</span>`
                         </label>
 
                         <div className="OptionSelection flex justify-center items-center mt-1 flex-col">
@@ -216,7 +217,7 @@ const LoginForm = () => {
                 <div className="content flex justify-between">
                     <div className="exit absolute right-5 top-2.5 cursor-pointer">
                         {/* <BackspaceIcon fontSize='small' sx={{ color: 'slategray' }} onClick={() => setOpen(false)} /> */}
-                        <svg onClick={() => setNextPage(false)} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="size-4 mt-1.5">
+                        <svg onClick={() => setNextPage(false)} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="size-4 mt-1.5 text-gray-500">
                             <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z" />
                         </svg>
 
@@ -229,22 +230,24 @@ const LoginForm = () => {
 
                     <div className="titleContainer flex justify-end flex-col py-5 pl-2.5">
                         <span className='flex justify-center items-end text-slate-500 text-[12px]'>Welcome To University Of Cebu</span>
-                        <h1 className='text-[26px] font-base'>Become <br /> One</h1>
+                        <h1 className='text-[26px] font-base text-black'>Become <br /> One</h1>
                     </div>
                 </div>
 
                 <div className="divisor w-full flex items-center justify-center mt-4">
                     <hr className="w-full border-t border-slate-300" />
                     <span className="absolute bg-white px-2 my- 3 text-sm font-base text-gray-400">
-                        Choose Your Position
+                        Choose Position
                     </span>
                 </div>
 
                 <div className="OptionSelection flex justify-center items-center pt-8 flex-col">
                     <button onClick={GoToParticipant} className='bg-blue-600 rounded-md text-white w-full px-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white'
-                    >Participant</button>
-                    <button onClick={GoToDonor} className='bg-blue-600 rounded-md my-3 text-white w-full px-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white'
+                    >Volunteer</button>
+                    <button onClick={GoToDonor} className='bg-blue-600 rounded-md text-white w-full px-1.5 my-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white'
                     >Donor</button>
+                    <button onClick={GoToParticipant} className='bg-blue-600 rounded-md text-white w-full px-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white'
+                    >Staff</button>
                 </div>
             </OptionModal>
 
@@ -257,4 +260,4 @@ const LoginForm = () => {
     )
 }
 
-export default LoginForm
+export default LoginPage
