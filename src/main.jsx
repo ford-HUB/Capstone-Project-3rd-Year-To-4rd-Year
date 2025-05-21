@@ -4,7 +4,7 @@ import App from './App.jsx'
 import { BrowserRouter } from 'react-router-dom'
 
 // @Context
-import { DepartmentProvider } from './context/departmentContext.jsx'
+import { DepartmentProvider } from './context/useDepartmentContext'
 
 createRoot(document.getElementById('root')).render(
   <DepartmentProvider>

@@ -246,7 +246,7 @@ const LoginPage
                     >Volunteer</button>
                     <button onClick={GoToDonor} className='bg-blue-600 rounded-md text-white w-full px-1.5 my-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white'
                     >Donor</button>
-                    <button onClick={GoToParticipant} className='bg-blue-600 rounded-md text-white w-full px-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white'
+                    <button onClick={null} className='bg-blue-600 rounded-md text-white w-full px-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white'
                     >Staff</button>
                 </div>
             </OptionModal>

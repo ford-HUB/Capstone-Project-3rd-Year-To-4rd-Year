@@ -48,7 +48,6 @@ export default function UCLMCaresUI() {
               <li>Key initiative 3 for healthcare initiatives</li>
             </ul>
           </div>
-
         </div>
       </div>
     </div>
