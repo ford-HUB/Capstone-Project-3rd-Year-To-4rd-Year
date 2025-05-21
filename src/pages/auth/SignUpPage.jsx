@@ -340,7 +340,7 @@ const SignUpPage = () => {
                     value={'M'}
                     onChange={formData.gender}
                     name="male"
-                    className="radio"
+                    className="radio bg-white"
                     defaultChecked/>
                     Male
                   </label>
@@ -350,7 +350,7 @@ const SignUpPage = () => {
                     value={'F'}
                     onChange={formData.gender}
                     name="male"
-                    className="radio" />
+                    className="radio bg-white" />
                     Female
                   </label>
                 </fieldset>
