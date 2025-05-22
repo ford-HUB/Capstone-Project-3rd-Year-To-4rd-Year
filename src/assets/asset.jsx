@@ -10,6 +10,10 @@ import fourOne from './fourOne.jpg'
 import fourTwo from './fourTwo.jpg'
 import fourThree from './fourThree.jpg'
 import fourFour from './fourFour.jpg'
+import testProfile from './testProfile.jpg'
+import impactPic1 from './impactPic1.jpg'
+import impactPic2 from './impactPic2.jpg'
+import impactPic3 from './impactPic3.jpg'
 
 
 export const asset = {
@@ -24,5 +28,9 @@ export const asset = {
     fourOne,
     fourTwo,
     fourThree,
-    fourFour
-}
+    fourFour,
+    testProfile,
+    impactPic1,
+    impactPic2,
+    impactPic3
+}   
