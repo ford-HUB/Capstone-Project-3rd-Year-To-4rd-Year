@@ -5,6 +5,11 @@ import uclmLogo from './uclm-logo.png'
 import groupImage from './group-image.png'
 import idSample from './idSample.png'
 import schoolID from './schoolID.jpg'
+import transparentLogo from './transparent-logo.png'
+import fourOne from './fourOne.jpg'
+import fourTwo from './fourTwo.jpg'
+import fourThree from './fourThree.jpg'
+import fourFour from './fourFour.jpg'
 
 
 export const asset = {
@@ -14,5 +19,10 @@ export const asset = {
     uclmLogo,
     groupImage,
     idSample,
-    schoolID
+    schoolID,
+    transparentLogo,
+    fourOne,
+    fourTwo,
+    fourThree,
+    fourFour
 }
