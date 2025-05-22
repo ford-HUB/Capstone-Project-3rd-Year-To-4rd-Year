@@ -24,16 +24,76 @@ export default function UCLMCaresUI() {
             </p>
           </div>
 
-          <div className="bg-white shadow-lg rounded-xl p-10 min-h-[400px] flex flex-col justify-between">
-            <h2 className="text-3xl font-bold mb-6">
-              <span className="text-blue-500">Featured</span>{' '}
-              <span className="text-red-500">Programs</span>
-            </h2>
-            <ul className="list-disc -mt-6 pl-5 space-y-2 text-gray-700">
-              <li>Key initiative 1 for education programs</li>
-              <li>Key initiative 2 for education programs</li>
-              <li>Key initiative 3 for education programs</li>
-            </ul>
+          <div className="bg-white shadow-lg rounded-xl p-10 min-h-96 flex">
+            {/* Left side - Programs list */}
+            <div className="flex-1 pr-8">
+              <h2 className="text-3xl font-bold mb-8">
+                <span className="text-blue-500">Featured</span>{' '}
+                <span className="text-red-500">Programs</span>
+              </h2>
+              
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">📚</span>
+                  <span className="text-lg text-gray-700">Scholarship Assistance</span>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">🍽️</span>
+                  <span className="text-lg text-gray-700">Community Feeding Program</span>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">🏥</span>
+                  <span className="text-lg text-gray-700">Medical Missions</span>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">🌱</span>
+                  <span className="text-lg text-gray-700">Environmental Initiatives</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Right side - Image grid */}
+            <div className="flex-1 grid grid-cols-2 gap-3">
+              {/* Top left - Group photo in blue shirts */}
+              <div className="bg-gray-200 rounded-lg overflow-hidden">
+                <img 
+                  src={asset.fourOne}
+                  alt="Free Breakfast Event"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              
+              {/* Top right - Group with banner */}
+              <div className="bg-gray-200 rounded-lg overflow-hidden">
+                <img 
+                  src={asset.fourTwo}
+                  alt="Community event with banner" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              
+              {/* Bottom left - Medical mission */}
+              <div className="bg-gray-200 rounded-lg overflow-hidden">
+                <img 
+                  src={asset.fourThree}
+                  alt="Medical mission activity" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              
+              {/* Bottom right - Environmental/community event */}
+              <div className="bg-gray-200 rounded-lg overflow-hidden">
+                <img 
+                  src={asset.fourFour} 
+                  alt="Environmental initiative" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="bg-white shadow-lg rounded-xl p-10 min-h-[400px] flex flex-col justify-between">
