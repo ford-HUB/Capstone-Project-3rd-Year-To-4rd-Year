@@ -7,7 +7,7 @@ import ErrorAlert from '../../components/global/ErrorAlert'
 import SuccessAlert from '../../components/global/SuccessAlert'
 import WarningAlert from '../../components/global/WarningAlert'
 import { useNavigate } from 'react-router-dom'
-import DonorRegistration from '../donor/donorRegistration'
+import DonorRegistration from './DonorRegistration'
 
 
 const LoginPage
@@ -40,6 +40,11 @@ const LoginPage
 
     const GoToParticipant = () => {
         navigate('/register-account')
+        return
+    }
+
+    const GotoRequestStaff = () => {
+        navigate('/staff-request')
         return
     }
 
@@ -208,11 +213,7 @@ const LoginPage
                 </div>
             </OptionModal>
 
-
-
-
-
-
+            {/*Choice Modal*/}
             <OptionModal open={isNextPage} >
                 <div className="content flex justify-between">
                     <div className="exit absolute right-5 top-2.5 cursor-pointer">
@@ -246,10 +247,12 @@ const LoginPage
                     >Volunteer</button>
                     <button onClick={GoToDonor} className='bg-blue-600 rounded-md text-white w-full px-1.5 my-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white'
                     >Donor</button>
-                    <button onClick={null} className='bg-blue-600 rounded-md text-white w-full px-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white'
+                    <button onClick={GotoRequestStaff} className='bg-blue-600 rounded-md text-white w-full px-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white'
                     >Staff</button>
                 </div>
             </OptionModal>
+
+            {/*Show Reistration Donor Modal*/}
 
             {
                 isDonor && <DonorRegistration />

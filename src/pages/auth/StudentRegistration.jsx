@@ -8,7 +8,7 @@ import OptionModal from "../../components/modal/OptionModal";
 import Loader from "../../components/modal/Loader";
 import { useDepartment } from "../../context/useDepartmentContext";
 
-const SignUpPage = () => {
+const StudentRegistration = () => {
   const navigate = useNavigate();
   const { departmentCourses } = useDepartment()
   // image Proccessing State
@@ -170,7 +170,7 @@ const SignUpPage = () => {
       </OptionModal>
 
       <div className="min-h-screen">
-        <nav className="bg-blue-600 text-white shadow-md sticky top-0 z[100]">
+        <nav className="bg-blue-600 text-white shadow-md sticky top-0 z[999]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-14">
               <div className="flex items-center">
@@ -194,8 +194,9 @@ const SignUpPage = () => {
 
         <div className="container mx-auto px-4 py-8 flex items-center justify-center bg-gray-100">
           <div className="bg-white shadow-md rounded-lg w-full max-w-2xl p-8">
-            <div className="logo flex justify-start">
-              <img
+            <div className="logo flex justify-between">
+              <div className="flex">
+                <img
                 src={asset.logo}
                 alt="logo"
                 className=" flex items-center h-12 w-12"
@@ -205,6 +206,7 @@ const SignUpPage = () => {
                 alt="logo"
                 className=" flex items-center h-12 w-12"
               />
+              </div>
             </div>
 
             <div className="header flex justify-center items-center pb-8">
@@ -333,7 +335,7 @@ const SignUpPage = () => {
                   >
                     Gender
                   </label>
-                  <fieldset className="fieldset border-base-300 rounded-box w-64 border py-2 px-2 bg-white border-none">
+                  <fieldset className="fieldset border-base-300 rounded-box w-64 border py-2 px-2 bg-white">
                   <label className="label text-gray-500">
                     <input
                     type="radio"
@@ -520,4 +522,4 @@ const SignUpPage = () => {
   );
 };
 
-export default SignUpPage;
+export default StudentRegistration;

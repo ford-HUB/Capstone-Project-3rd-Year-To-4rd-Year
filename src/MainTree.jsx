@@ -5,8 +5,10 @@ import Timeline from './pages/guest/Timeline'
 import Programs from './pages/guest/Programs'
 import UpComingEvents from './pages/guest/UpComingEvents'
 import LoginWrapper from './utils/LoginWrapper'
-import SignUpPage from './pages/auth/SignUpPage'
+import StudentRegistration from './pages/auth/StudentRegistration'
 import ProtectedGuest from './utils/ProtectedGuest'
+import RequestPosition from './pages/auth/RequestPosition'
+import StaffRegistration from './pages/auth/StaffRegistration'
 
 const MainTree = [
     {
@@ -51,7 +53,15 @@ const MainTree = [
     },
     {
         path: '/register-account',
-        element: <SignUpPage />
+        element: <StudentRegistration />
+    },
+    {
+        path: '/staff-request',
+        element: <RequestPosition/>
+    },
+    {
+        path: 'staff-registration',
+        element: <StaffRegistration/>
     },
 
 
