@@ -185,7 +185,7 @@ const LoginPage
                                 checked={rememberMe}
                                 onChange={(e) => setRememberMe(e.target.checked)}
                             />
-                            <span className='text-gray-500 text-[11px]'>Remember me</span>`
+                            <span className='text-gray-500 text-[11px]'>Remember me</span>
                         </label>
 
                         <div className="OptionSelection flex justify-center items-center mt-1 flex-col">
