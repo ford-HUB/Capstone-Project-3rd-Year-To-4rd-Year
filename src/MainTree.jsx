@@ -60,7 +60,7 @@ const MainTree = [
         element: <RequestPosition/>
     },
     {
-        path: 'staff-registration',
+        path: '/staff-registration',
         element: <StaffRegistration/>
     },
 

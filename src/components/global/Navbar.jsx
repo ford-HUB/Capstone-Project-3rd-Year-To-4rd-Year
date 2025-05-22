@@ -24,54 +24,15 @@ const Navbar = ({ idRoute }) => {
         </div>
 
         <div className="navLinks flex justify-center items-center text-sm/6">
-          <Link
-            to={`/home/guest/${idRoute}`}
-            className={`px-5 ${
-              isActive(`/home/guest/${idRoute}`)
-                ? `text-blue-600`
-                : `hover:text-blue-600 transition-colors duration-300`
-            }`}
-          >
-            Home
+          <Link to={`/home/guest/${idRoute}`} className={`px-5 ${ isActive(`/home/guest/${idRoute}`) ? `text-blue-600` : `hover:text-blue-600 transition-colors duration-300` }`}>Home</Link>
+          <Link to={`/timeline/guest/${idRoute}`} className={`px-5 ${ isActive(`/timeline/guest/${idRoute}`)? `text-blue-600` : `hover:text-blue-600 transition-colors duration-300` }`} >Timeline</Link>
+          <Link to={`/programs/guest/${idRoute}`} className={`px-5 ${ isActive(`/programs/guest/${idRoute}`)? `text-blue-600` : `hover:text-blue-600 transition-colors duration-300` }`} >Programs
           </Link>
-          <Link
-            to={`/timeline/guest/${idRoute}`}
-            className={`px-5 ${
-              isActive(`/timeline/guest/${idRoute}`)
-                ? `text-blue-600`
-                : `hover:text-blue-600 transition-colors duration-300`
-            }`}
-          >
-            Timeline
-          </Link>
-          <Link
-            to={`/programs/guest/${idRoute}`}
-            className={`px-5 ${
-              isActive(`/programs/guest/${idRoute}`)
-                ? `text-blue-600`
-                : `hover:text-blue-600 transition-colors duration-300`
-            }`}
-          >
-            Programs
-          </Link>
-          <Link
-            to={`/upcomingEvents/guest/${idRoute}`}
-            className={`px-3 ${
-              isActive(`/upcomingEvents/guest/${idRoute}`)
-                ? `text-blue-600`
-                : `hover:text-blue-600 transition-colors duration-300`
-            }`}
-          >
-            Up Coming Events
-          </Link>
+          <Link to={`/upcomingEvents/guest/${idRoute}`} className={`px-3 ${ isActive(`/upcomingEvents/guest/${idRoute}`) ? `text-blue-600` : `hover:text-blue-600 transition-colors duration-300` }`} >Up Coming Events</Link>
         </div>
 
         <div className="sideContainer flex justify-end items-center text-md/6 text-white">
-          <button
-            onClick={() => navigate('/')}
-            type="submit"
-            className="bg-blue-600 px-2.5 py-1.5 rounded-[4px] hover:bg-blue-700 transition-colors duration-400 hover:text-white"
-          >
+          <button onClick={() => navigate('/')} type="submit" className="bg-blue-600 px-2.5 py-1.5 rounded-[4px] hover:bg-blue-700 transition-colors duration-400 hover:text-white">
             Get Involved
           </button>
         </div>
