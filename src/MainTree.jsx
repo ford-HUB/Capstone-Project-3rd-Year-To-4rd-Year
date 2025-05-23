@@ -9,6 +9,7 @@ import StudentRegistration from './pages/auth/StudentRegistration'
 import ProtectedGuest from './utils/ProtectedGuest'
 import RequestPosition from './pages/auth/RequestPosition'
 import StaffRegistration from './pages/auth/StaffRegistration'
+import ParticipantHomePage from './pages/participant/ParticipantHomePage'
 
 const MainTree = [
     {
@@ -51,6 +52,9 @@ const MainTree = [
             </ProtectedGuest>,
         navbar: 'guest'
     },
+
+
+
     {
         path: '/register-account',
         element: <StudentRegistration />
@@ -64,6 +68,14 @@ const MainTree = [
         element: <StaffRegistration/>
     },
 
+
+
+    // Participant ROutes
+    {
+        path: '/participant/home',
+        element: <ParticipantHomePage/>,
+        navbar: 'user'
+    },
 
 
 

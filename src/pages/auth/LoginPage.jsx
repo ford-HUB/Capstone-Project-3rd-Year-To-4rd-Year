@@ -182,16 +182,16 @@ const LoginPage
                         </div>
                         <label className="fieldset-label flex justify-end items-center mt-1.5">
                             <input type="checkbox" className="checkbox checkbox-xs text-gray-500 mr-0.5 border-gray-100"
-                                checked={rememberMe}
+                                checked={rememberMe}s
                                 onChange={(e) => setRememberMe(e.target.checked)}
                             />
                             <span className='text-gray-500 text-[11px]'>Remember me</span>
                         </label>
 
                         <div className="OptionSelection flex justify-center items-center mt-1 flex-col">
-                            <button className='bg-blue-600 rounded-md text-white w-full px-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white'
-                                type='submit'
-                            >Login</button>
+                            <button onClick={() => navigate('/participant/home')} className='bg-blue-600 rounded-md text-white w-full px-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white' type='submit'>
+                                Login
+                            </button>
                         </div>
                     </form>
                 </div>

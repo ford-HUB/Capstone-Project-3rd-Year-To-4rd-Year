@@ -1,7 +1,5 @@
 import { asset } from "../../assets/asset";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import OptionModal from "../modal/OptionModal";
 
 const Navbar = ({ idRoute }) => {
   const location = useLocation();
