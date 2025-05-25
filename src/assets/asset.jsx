@@ -14,6 +14,7 @@ import testProfile from './testProfile.jpg'
 import impactPic1 from './impactPic1.jpg'
 import impactPic2 from './impactPic2.jpg'
 import impactPic3 from './impactPic3.jpg'
+import megaphone from './megaphone.png'
 
 
 export const asset = {
@@ -32,5 +33,6 @@ export const asset = {
     testProfile,
     impactPic1,
     impactPic2,
-    impactPic3
+    impactPic3,
+    megaphone
 }   

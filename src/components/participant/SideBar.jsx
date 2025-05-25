@@ -3,14 +3,14 @@ import { asset } from '../../assets/asset'
 const SideBar = () => {
   return (
     <>
-        <div className="shadow-md border rounded-xl w-[25rem] h-auto">
+        <div className="shadow-md border rounded-3xl w-[25rem] h-auto -mt-15 ml-2 bg-white">
             <div className="header m-4 flex items-center p-4">
                 <img className='w-14' src={asset.logo} alt="UCLM CARES"/>
                 <span className='font-bold px-4 text-[1.5rem] text-blue-800'>UCLM</span>
                 <span className='font-bold text-[1.5rem] text-red-600'>CARES</span>
             </div>
 
-            <div className="group-of-buttons border m-8 rounded-xl shadow-md">
+            <div className="group-of-buttons border m-8 rounded-2xl shadow-md">
                 <div className="inner-container flex justify-center border m-8 rounded-md bg-blue-950">
                     <button type='button' className='btn btn-primary px-24 py-12 text-[1.5rem] rounded-xl m-4'>JOIN NOW</button>
                 </div>
