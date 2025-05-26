@@ -1,7 +1,6 @@
 import SidePanel from "../../components/participant/SidePanel";
 import RightCard from "../../components/participant/RightCard";
-import { Outlet } from "react-router-dom";
-import Matching from "../../components/participant/Matching";
+
 
 const ParticipantHomePage = () => {
   return (
