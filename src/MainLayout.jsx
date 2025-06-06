@@ -1,6 +1,7 @@
 import { useLocation, Routes, Route, matchPath } from "react-router-dom"
 import Navbar from "./components/global/Navbar"
 import ParticipantNavbar from './components/participant/ParticipantNavbar'
+import CoordinatorNavbar from './components/coordinator/CoordinatorNavbar'
 import MainTree from './MainTree'
 
 const MainLayout = () => {
@@ -24,6 +25,9 @@ const MainLayout = () => {
             
             case 'user':
                 return <ParticipantNavbar/>
+
+            case 'coordinator':
+                return <CoordinatorNavbar/>
                 
             default:
                 return null;

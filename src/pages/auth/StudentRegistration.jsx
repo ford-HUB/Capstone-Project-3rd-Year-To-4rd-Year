@@ -29,6 +29,8 @@ const StudentRegistration = () => {
     course: "",
     year: "",
     email: "",
+    phone: "", //kani
+    address: "",
     studentIdFile: null,
   });
 
@@ -111,6 +113,8 @@ const StudentRegistration = () => {
           department: "",
           courseAndYear: "",
           email: "",
+          phone: "", //kani
+          address: "",
           studentIdFile: null,
         });
       } else {
@@ -217,7 +221,7 @@ const StudentRegistration = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label
                     htmlFor="studentId"
@@ -249,6 +253,24 @@ const StudentRegistration = () => {
                     id="email"
                     name="email"
                     value={formData.email}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    // required
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="phone"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Phone Number *
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     // required
@@ -328,6 +350,7 @@ const StudentRegistration = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
+
                 <div>
                   <label
                     htmlFor="gender"
@@ -335,29 +358,39 @@ const StudentRegistration = () => {
                   >
                     Gender
                   </label>
-                  <fieldset className="fieldset border-base-300 rounded-box w-64 border py-2 px-2 bg-white">
-                  <label className="label text-gray-500">
-                    <input
-                    type="radio"
-                    value={'M'}
-                    onChange={formData.gender}
-                    name="male"
-                    className="radio bg-white"
-                    defaultChecked/>
-                    Male
-                  </label>
-                  <label className="label text-gray-500">
-                    <input
-                    type="radio"
-                    value={'F'}
-                    onChange={formData.gender}
-                    name="male"
-                    className="radio bg-white" />
-                    Female
-                  </label>
-                </fieldset>
+                  <select
+                    id="gender"
+                    name="gender"
+                    value={formData.gender}
+                    onChange={(e) => setFormData({...formData, gender: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="M">Male</option>
+                    <option value="F">Female</option>
+                    <option value="N">Prefer Not to Say</option>
+                  </select>
                 </div>
               </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+              <div>
+                  <label
+                    htmlFor="address"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Address
+                  </label>
+                  <input
+                    type="text"
+                    id="address"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+            </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
@@ -429,8 +462,7 @@ const StudentRegistration = () => {
                     <option value={2}>2</option>
                     <option value={3}>3</option>
                     <option value={4}>4</option>
-
-                    
+                  
                   </select>
                 </div>
               </div>
