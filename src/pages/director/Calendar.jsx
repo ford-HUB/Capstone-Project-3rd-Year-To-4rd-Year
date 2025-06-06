@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, Users, MapPin, X } from 'lucide-react';
-import CoordinatorSidePanel from '../../components/coordinator/CoordinatorSidePanel';
+import DirectorSidePanel from '../../components/director/DirectorSidePanel';
 
 const EventModal = ({ isOpen, onClose, events, date }) => {
   if (!isOpen) return null;
@@ -32,7 +32,7 @@ const EventModal = ({ isOpen, onClose, events, date }) => {
                       <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-600">
                         <div className="flex items-center gap-1">
                           <CalendarIcon className="w-4 h-4" />
-                          <span>{event.date}</span>
+                          <span>{event.date.toDateString()}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Clock className="w-4 h-4" />
@@ -73,7 +73,7 @@ const Calendar = () => {
     {
       id: 1,
       title: "Community Outreach Program",
-      date: "May 28",
+      date: new Date(2024, 4, 28), // May 28, 2024
       time: "9:00 AM - 12:00 PM",
       location: "UCLM Campus",
       participants: 45,
@@ -83,7 +83,7 @@ const Calendar = () => {
     {
       id: 2,
       title: "Health Awareness Seminar",
-      date: "May 25",
+      date: new Date(2024, 4, 25), // May 25, 2024
       time: "2:00 PM - 4:00 PM",
       location: "UCLM Auditorium",
       participants: 32,
@@ -116,7 +116,13 @@ const Calendar = () => {
 
   const handleDateClick = (day) => {
     const dateStr = `${monthNames[currentDate.getMonth()]} ${day}`;
-    const eventsForDay = events.filter(event => event.date === dateStr);
+    const eventsForDay = events.filter(event => {
+      const eventDate = new Date(event.date);
+      const currentDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+      return eventDate.getDate() === currentDay.getDate() && 
+             eventDate.getMonth() === currentDay.getMonth() && 
+             eventDate.getFullYear() === currentDay.getFullYear();
+    });
     setSelectedDate(dateStr);
     setSelectedEvents(eventsForDay);
     setIsModalOpen(true);
@@ -126,9 +132,9 @@ const Calendar = () => {
   const firstDayOfMonth = getFirstDayOfMonth(currentDate.getFullYear(), currentDate.getMonth());
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-18">
+    <div className="min-h-screen bg-gray-50 pt-[72px]">
       <div className="flex">
-        <CoordinatorSidePanel />
+        <DirectorSidePanel />
         
         {/* Main Content */}
         <div className="flex-1 px-8 py-6 ml-16">
@@ -179,7 +185,7 @@ const Calendar = () => {
                   {Array.from({ length: daysInMonth }, (_, i) => {
                     const day = i + 1;
                     const dateStr = `${monthNames[currentDate.getMonth()]} ${day}`;
-                    const dayEvents = events.filter(event => event.date === dateStr);
+                    const dayEvents = events.filter(event => event.date.toDateString() === new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toDateString());
                     const hasEvent = dayEvents.length > 0;
                     return (
                       <div
@@ -230,7 +236,7 @@ const Calendar = () => {
                           <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-600">
                             <div className="flex items-center gap-1">
                               <CalendarIcon className="w-4 h-4" />
-                              <span>{event.date}</span>
+                              <span>{event.date.toDateString()}</span>
                             </div>
                             <div className="flex items-center gap-1">
                               <Clock className="w-4 h-4" />

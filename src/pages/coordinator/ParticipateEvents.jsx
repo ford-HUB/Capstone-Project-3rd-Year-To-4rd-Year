@@ -93,13 +93,13 @@ const ParticipateEvents = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 pt-20">
+    <div className="p-6 bg-gray-50 pt-24">
       <div className="flex flex-col md:flex-row gap-4">
         <CoordinatorSidePanel />
         
-        {/* Top Participants Section - Now on the left */}
-        <div className="w-full md:w-1/3 ml-12">
-          <div className="bg-white rounded-xl shadow-lg p-6">
+        {/* Top participant ni*/}
+        <div className="w-full md:w-1/3 ml-12 pl-6">
+          <div className="bg-white rounded-2xl shadow-lg p-6">
             <h2 className="text-xl font-semibold mb-4 text-gray-800">
               🏆 Top Participants This Week
             </h2>

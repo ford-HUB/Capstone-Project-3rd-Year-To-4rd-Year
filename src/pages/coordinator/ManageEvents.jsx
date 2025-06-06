@@ -38,14 +38,14 @@ const ManageEvents = () => {
   ];
 
   return (
-    <div className="p-6 bg-gray-50 pt-20">
+    <div className="p-6 bg-gray-50 pt-24 pl-12">
       <div className="flex flex-col md:flex-row gap-4">
         <CoordinatorSidePanel />
         
         {/* Main Content */}
         <div className="flex-1 ml-12">
           {/* Header Section */}
-          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold text-gray-800">Manage Events</h1>
               <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">

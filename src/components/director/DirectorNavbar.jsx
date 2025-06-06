@@ -33,7 +33,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
   );
 };
 
-const CoordinatorNavbar = () => {
+const DirectorNavbar = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   return (
     <>
@@ -46,20 +46,17 @@ const CoordinatorNavbar = () => {
         <div className="flex">
           <ul className='flex items-center p-3'>
             <li className='px-3 text-l'>
-              <a href="/coordinator/accomplishments">Accomplishments</a>
+              <a href="/director/accomplishments">Accomplishments</a>
             </li>
             <li className='px-3 text-l'>
-              <a href="/coordinator/certificates">Certificates</a>
-            </li>
-            <li className='px-3 text-l'>
-              <a href="/coordinator/history">History</a>
+              <a href="/director/history">History</a>
             </li>
           </ul>
 
           <div className="flex items-center gap-4 mx-6">
             <div className="avatar avatar-online avatar-placeholder dropdown dropdown-end cursor-pointer">
               <div className="bg-neutral flex items-center text-neutral-content w-12 rounded-full" role='button' tabIndex={0}>
-                <span className="text-xl">C</span>
+                <span className="text-xl">D</span>
               </div>
               <ul tabIndex={0} className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-14 w-52 p-2 shadow">
                 <li>
@@ -82,4 +79,4 @@ const CoordinatorNavbar = () => {
   )
 }
 
-export default CoordinatorNavbar 
+export default DirectorNavbar 

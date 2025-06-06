@@ -2,12 +2,19 @@ import { useLocation, Routes, Route, matchPath } from "react-router-dom"
 import Navbar from "./components/global/Navbar"
 import ParticipantNavbar from './components/participant/ParticipantNavbar'
 import CoordinatorNavbar from './components/coordinator/CoordinatorNavbar'
+import DirectorNavbar from './components/director/DirectorNavbar'
 import MainTree from './MainTree'
 
 const MainLayout = () => {
     const location = useLocation()
 
-    const checkRoute = MainTree.find((route) => route.path && matchPath(route.path, location.pathname))
+    const checkRoute = MainTree.find((route) => {
+        if (route.path === '/staff/*') {
+            return location.pathname.startsWith('/staff')
+        }
+        return route.path && matchPath(route.path, location.pathname)
+    })
+
     const renderNavbar = () => {
         switch (checkRoute?.navbar) {
             case 'guest':
@@ -26,33 +33,41 @@ const MainLayout = () => {
             case 'user':
                 return <ParticipantNavbar/>
 
-            case 'coordinator':
+            case 'coordinator': 
                 return <CoordinatorNavbar/>
+
+            case 'director':
+                return <DirectorNavbar/>
+            
+            case 'staff':
+                return null // Staff has its own sidebar
                 
             default:
                 return null;
         }
     }
 
+    const renderRoutes = (routes) => {
+        return routes.map((route, index) => {
+            if (route.children) {
+                return (
+                    <Route key={index} path={route.path} element={route.element}>
+                        {renderRoutes(route.children)}
+                    </Route>
+                );
+            }
+            return <Route key={index} path={route.path} element={route.element} />;
+        });
+    };
+
     return (
         <>
-            {
-                renderNavbar()
-            }
-
-            <div>
-                <Routes>
-                    {
-                        MainTree.map((route, index) => (
-                            <Route key={index} path={route.path}
-                                element={route.element} />
-                        ))
-                    }
-                </Routes>
-            </div>
+            {renderNavbar()}
+            <Routes>
+                {renderRoutes(MainTree)}
+            </Routes>
         </>
     )
-
 }
 
 export default MainLayout

@@ -15,10 +15,11 @@ import impactPic1 from './impactPic1.jpg'
 import impactPic2 from './impactPic2.jpg'
 import impactPic3 from './impactPic3.jpg'
 import megaphone from './megaphone.png'
-import bossing from './bossing.jpg'
+import bossing from './bossing.jpg' 
 import boy from './boy.jpg'
 import cris from './cris.jpg'
 import master from './master.jpg'
+import cleanupDrive from './cleanup-drive.jpg'
 
 
 export const asset = {
@@ -42,5 +43,6 @@ export const asset = {
     bossing,
     boy,
     cris,
-    master
+    master,
+    cleanupDrive
 }   
