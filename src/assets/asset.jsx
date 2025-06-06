@@ -15,10 +15,14 @@ import impactPic1 from './impactPic1.jpg'
 import impactPic2 from './impactPic2.jpg'
 import impactPic3 from './impactPic3.jpg'
 import megaphone from './megaphone.png'
+<<<<<<< Updated upstream
 import bossing from './bossing.jpg'
 import boy from './boy.jpg'
 import cris from './cris.jpg'
 import master from './master.jpg'
+=======
+import cleanupDrive from './cleanup-drive.jpg'
+>>>>>>> Stashed changes
 
 
 export const asset = {
@@ -39,8 +43,12 @@ export const asset = {
     impactPic2,
     impactPic3,
     megaphone,
+<<<<<<< Updated upstream
     bossing,
     boy,
     cris,
     master
+=======
+    cleanupDrive
+>>>>>>> Stashed changes
 }   

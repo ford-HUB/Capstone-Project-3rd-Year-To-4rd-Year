@@ -1,4 +1,4 @@
-import { useLocation, Routes, Route, matchPath } from "react-router-dom"
+import { useLocation, Routes, Route, matchPath, useRoutes } from "react-router-dom"
 import Navbar from "./components/global/Navbar"
 import ParticipantNavbar from './components/participant/ParticipantNavbar'
 import CoordinatorNavbar from './components/coordinator/CoordinatorNavbar'
@@ -7,8 +7,15 @@ import MainTree from './MainTree'
 
 const MainLayout = () => {
     const location = useLocation()
+    const routes = useRoutes(MainTree)
 
-    const checkRoute = MainTree.find((route) => route.path && matchPath(route.path, location.pathname))
+    const checkRoute = MainTree.find((route) => {
+        if (route.path === '/staff/*') {
+            return location.pathname.startsWith('/staff')
+        }
+        return route.path && matchPath(route.path, location.pathname)
+    })
+
     const renderNavbar = () => {
         switch (checkRoute?.navbar) {
             case 'guest':
@@ -26,12 +33,18 @@ const MainLayout = () => {
             
             case 'user':
                 return <ParticipantNavbar/>
+<<<<<<< Updated upstream
 
             case 'coordinator':
                 return <CoordinatorNavbar/>
 
             case 'director':
                 return <DirectorNavbar/>
+=======
+            
+            case 'staff':
+                return null // Staff has its own sidebar
+>>>>>>> Stashed changes
                 
             default:
                 return null;
@@ -43,11 +56,15 @@ const MainLayout = () => {
             {
                 renderNavbar()
             }
+<<<<<<< Updated upstream
             <Routes>
                 {MainTree.map((route, index) => (
                     <Route key={index} path={route.path} element={route.element} />
                 ))}
             </Routes>
+=======
+            {routes}
+>>>>>>> Stashed changes
         </>
     )
 }
