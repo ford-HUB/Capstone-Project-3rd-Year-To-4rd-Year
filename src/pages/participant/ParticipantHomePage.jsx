@@ -13,7 +13,7 @@ const ParticipantHomePage = () => {
         </div>
       </div>
     </div>
-  );
+  );S
 };
 
 export default ParticipantHomePage;

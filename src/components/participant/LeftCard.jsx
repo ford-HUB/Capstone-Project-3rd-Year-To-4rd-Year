@@ -3,7 +3,6 @@ import { useLocation } from "react-router-dom"
 import Matching from "./Matching"
 
 const LeftCard = ({open, setOpen, children}) => {
-  const location = useLocation()
 
   return (
     <>
