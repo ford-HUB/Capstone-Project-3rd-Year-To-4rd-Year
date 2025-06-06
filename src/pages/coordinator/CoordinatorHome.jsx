@@ -66,15 +66,15 @@ const CoordinatorHome = () => {
     ];
 
     return (
-        <div className="p-6 bg-gray-50 pt-20">
+        <div className="p-6 bg-gray-50 pt-20 pl-8">
             <div className="flex flex-col md:flex-row gap-4">
                 <CoordinatorSidePanel />
                 
-                <div className="flex-1 flex flex-col md:flex-row gap-4 ml-12">
+                <div className="flex-1 flex flex-col md:flex-row gap-4 ml-12 pl-4 pt-4 ">
                     {/* Main Content */}
                     <div className="bg-white shadow-lg rounded-2xl p-6 w-full md:w-2/3 max-h-[600px] overflow-y-auto">
                         {/* Statistics Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 ">
                             <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-lg shadow-md text-white">
                                 <div className="flex items-center justify-between">
                                     <div>
@@ -143,7 +143,7 @@ const CoordinatorHome = () => {
                     {/* Side Content */}
                     <div className="w-full md:w-1/3 space-y-4">
                         {/* Mini Calendar */}
-                        <div className="bg-white rounded-lg shadow-md p-6">
+                        <div className="bg-white rounded-2xl shadow-md p-6">
                             <h2 className="text-xl font-semibold text-gray-800 mb-4">May 2024</h2>
                             <div className="grid grid-cols-7 gap-2 text-center mb-2">
                                 {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
@@ -168,7 +168,7 @@ const CoordinatorHome = () => {
                         </div>
 
                         {/* Notifications Preview */}
-                        <div className="bg-white rounded-lg shadow-md p-6">
+                        <div className="bg-white rounded-2xl shadow-md p-6">
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-xl font-semibold text-gray-800">Notifications</h2>
                                 <button className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1">

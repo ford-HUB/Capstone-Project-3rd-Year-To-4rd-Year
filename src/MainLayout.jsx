@@ -2,6 +2,7 @@ import { useLocation, Routes, Route, matchPath } from "react-router-dom"
 import Navbar from "./components/global/Navbar"
 import ParticipantNavbar from './components/participant/ParticipantNavbar'
 import CoordinatorNavbar from './components/coordinator/CoordinatorNavbar'
+import DirectorNavbar from './components/director/DirectorNavbar'
 import MainTree from './MainTree'
 
 const MainLayout = () => {
@@ -28,6 +29,9 @@ const MainLayout = () => {
 
             case 'coordinator':
                 return <CoordinatorNavbar/>
+
+            case 'director':
+                return <DirectorNavbar/>
                 
             default:
                 return null;
@@ -39,20 +43,13 @@ const MainLayout = () => {
             {
                 renderNavbar()
             }
-
-            <div>
-                <Routes>
-                    {
-                        MainTree.map((route, index) => (
-                            <Route key={index} path={route.path}
-                                element={route.element} />
-                        ))
-                    }
-                </Routes>
-            </div>
+            <Routes>
+                {MainTree.map((route, index) => (
+                    <Route key={index} path={route.path} element={route.element} />
+                ))}
+            </Routes>
         </>
     )
-
 }
 
 export default MainLayout

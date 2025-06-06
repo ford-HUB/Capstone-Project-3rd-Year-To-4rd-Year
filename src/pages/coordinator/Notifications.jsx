@@ -38,15 +38,15 @@ const Notifications = () => {
       read: true
     }
   ];
-
+ 
   return (
-    <div className="p-6 bg-gray-50 pt-20">
+    <div className="p-6 bg-gray-50 pt-24 pl-12">
       <div className="flex flex-col md:flex-row gap-4">
         <CoordinatorSidePanel />
         
         {/* Main Content */}
         <div className="flex-1 ml-12">
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white rounded-2xl shadow-md p-6">
             {/* Header Section */}
             <div className="flex justify-between items-center mb-6">
               <div>

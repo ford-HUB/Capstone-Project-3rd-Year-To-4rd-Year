@@ -11,9 +11,15 @@ import StaffRegistration from './pages/auth/StaffRegistration'
 import ParticipantHomePage from './pages/participant/ParticipantHomePage'
 import CoordinatorHome from './pages/coordinator/CoordinatorHome'
 import ManageEvents from './pages/coordinator/ManageEvents'
-import Notifications from './pages/coordinator/Notifications'
-import Calendar from './pages/coordinator/Calendar'
+import CoordinatorNotifications from './pages/coordinator/Notifications'
+import CoordinatorCalendar from './pages/coordinator/Calendar'
 import ParticipateEvents from './pages/coordinator/ParticipateEvents'
+import DirectorHome from './pages/director/DirectorHome'
+import ManageFeedback from './pages/director/ManageFeedback'
+import ManageUsers from './pages/director/ManageUsers'
+import ManageReports from './pages/director/ManageReports'
+import Calendar from './pages/director/Calendar'
+import Notifications from './pages/director/Notifications'
 
 const MainTree = [
     {
@@ -57,8 +63,6 @@ const MainTree = [
         navbar: 'guest'
     },
 
-
-
     {
         path: '/register-account',
         element: <StudentRegistration />
@@ -72,16 +76,12 @@ const MainTree = [
         element: <StaffRegistration/>
     },
 
-
-
-    // Participant ROutes
+    // Participant Routes
     {
         path: '/participant/home',
         element: <ParticipantHomePage/>,
         navbar: 'user'
     },
-
-
 
     // Coordinator Routes
     {
@@ -101,12 +101,12 @@ const MainTree = [
     },
     {
         path: '/coordinator/notifications',
-        element: <Notifications />,
+        element: <CoordinatorNotifications />,
         navbar: 'coordinator'
     },
     {
         path: '/coordinator/calendar',
-        element: <Calendar />,
+        element: <CoordinatorCalendar />,
         navbar: 'coordinator'
     },
     {
@@ -130,7 +130,47 @@ const MainTree = [
         navbar: 'coordinator'
     },
 
-
+    // Director Routes
+    {
+        path: '/director/dashboard',
+        element: <DirectorHome />,
+        navbar: 'director'
+    },
+    {
+        path: '/director/users',
+        element: <ManageUsers />,
+        navbar: 'director'
+    },
+    {
+        path: '/director/reports',
+        element: <ManageReports />,
+        navbar: 'director'
+    },
+    {
+        path: '/director/feedback',
+        element: <ManageFeedback />,
+        navbar: 'director'
+    },
+    {
+        path: '/director/calendar',
+        element: <Calendar />,
+        navbar: 'director'
+    },
+    {
+        path: '/director/notifications',
+        element: <Notifications />,
+        navbar: 'director'
+    },
+    {
+        path: '/director/profile',
+        element: <div>Director Profile Page</div>,
+        navbar: 'director'
+    },
+    {
+        path: '/director/settings',
+        element: <div>Settings Page</div>,
+        navbar: 'director'
+    },
 
     // fallback is the route is not found
     {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, Users, MapPin, X } from 'lucide-react';
-import CoordinatorSidePanel from '../../components/coordinator/CoordinatorSidePanel';
+import DirectorSidePanel from '../../components/director/DirectorSidePanel';
 
 const EventModal = ({ isOpen, onClose, events, date }) => {
   if (!isOpen) return null;
@@ -128,7 +128,7 @@ const Calendar = () => {
   return (
     <div className="min-h-screen bg-gray-50 pt-18">
       <div className="flex">
-        <CoordinatorSidePanel />
+        <DirectorSidePanel />
         
         {/* Main Content */}
         <div className="flex-1 px-8 py-6 ml-16">
