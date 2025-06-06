@@ -33,18 +33,15 @@ const MainLayout = () => {
             
             case 'user':
                 return <ParticipantNavbar/>
-<<<<<<< Updated upstream
 
-            case 'coordinator':
+            case 'coordinator': 
                 return <CoordinatorNavbar/>
 
             case 'director':
                 return <DirectorNavbar/>
-=======
             
             case 'staff':
                 return null // Staff has its own sidebar
->>>>>>> Stashed changes
                 
             default:
                 return null;
@@ -56,15 +53,12 @@ const MainLayout = () => {
             {
                 renderNavbar()
             }
-<<<<<<< Updated upstream
             <Routes>
                 {MainTree.map((route, index) => (
                     <Route key={index} path={route.path} element={route.element} />
                 ))}
             </Routes>
-=======
             {routes}
->>>>>>> Stashed changes
         </>
     )
 }

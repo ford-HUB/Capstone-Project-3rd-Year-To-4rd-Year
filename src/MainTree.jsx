@@ -1,7 +1,4 @@
-<<<<<<< Updated upstream
-=======
 import React from 'react'
->>>>>>> Stashed changes
 import GuestHome from './pages/guest/GuestHome'
 import Fallback from './pages/fallback'
 import Timeline from './pages/guest/Timeline'
@@ -13,7 +10,6 @@ import ProtectedGuest from './utils/ProtectedGuest'
 import RequestPosition from './pages/auth/RequestPosition'
 import StaffRegistration from './pages/auth/StaffRegistration'
 import ParticipantHomePage from './pages/participant/ParticipantHomePage'
-<<<<<<< Updated upstream
 import CoordinatorHome from './pages/coordinator/CoordinatorHome'
 import ManageEvents from './pages/coordinator/ManageEvents'
 import CoordinatorNotifications from './pages/coordinator/Notifications'
@@ -25,7 +21,6 @@ import ManageUsers from './pages/director/ManageUsers'
 import ManageReports from './pages/director/ManageReports'
 import Calendar from './pages/director/Calendar'
 import Notifications from './pages/director/Notifications'
-=======
 import StaffLayout from './components/staff/StaffLayout'
 import Dashboard from './pages/staff/Dashboard'
 import EventsManagement from './pages/staff/EventsManagement'
@@ -35,7 +30,6 @@ import NotificationsManagement from './pages/staff/NotificationsManagement'
 import Settings from './pages/staff/Settings'
 import CertificateManagement from './pages/staff/CertificateManagement'
 import CertificateEditor from './pages/staff/CertificateEditor'
->>>>>>> Stashed changes
 
 const MainTree = [
     {
@@ -99,7 +93,6 @@ const MainTree = [
         navbar: 'user'
     },
 
-<<<<<<< Updated upstream
     // Coordinator Routes
     {
         path: '/coordinator/home',
@@ -187,8 +180,8 @@ const MainTree = [
         path: '/director/settings',
         element: <div>Settings Page</div>,
         navbar: 'director'
-=======
-    // Staff Routes
+    },
+
     {
         path: '/staff/*',
         element: <StaffLayout />,
@@ -231,7 +224,6 @@ const MainTree = [
                 element: <Settings />
             }
         ]
->>>>>>> Stashed changes
     },
 
     // fallback is the route is not found
