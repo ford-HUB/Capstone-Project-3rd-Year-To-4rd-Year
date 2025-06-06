@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, Link, useNavigate } from 'react-router-dom';
 import StaffSidebar from './StaffSidebar';
 import { User, Settings, LogOut, Bell } from 'lucide-react';
 import { asset } from '../../assets/asset';
@@ -6,6 +6,7 @@ import { useState } from 'react';
 
 const StaffLayout = () => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const navigate = useNavigate();
 
   const profileMenuItems = [
     { icon: User, label: 'Change Profile', path: '/staff/profile' },
@@ -17,20 +18,29 @@ const StaffLayout = () => {
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Full-width UCLM CARES Navbar */}
       <div className="flex items-center justify-between h-14 px-6 bg-white shadow-sm w-full">
-        <div className="flex items-center gap-3">
+        <Link to="/staff/dashboard" className="flex items-center gap-3">
           <img src={asset.logo} alt="UCLM CARES" className="w-7 h-7" />
           <h1 className="text-xl font-semibold">UCLM CARES</h1>
-        </div>
+        </Link>
 
         <div className="flex items-center space-x-8">
           <div className="flex items-center space-x-6">
-            <button className="text-gray-900 text-sm">
+            <button 
+              onClick={() => navigate('/staff/achievements')}
+              className="text-gray-900 text-sm hover:text-blue-600"
+            >
               Achievements
             </button>
-            <button className="text-gray-900 text-sm">
+            <button 
+              onClick={() => navigate('/staff/certificates')}
+              className="text-gray-900 text-sm hover:text-blue-600"
+            >
               Certificates
             </button>
-            <button className="text-gray-900 text-sm">
+            <button 
+              onClick={() => navigate('/staff/history')}
+              className="text-gray-900 text-sm hover:text-blue-600"
+            >
               History
             </button>
           </div>
@@ -39,7 +49,10 @@ const StaffLayout = () => {
           <div className="flex items-center gap-4">
             {/* Notification Icon */}
             <div className="relative">
-              <button className="text-gray-500 hover:text-gray-700">
+              <button 
+                onClick={() => navigate('/staff/notifications')}
+                className="text-gray-500 hover:text-gray-700"
+              >
                 <Bell size={20} />
                 <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full"></span>
               </button>
@@ -58,14 +71,17 @@ const StaffLayout = () => {
               {showProfileMenu && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50">
                   {profileMenuItems.map((item) => (
-                    <a
+                    <button
                       key={item.label}
-                      href={item.path}
-                      className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      onClick={() => {
+                        navigate(item.path);
+                        setShowProfileMenu(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
                       <item.icon size={16} strokeWidth={1.75} />
                       <span>{item.label}</span>
-                    </a>
+                    </button>
                   ))}
                 </div>
               )}
@@ -80,7 +96,7 @@ const StaffLayout = () => {
         <StaffSidebar />
 
         {/* Main Content */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-auto">
           <Outlet />
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { 
   LayoutGrid,
   Users,
@@ -9,12 +9,10 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
 
 const StaffSidebar = () => {
   const location = useLocation();
-  const [isExpanded, setIsExpanded] = useState(false);
-  const isActive = (path) => location.pathname === path;
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const navigationItems = [
     { 
@@ -69,7 +67,7 @@ const StaffSidebar = () => {
             key={item.path}
             to={item.path}
             className={({ isActive }) =>
-              `flex items-center gap-4 px-4 py-2 text-sm transition-colors ${
+              `relative flex items-center gap-4 px-4 py-2 text-sm transition-colors ${
                 isActive
                   ? 'bg-gray-50 text-blue-600'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'

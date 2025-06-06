@@ -1,4 +1,4 @@
-import { useLocation, Routes, Route, matchPath, useRoutes } from "react-router-dom"
+import { useLocation, Routes, Route, matchPath } from "react-router-dom"
 import Navbar from "./components/global/Navbar"
 import ParticipantNavbar from './components/participant/ParticipantNavbar'
 import CoordinatorNavbar from './components/coordinator/CoordinatorNavbar'
@@ -7,7 +7,6 @@ import MainTree from './MainTree'
 
 const MainLayout = () => {
     const location = useLocation()
-    const routes = useRoutes(MainTree)
 
     const checkRoute = MainTree.find((route) => {
         if (route.path === '/staff/*') {
@@ -48,17 +47,25 @@ const MainLayout = () => {
         }
     }
 
+    const renderRoutes = (routes) => {
+        return routes.map((route, index) => {
+            if (route.children) {
+                return (
+                    <Route key={index} path={route.path} element={route.element}>
+                        {renderRoutes(route.children)}
+                    </Route>
+                );
+            }
+            return <Route key={index} path={route.path} element={route.element} />;
+        });
+    };
+
     return (
         <>
-            {
-                renderNavbar()
-            }
+            {renderNavbar()}
             <Routes>
-                {MainTree.map((route, index) => (
-                    <Route key={index} path={route.path} element={route.element} />
-                ))}
+                {renderRoutes(MainTree)}
             </Routes>
-            {routes}
         </>
     )
 }
