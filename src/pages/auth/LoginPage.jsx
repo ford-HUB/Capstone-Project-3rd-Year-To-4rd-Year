@@ -238,7 +238,7 @@ const LoginPage
                 <div className="divisor w-full flex items-center justify-center mt-4">
                     <hr className="w-full border-t border-slate-300" />
                     <span className="absolute bg-white px-2 my- 3 text-sm font-base text-gray-400">
-                        Choose Position
+                        Registration Option
                     </span>
                 </div>
 
@@ -248,7 +248,7 @@ const LoginPage
                     <button onClick={GoToDonor} className='bg-blue-600 rounded-md text-white w-full px-1.5 my-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white'
                     >Donor</button>
                     <button onClick={GotoRequestStaff} className='bg-blue-600 rounded-md text-white w-full px-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white'
-                    >Staff</button>
+                    >Request Approval Registration</button>
                 </div>
             </OptionModal>
 
