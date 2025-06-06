@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Upload, LogIn } from "lucide-react";
 import { asset } from "../../assets/asset";
 import { useNavigate } from "react-router-dom";
@@ -7,8 +7,11 @@ import CleanReGex from "../../utils/CleanReGex";
 import OptionModal from "../../components/modal/OptionModal";
 import Loader from "../../components/modal/Loader";
 import { useDepartment } from "../../context/useDepartmentContext";
+import { useAuth } from "../../hooks/participant/useAuth.js";
+import toast from "react-hot-toast";
 
 const StudentRegistration = () => {
+  const { signup } = useAuth()
   const navigate = useNavigate();
   const { departmentCourses } = useDepartment()
   // image Proccessing State
@@ -18,8 +21,14 @@ const StudentRegistration = () => {
   // form submission State
   const [isSuccess, setSuccess] = React.useState(false);
 
+  // Submtting action
+  const [submitting, setIsSubmitting] = useState(false)
+
   const [formData, setFormData] = useState({
     studentId: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
     firstName: "",
     lastName: "",
     middleName: "",
@@ -27,12 +36,13 @@ const StudentRegistration = () => {
     gender: "",
     department: "",
     course: "",
-    year: "",
-    email: "",
-    phone: "", //kani
-    address: "",
-    studentIdFile: null,
+    yearLevel: "",
+    phoneNumber: "",
+    currentAddress: "",
+    studentIdFile: undefined,
   });
+
+  const [preview, setPreview] = useState(undefined)
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -57,82 +67,74 @@ const StudentRegistration = () => {
 
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
-    file
-      ? setFormData((prevState) => ({
+    setFormData((prevState) => ({
           ...prevState,
-          studentIdFile: URL.createObjectURL(file),
+          studentIdFile: file
         }))
-      : undefined;
+    const previewURL = URL.createObjectURL(file);
+    setPreview(previewURL);
   };
 
-  const handleSubmit = async (e) => {
+   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Check if the file is provided
-    if (!formData.studentIdFile) {
-      document.querySelector("#asteriskSymbol").style.color = "red";
-      document.querySelector("#errorMessage").style.display = "block";
-      return; // Stop if no file is selected
-    }
-
-    // Start loading
+    setIsSubmitting(true);
     setLoading(true);
 
     try {
       // Extract text from the image
       const receiveFromExtract = await extractImageId(formData.studentIdFile);
-      // @ Debugging
       console.log("Raw Extracted Data:", receiveFromExtract);
 
-      // Check if extracted text is valid
       if (!receiveFromExtract || typeof receiveFromExtract !== "string") {
         console.error("No valid data extracted from the image.");
         setVerified(false);
+        toast.error("Could not extract text from your Student ID");
         return;
       }
 
       // Clean the extracted text
       const cleanedText = CleanReGex(receiveFromExtract);
-      // Get the student's full name and remove spacing and lowerCase
-      const studentName =
-        `${formData.firstName} ${formData.middleName} ${formData.lastName}`
-          .trim()
-          .toLowerCase();
+      const studentName = `${formData.firstName} ${formData.middleName} ${formData.lastName}`
+        .trim()
+        .toLowerCase();
 
-      // Check if the cleaned extracted text contains the name
       if (cleanedText.toLowerCase().includes(studentName)) {
         setVerified(true);
-        console.log("Student name verified successfully!");
-        console.log(formData);
-        setSuccess(true);
-        setFormData({
-          studentId: "",
-          firstName: "",
-          lastName: "",
-          middleName: "",
-          department: "",
-          courseAndYear: "",
-          email: "",
-          phone: "", //kani
-          address: "",
-          studentIdFile: null,
-        });
+        
+        const data = new FormData();
+        data.append('studentId', formData.studentId);
+        data.append('email', formData.email);
+        data.append('password', formData.password);
+        data.append('confirmPassword', formData.confirmPassword);
+        data.append('firstname', formData.firstName);
+        data.append('lastname', formData.lastName);
+        data.append('middlename', formData.middleName);
+        data.append('age', formData.age);
+        data.append('gender', formData.gender);
+        data.append('phoneNumber', formData.phoneNumber);
+        data.append('address', formData.currentAddress);
+        data.append('department', formData.department);
+        data.append('course', formData.course);
+        data.append('yearLevel', formData.yearLevel);
+        data.append('studentIdFile', formData.studentIdFile);
+
+        const success = await signup(data);
+        if (success) {
+          setSuccess(true);
+          toast.success("Registration successful!");
+        }
       } else {
-        console.log("School Id does not match to your form data");
+        toast.error("School ID does not match your provided information");
         setVerified(false);
-        setSuccess(false);
       }
     } catch (error) {
       console.error("Error:", error);
+      toast.error(error.response?.data?.errorMessage || "Registration failed");
       setVerified(false);
     } finally {
-      // Stop loading after process
       setLoading(false);
+      setIsSubmitting(false);
     }
-
-    setInterval(() => {
-      setSuccess(false);
-    }, 2000);
   };
 
   const handleNextPage = (e) => {
@@ -221,7 +223,7 @@ const StudentRegistration = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label
                     htmlFor="studentId"
@@ -270,9 +272,10 @@ const StudentRegistration = () => {
                   </label>
                   <input
                     type="text"
-                    id="Password"
-                    name="Password"
-
+                    id="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
@@ -287,29 +290,12 @@ const StudentRegistration = () => {
                   </label>
                   <input
                     type="text"
-                    id="ConfirmPassword"
-                    name="ConfirmPassword"
-                    
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="phone"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Phone Number *
-                  </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    // required
+                    required
                   />
                 </div>
               </div>
@@ -381,7 +367,8 @@ const StudentRegistration = () => {
                     type="text"
                     id="phoneNumber"
                     name="phoneNumber"
-
+                    value={formData.phoneNumber}
+                    onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
@@ -389,16 +376,17 @@ const StudentRegistration = () => {
 
                 <div>
                   <label
-                    htmlFor="CurrentAddress"
+                    htmlFor="currentAddress"
                     className="block text-sm font-medium text-gray-700 mb-2"
                   >
                     Current Address *
                   </label>
                   <input
                     type="text"
-                    id="CurrentAddress"
-                    name="CurrentAddress"
-                    
+                    id="currentAddress"
+                    name="currentAddress"
+                    value={formData.currentAddress}
+                    onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
@@ -434,35 +422,15 @@ const StudentRegistration = () => {
                     id="gender"
                     name="gender"
                     value={formData.gender}
-                    onChange={(e) => setFormData({...formData, gender: e.target.value})}
+                    onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
-                    <option value="">Select Gender</option>
+                    <option value="" disabled>Select Gender</option>
                     <option value="M">Male</option>
                     <option value="F">Female</option>
-                    <option value="N">Prefer Not to Say</option>
                   </select>
                 </div>
               </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-              <div>
-                  <label
-                    htmlFor="address"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Address
-                  </label>
-                  <input
-                    type="text"
-                    id="address"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-            </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
@@ -480,7 +448,7 @@ const StudentRegistration = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   >
-                    <option disabled value={''}>Select Department</option>
+                    <option value={''} disabled>Select Department</option>
                   {
                     Object.keys(departmentCourses).map((department) => (
                       <option key={department} value={department}>{department}</option>
@@ -498,8 +466,8 @@ const StudentRegistration = () => {
                     Course *
                   </label>
                   <select
-                    id="department"
-                    name="department"
+                    id="course"
+                    name="course"
                     value={formData.course}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -522,9 +490,9 @@ const StudentRegistration = () => {
                     Year *
                   </label>
                   <select
-                    id="year"
-                    name="year"
-                    value={formData.year}
+                    id="yearLevel"
+                    name="yearLevel"
+                    value={formData.yearLevel}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
@@ -543,7 +511,7 @@ const StudentRegistration = () => {
                 <div className="imageContainer flex flex-col justify-center items-center">
                   <div className="p-4 border-none bg-white rounded-md drop-shadow-2xl ">
                     <img
-                      src={formData.studentIdFile}
+                      src={preview}
                       alt="Student ID Image"
                       className="rounded-md h-[15rem]"
                     />

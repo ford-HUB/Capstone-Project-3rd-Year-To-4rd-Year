@@ -252,8 +252,6 @@ const LoginPage
                 </div>
             </OptionModal>
 
-            {/*Show Reistration Donor Modal*/}
-
             {
                 isDonor && <DonorRegistration />
             }
