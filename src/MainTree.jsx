@@ -30,6 +30,7 @@ import NotificationsManagement from './pages/staff/NotificationsManagement'
 import Settings from './pages/staff/Settings'
 import CertificateManagement from './pages/staff/CertificateManagement'
 import CertificateEditor from './pages/staff/CertificateEditor'
+import StudentVerifyAccountPage from './pages/auth/StudentVerifyAccountPage'
 
 const MainTree = [
     {
@@ -76,6 +77,10 @@ const MainTree = [
     {
         path: '/register-account',
         element: <StudentRegistration />
+    },
+    {
+        path: '/verify-account',
+        element: <StudentVerifyAccountPage />
     },
     {
         path: '/staff-request',

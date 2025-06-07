@@ -9,17 +9,20 @@ import Loader from "../../components/modal/Loader";
 import { useDepartment } from "../../context/useDepartmentContext";
 import { useAuth } from "../../hooks/participant/useAuth.js";
 import toast from "react-hot-toast";
+import StudentVerifyAccountPage from './StudentVerifyAccountPage';
 
 const StudentRegistration = () => {
   const { signup } = useAuth()
   const navigate = useNavigate();
   const { departmentCourses } = useDepartment()
+  
   // image Proccessing State
   const [isVerified, setVerified] = React.useState(false);
   const [isLoading, setLoading] = React.useState(false);
 
   // form submission State
   const [isSuccess, setSuccess] = React.useState(false);
+  const [showOtpVerification, setShowOtpVerification] = React.useState(false);
 
   // Submtting action
   const [submitting, setIsSubmitting] = useState(false)
@@ -121,7 +124,8 @@ const StudentRegistration = () => {
         const success = await signup(data);
         if (success) {
           setSuccess(true);
-          toast.success("Registration successful!");
+          setShowOtpVerification(true);
+          toast.success("Registration successful! Please verify your email.");
         }
       } else {
         toast.error("School ID does not match your provided information");
@@ -135,6 +139,11 @@ const StudentRegistration = () => {
       setLoading(false);
       setIsSubmitting(false);
     }
+  };
+
+  const handleVerificationComplete = () => {
+    setShowOtpVerification(false);
+    navigate('/login');
   };
 
   const handleNextPage = (e) => {
@@ -174,6 +183,13 @@ const StudentRegistration = () => {
           <h1 className="text-[14px]">Successfully Registered</h1>
         </div>
       </OptionModal>
+
+      {showOtpVerification && (
+        <StudentVerifyAccountPage 
+          email={formData.email}
+          onVerificationComplete={handleVerificationComplete}
+        />
+      )}
 
       <div className="min-h-screen">
         <nav className="bg-blue-600 text-white shadow-md sticky top-0 z[999]">

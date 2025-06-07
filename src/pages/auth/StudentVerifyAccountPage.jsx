@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { asset } from '../../assets/asset';
 
-const VerifyAccountPage = ({ email, onVerificationComplete }) => {
+const StudentVerifyAccountPage = ({ email, onVerificationComplete }) => {
     const [open, setOpen] = React.useState(true);
     const [otp, setOtp] = React.useState('');
     const [timeLeft, setTime] = React.useState(300); // 5 minutes in seconds
@@ -139,4 +139,4 @@ const VerifyAccountPage = ({ email, onVerificationComplete }) => {
     );
 };
 
-export default VerifyAccountPage;
+export default StudentVerifyAccountPage; 
