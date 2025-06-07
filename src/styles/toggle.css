@@ -1,0 +1,29 @@
+/* Toggle Switch Styles */
+.toggle-checkbox {
+    transition: all 0.3s;
+    right: 0;
+}
+
+.toggle-checkbox:checked {
+    right: 4px;
+    border-color: #ffffff;
+}
+
+.toggle-label {
+    transition: background-color 0.3s;
+    width: 2.5rem;
+}
+
+.toggle-checkbox:focus + .toggle-label {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+/* Hover effect */
+.toggle-label:hover {
+    opacity: 0.9;
+}
+
+/* Active state */
+.toggle-checkbox:active + .toggle-label {
+    transform: scale(0.95);
+} 
