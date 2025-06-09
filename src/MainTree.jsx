@@ -32,6 +32,8 @@ import CertificateManagement from './pages/staff/CertificateManagement'
 import CertificateEditor from './pages/staff/CertificateEditor'
 import StudentVerifyAccountPage from './pages/auth/StudentVerifyAccountPage'
 import StaffCalendarPage from './pages/staff/Calendar'
+import DirectorLogin from './pages/director/DirectorLogin'
+import StaffApproval from './pages/director/StaffApproval'
 
 const MainTree = [
     {
@@ -87,7 +89,7 @@ const MainTree = [
         path: '/staff-request',
         element: <RequestPosition/>
     },
-    {
+    { 
         path: '/staff-registration',
         element: <StaffRegistration/>
     },
@@ -168,6 +170,11 @@ const MainTree = [
         navbar: 'director'
     },
     {
+        path: '/director/staff-approval',
+        element: <StaffApproval />,
+        navbar: 'director'
+    },
+    {
         path: '/director/calendar',
         element: <Calendar />,
         navbar: 'director'
@@ -186,6 +193,10 @@ const MainTree = [
         path: '/director/settings',
         element: <div>Settings Page</div>,
         navbar: 'director'
+    },
+    {
+        path: '/director/login',
+        element: <DirectorLogin />
     },
 
     {

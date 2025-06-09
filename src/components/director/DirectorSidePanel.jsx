@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, FileText, MessageSquare, Calendar, Bell, Home } from "lucide-react";
+import { LayoutDashboard, Users, FileText, MessageSquare, Calendar, Bell, Home, UserPlus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { asset } from "../../assets/asset";
 
@@ -19,6 +19,11 @@ const DirectorSidePanel = () => {
           <button className="p-2 rounded-xl hover:bg-gray-200" title="Manage Users">
             <Link to="/director/users">
               <Users size={25} />
+            </Link>
+          </button>
+          <button className="p-2 rounded-xl hover:bg-gray-200" title="Staff Registration Approval">
+            <Link to="/director/staff-approval">
+              <UserPlus size={25} />
             </Link>
           </button>
           <button className="p-2 rounded-xl hover:bg-gray-200 relative" title="Notifications">
