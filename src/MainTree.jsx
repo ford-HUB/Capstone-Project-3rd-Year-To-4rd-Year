@@ -31,6 +31,7 @@ import Settings from './pages/staff/Settings'
 import CertificateManagement from './pages/staff/CertificateManagement'
 import CertificateEditor from './pages/staff/CertificateEditor'
 import StudentVerifyAccountPage from './pages/auth/StudentVerifyAccountPage'
+import StaffCalendarPage from './pages/staff/Calendar'
 
 const MainTree = [
     {
@@ -227,6 +228,10 @@ const MainTree = [
             {
                 path: 'settings',
                 element: <Settings />
+            },
+            {
+                path: 'calendar',
+                element: <StaffCalendarPage />
             }
         ]
     },

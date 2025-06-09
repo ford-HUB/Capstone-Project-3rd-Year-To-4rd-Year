@@ -31,9 +31,9 @@ const StaffSidebar = () => {
       path: '/staff/events'
     },
     { 
-      icon: ClipboardList, 
-      label: 'Programs', 
-      path: '/staff/programs'
+      icon: Calendar, 
+      label: 'Calendar', 
+      path: '/staff/calendar'
     },
     { 
       icon: Bell, 

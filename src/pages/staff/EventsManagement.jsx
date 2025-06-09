@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { Search, Plus, Edit2, Trash2, Calendar, MapPin, Users, ChevronDown, X, Eye, UserPlus } from 'lucide-react';
-import CreateProgramModal from '../../components/staff/CreateProgramModal';
+import { Search, Plus, Edit2, Trash2, Calendar, MapPin, Users, ChevronDown, X, Eye, UserPlus, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const ViewEventModal = ({ event, onClose }) => {
   return (

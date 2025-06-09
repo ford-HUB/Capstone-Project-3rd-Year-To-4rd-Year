@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Search, Plus, Edit2, Trash2, Users, Calendar, Clock, MapPin, X, Eye, ChevronDown } from 'lucide-react';
-import CreateProgramModal from '../../components/staff/CreateProgramModal';
 
 const ViewProgramModal = ({ program, onClose }) => {
   return (
@@ -177,7 +176,6 @@ const EditProgramModal = ({ program, onClose }) => {
 };
 
 const ProgramsManagement = () => {
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedProgram, setSelectedProgram] = useState(null);
   const [viewProgram, setViewProgram] = useState(null);
   const [programs] = useState([
@@ -217,13 +215,6 @@ const ProgramsManagement = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Programs Management</h1>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          <Plus size={20} />
-          Create Program
-        </button>
       </div>
 
       {/* Search and Filter */}
@@ -294,11 +285,6 @@ const ProgramsManagement = () => {
           </div>
         ))}
       </div>
-
-      {/* Modals */}
-      {showCreateModal && (
-        <CreateProgramModal onClose={() => setShowCreateModal(false)} />
-      )}
 
       {selectedProgram && (
         <EditProgramModal
