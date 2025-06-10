@@ -15,84 +15,8 @@ const StaffLayout = () => {
   ];
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      {/* Full-width UCLM CARES Navbar */}
-      <div className="flex items-center justify-between h-14 px-6 bg-white shadow-sm w-full">
-        <Link to="/staff/dashboard" className="flex items-center gap-3">
-          <img src={asset.logo} alt="UCLM CARES" className="w-7 h-7" />
-          <h1 className="text-xl font-semibold">UCLM CARES</h1>
-        </Link>
-
-        <div className="flex items-center space-x-8">
-          <div className="flex items-center space-x-6">
-            <button 
-              onClick={() => navigate('/staff/achievements')}
-              className="text-gray-900 text-sm hover:text-blue-600"
-            >
-              Achievements
-            </button>
-            <button 
-              onClick={() => navigate('/staff/certificates')}
-              className="text-gray-900 text-sm hover:text-blue-600"
-            >
-              Certificates
-            </button>
-            <button 
-              onClick={() => navigate('/staff/history')}
-              className="text-gray-900 text-sm hover:text-blue-600"
-            >
-              History
-            </button>
-          </div>
-          
-          {/* Notifications and Profile Section */}
-          <div className="flex items-center gap-4">
-            {/* Notification Icon */}
-            <div className="relative">
-              <button 
-                onClick={() => navigate('/staff/notifications')}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <Bell size={20} />
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full"></span>
-              </button>
-            </div>
-
-            {/* Profile Section with Dropdown */}
-            <div className="relative">
-              <button 
-                onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="w-8 h-8 bg-gray-900 rounded-full flex items-center justify-center text-white hover:ring-2 hover:ring-gray-200 transition-all"
-              >
-                <span className="text-sm">C</span>
-              </button>
-
-              {/* Profile Dropdown Menu */}
-              {showProfileMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50">
-                  {profileMenuItems.map((item) => (
-                    <button
-                      key={item.label}
-                      onClick={() => {
-                        navigate(item.path);
-                        setShowProfileMenu(false);
-                      }}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                    >
-                      <item.icon size={16} strokeWidth={1.75} />
-                      <span>{item.label}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Content Area with Sidebar */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
+    <div className=''>
+      <div className="flex overflow-hidden">
         <StaffSidebar />
 
         {/* Main Content */}

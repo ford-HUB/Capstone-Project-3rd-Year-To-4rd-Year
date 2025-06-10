@@ -32,14 +32,14 @@ const ManageReports = () => {
     ];
 
     return (
-        <div className="p-6 bg-gray-50 pt-24 pl-12">
-            <div className="flex flex-col md:flex-row gap-4">
+        <div className="p-6 bg-gray-50 pt-24 pl-12 h-screen">
+            <div className="flex flex-col md:flex-row gap-4 h-full">
                 <DirectorSidePanel />
                 
                 {/* Main Content */}
-                <div className="flex-1 ml-12">
-                    {/* Header Section */}
-                    <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+                <div className="flex-1 ml-12 h-full">
+                    {/* Header Section - Now Sticky */}
+                    <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-24 z-10">
                         <div className="flex justify-between items-center mb-6">
                             <h1 className="text-2xl font-bold text-gray-800">Manage Reports</h1>
                             <div className="flex gap-4">
@@ -59,7 +59,7 @@ const ManageReports = () => {
                         </div>
 
                         {/* Quick Stats */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div className="bg-blue-50 p-6 rounded-xl">
                                 <div className="flex items-center justify-between">
                                     <div>
@@ -88,47 +88,47 @@ const ManageReports = () => {
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        {/* Reports List */}
-                        <div className="space-y-4">
-                            {reports.map((report) => (
-                                <div key={report.id} className="bg-gray-50 rounded-lg p-6">
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <h3 className="font-semibold text-gray-900">{report.title}</h3>
-                                            <div className="flex items-center gap-4 mt-2">
-                                                <span className="text-sm text-gray-500 flex items-center gap-1">
-                                                    <Calendar className="w-4 h-4" />
-                                                    {report.date}
-                                                </span>
-                                                <span className="text-sm text-gray-500 flex items-center gap-1">
-                                                    <Download className="w-4 h-4" />
-                                                    {report.downloads} downloads
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-4">
-                                            <span className={`px-3 py-1 rounded-full text-sm ${
-                                                report.status === 'completed'
-                                                    ? 'bg-green-100 text-green-800'
-                                                    : 'bg-yellow-100 text-yellow-800'
-                                            }`}>
-                                                {report.status}
+                    {/* Reports List - Now Scrollable */}
+                    <div className="mt-6 space-y-4 max-h-[calc(100vh-24rem)] overflow-y-auto pr-2">
+                        {reports.map((report) => (
+                            <div key={report.id} className="bg-white rounded-lg p-6 shadow-sm">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h3 className="font-semibold text-gray-900">{report.title}</h3>
+                                        <div className="flex items-center gap-4 mt-2">
+                                            <span className="text-sm text-gray-500 flex items-center gap-1">
+                                                <Calendar className="w-4 h-4" />
+                                                {report.date}
                                             </span>
-                                            <button className="p-2 hover:bg-gray-200 rounded-lg">
-                                                <Download className="w-5 h-5 text-gray-600" />
-                                            </button>
+                                            <span className="text-sm text-gray-500 flex items-center gap-1">
+                                                <Download className="w-4 h-4" />
+                                                {report.downloads} downloads
+                                            </span>
                                         </div>
                                     </div>
-                                    <div className="mt-4 flex items-center gap-2">
-                                        {report.type === 'Bar Chart' && <BarChart2 className="w-5 h-5 text-blue-600" />}
-                                        {report.type === 'Pie Chart' && <PieChart className="w-5 h-5 text-purple-600" />}
-                                        {report.type === 'Line Chart' && <LineChart className="w-5 h-5 text-green-600" />}
-                                        <span className="text-sm text-gray-600">{report.type}</span>
+                                    <div className="flex items-center gap-4">
+                                        <span className={`px-3 py-1 rounded-full text-sm ${
+                                            report.status === 'completed'
+                                                ? 'bg-green-100 text-green-800'
+                                                : 'bg-yellow-100 text-yellow-800'
+                                        }`}>
+                                            {report.status}
+                                        </span>
+                                        <button className="p-2 hover:bg-gray-200 rounded-lg">
+                                            <Download className="w-5 h-5 text-gray-600" />
+                                        </button>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
+                                <div className="mt-4 flex items-center gap-2">
+                                    {report.type === 'Bar Chart' && <BarChart2 className="w-5 h-5 text-blue-600" />}
+                                    {report.type === 'Pie Chart' && <PieChart className="w-5 h-5 text-purple-600" />}
+                                    {report.type === 'Line Chart' && <LineChart className="w-5 h-5 text-green-600" />}
+                                    <span className="text-sm text-gray-600">{report.type}</span>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>

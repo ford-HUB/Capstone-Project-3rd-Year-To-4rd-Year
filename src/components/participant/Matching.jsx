@@ -1,7 +1,11 @@
 import React from 'react'
 import ListTopParticipants from './ListTopParticipants'
+import { useAuth } from '../../hooks/participant/useAuth.js'
 
 const Matching = () => {
+    const { authenticatedUser } = useAuth()
+
+
   return (
     <>
         <div className="innerContainer border border-gray-300 rounded-2xl m-4 p-2">

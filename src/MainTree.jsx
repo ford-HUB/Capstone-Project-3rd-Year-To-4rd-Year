@@ -15,7 +15,6 @@ import ManageEvents from './pages/coordinator/ManageEvents'
 import CoordinatorNotifications from './pages/coordinator/Notifications'
 import CoordinatorCalendar from './pages/coordinator/Calendar'
 import ParticipateEvents from './pages/coordinator/ParticipateEvents'
-import DirectorHome from './pages/director/DirectorHome'
 import ManageFeedback from './pages/director/ManageFeedback'
 import ManageUsers from './pages/director/ManageUsers'
 import ManageReports from './pages/director/ManageReports'
@@ -30,10 +29,14 @@ import NotificationsManagement from './pages/staff/NotificationsManagement'
 import Settings from './pages/staff/Settings'
 import CertificateManagement from './pages/staff/CertificateManagement'
 import CertificateEditor from './pages/staff/CertificateEditor'
-import StudentVerifyAccountPage from './pages/auth/StudentVerifyAccountPage'
-import StaffCalendarPage from './pages/staff/Calendar'
+import StudentVerifyAccountPage from './components/modal/VerifyCode'
+import ProtectedStudent from './utils/ProtectedStudent'
+import StaffRequestToken from './utils/StaffRequestToken'
 import DirectorLogin from './pages/director/DirectorLogin'
-import StaffApproval from './pages/director/StaffApproval'
+import DirectorLayout from './components/director/DirectorLayout'
+import CoordinatorLayout from './components/coordinator/CoordinatorLayout'
+import ProtectedDirector from './utils/ProtectedDirector'
+import DirectorDashboard from './pages/director/DirectorDashboard'
 
 const MainTree = [
     {
@@ -89,110 +92,113 @@ const MainTree = [
         path: '/staff-request',
         element: <RequestPosition/>
     },
-    { 
-        path: '/staff-registration',
-        element: <StaffRegistration/>
+    {
+        path: '/staff-registration/:token',
+        element: <StaffRequestToken>
+            <StaffRegistration/>
+        </StaffRequestToken>
     },
 
     // Participant Routes
     {
         path: '/participant/home',
-        element: <ParticipantHomePage/>,
+        element: <ProtectedStudent>
+            <ParticipantHomePage/>
+        </ProtectedStudent>,
         navbar: 'user'
     },
 
     // Coordinator Routes
     {
-        path: '/coordinator/home',
-        element: <CoordinatorHome />,
-        navbar: 'coordinator'
-    },
-    {
-        path: '/coordinator/profile',
-        element: <div>Coordinator Profile Page</div>,
-        navbar: 'coordinator'
-    },
-    {
-        path: '/coordinator/events',
-        element: <ManageEvents />,
-        navbar: 'coordinator'
-    },
-    {
-        path: '/coordinator/notifications',
-        element: <CoordinatorNotifications />,
-        navbar: 'coordinator'
-    },
-    {
-        path: '/coordinator/calendar',
-        element: <CoordinatorCalendar />,
-        navbar: 'coordinator'
-    },
-    {
-        path: '/coordinator/participate',
-        element: <ParticipateEvents />,
-        navbar: 'coordinator'
-    },
-    {
-        path: '/coordinator/accomplishments',
-        element: <div>Accomplishments Page</div>,
-        navbar: 'coordinator'
-    },
-    {
-        path: '/coordinator/certificates',
-        element: <div>Certificates Page</div>,
-        navbar: 'coordinator'
-    },
-    {
-        path: '/coordinator/history',
-        element: <div>History Page</div>,
-        navbar: 'coordinator'
+        path: '/coordinator/*',
+        element: <CoordinatorLayout />,
+        navbar: 'coordinator',
+        children: [
+            {
+                path: 'home',
+                element: <CoordinatorHome />
+            },
+            {
+                path: 'profile',
+                element: <div>Coordinator Profile Page</div>
+            },
+            {
+                path: 'events',
+                element: <ManageEvents />
+            },
+            {
+                path: 'notifications',
+                element: <CoordinatorNotifications />
+            },
+            {
+                path: 'calendar',
+                element: <CoordinatorCalendar />
+            },
+            {
+                path: 'participate',
+                element: <ParticipateEvents />
+            },
+            {
+                path: 'accomplishments',
+                element: <div>Accomplishments Page</div>
+            },
+            {
+                path: 'certificates',
+                element: <div>Certificates Page</div>
+            },
+            {
+                path: 'history',
+                element: <div>History Page</div>
+            }
+        ]
     },
 
-    // Director Routes
+    // Director RoutesW
     {
-        path: '/director/dashboard',
-        element: <DirectorHome />,
-        navbar: 'director'
+        path: '/one secret/login',
+        element: <DirectorLogin/>
     },
+
     {
-        path: '/director/users',
-        element: <ManageUsers />,
-        navbar: 'director'
-    },
-    {
-        path: '/director/reports',
-        element: <ManageReports />,
-        navbar: 'director'
-    },
-    {
-        path: '/director/feedback',
-        element: <ManageFeedback />,
-        navbar: 'director'
-    },
-    {
-        path: '/director/staff-approval',
-        element: <StaffApproval />,
-        navbar: 'director'
-    },
-    {
-        path: '/director/calendar',
-        element: <Calendar />,
-        navbar: 'director'
-    },
-    {
-        path: '/director/notifications',
-        element: <Notifications />,
-        navbar: 'director'
-    },
-    {
-        path: '/director/profile',
-        element: <div>Director Profile Page</div>,
-        navbar: 'director'
-    },
-    {
-        path: '/director/settings',
-        element: <div>Settings Page</div>,
-        navbar: 'director'
+        path: '/director/*',
+        element: <ProtectedDirector>
+            <DirectorLayout />
+        </ProtectedDirector>,
+        navbar: 'director',
+        children: [
+            {
+                path: 'dashboard',
+                element: <DirectorDashboard />
+            },
+            {
+                path: 'users',
+                element: <ManageUsers />
+            },
+            {
+                path: 'reports',
+                element: <ManageReports />
+            },
+            {
+                path: 'feedback',
+                element: <ManageFeedback />
+            },
+            {
+                path: 'calendar',
+                element: <Calendar />
+            },
+            {
+                path: 'notifications',
+                element: <Notifications />
+            },
+            {
+                path: 'profile',
+                element: <div>Director Profile Page</div>
+            },
+            {
+                path: 'settings',
+                element: <div>Settings Page</div>
+            }
+        ]
     },
     {
         path: '/director/login',
@@ -201,7 +207,9 @@ const MainTree = [
 
     {
         path: '/staff/*',
-        element: <StaffLayout />,
+        element: <ProtectedDirector>
+            <DirectorLayout/>
+        </ProtectedDirector>,
         navbar: 'staff',
         children: [
             {

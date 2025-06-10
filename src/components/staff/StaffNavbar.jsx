@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/participant/useAuth'
 import Logout from '../modal/Logout'
 import { useNavigate } from 'react-router-dom'
 
-const ParticipantNavbar = () => {
+const StaffNavbar = () => {
     const { authenticatedUser, logout } = useAuth()
     const navigate = useNavigate()
 
@@ -22,7 +22,7 @@ const ParticipantNavbar = () => {
 
   return (
     <>
-        <nav className='flex p-3 md:flex-nowrap justify-between shadow-md rounded-b-md'>
+        <nav className='flex p-3 md:flex-nowrap justify-between shadow-md rounded-b-md sticky top-0 z-[100] bg-white'>
                 <div className="logo flex mx-4 items-center">
                     <img src={asset.logo} alt="uclm-cares" className='w-12' />
                     <h1 className='px-2 text-2xl font-bold'>UCLM CARES</h1>
@@ -69,4 +69,4 @@ const ParticipantNavbar = () => {
   )
 }
 
-export default ParticipantNavbar
+export default StaffNavbar

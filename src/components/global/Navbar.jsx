@@ -1,11 +1,11 @@
 import { asset } from "../../assets/asset";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import React, { useState } from "react";
+import { useState } from "react";
 
 const SettingsModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative">
         <button
           className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-xl"
@@ -17,7 +17,6 @@ const SettingsModal = ({ isOpen, onClose }) => {
         <h2 className="text-2xl font-bold mb-4">Settings</h2>
         <div className="space-y-3">
           <div className="text-gray-700">Settings content goes here.</div>
-          {/* Add your settings options here */}
         </div>
       </div>
     </div>
@@ -33,7 +32,7 @@ const Navbar = ({ idRoute }) => {
 
   return (
     <>
-      <header className="flex sticky top-0 z-50 justify-between items-center px-14 py-1 bg-white drop-shadow-sm rounded-e-md font-[Roboto] text-gray-600">
+      <header className="flex sticky top-0 z-50 justify-between items-center px-14 py-1 bg-white drop-shadow-sm rounded-b-sm font-[Roboto] text-gray-600">
         <div className="logoContainer flex items-center">
           <img
             src={asset.logo}

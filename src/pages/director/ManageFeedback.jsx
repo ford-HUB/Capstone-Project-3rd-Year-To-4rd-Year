@@ -32,15 +32,15 @@ const ManageFeedback = () => {
     ];
 
     return (
-        <div className="p-6 bg-gray-50 pt-24 pl-12">
-            <div className="flex flex-col md:flex-row gap-4">
+        <div className="p-6 bg-gray-50 pt-24 pl-12 h-screen">
+            <div className="flex flex-col md:flex-row gap-4 h-full">
                 <DirectorSidePanel />
                 
                 {/* Main Content */}
-                <div className="flex-1 ml-12">
-                    {/* Header Section */}
-                    <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-                        <div className="flex justify-between items-center mb-6">
+                <div className="flex-1 ml-12 h-full">
+                    {/* Header Section - Now Sticky */}
+                    <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-24 z-10">
+                        <div className="flex justify-between items-center">
                             <h1 className="text-2xl font-bold text-gray-800">Manage Feedback</h1>
                             <div className="flex gap-4">
                                 <div className="relative">
@@ -57,25 +57,56 @@ const ManageFeedback = () => {
                                 </button>
                             </div>
                         </div>
+                    </div>
+                    
 
-                        {/* Feedback List */}
-                        <div className="space-y-4">
-                            {feedbackList.map((feedback) => (
-                                <div key={feedback.id} className="bg-gray-100 rounded-lg p-6">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div>
-                                            <h3 className="font-semibold text-gray-900">{feedback.event}</h3>
-                                            <p className="text-sm text-gray-600">By {feedback.participant}</p>
-                                        </div>
+                    {/* Feedback List - Now Scrollable */}
+                    <div className="mt-6 space-y-4 max-h-[calc(100vh-16rem)] overflow-y-auto pr-2">
+                        {feedbackList.map((feedback) => (
+                            <div key={feedback.id} className="bg-white rounded-lg p-6 shadow-sm">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div>
+                                        <h3 className="font-semibold text-gray-900">{feedback.event}</h3>
+                                        <p className="text-sm text-gray-600">By {feedback.participant}</p>
                                     </div>
-                                    <p className="text-gray-700 mb-4">{feedback.comment}</p>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-sm text-gray-500">{feedback.date}</span>
-                                        
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex items-center">
+                                            {[...Array(5)].map((_, i) => (
+                                                <Star
+                                                    key={i}
+                                                    className={`w-5 h-5 ${
+                                                        i < feedback.rating
+                                                            ? 'text-yellow-400 fill-current'
+                                                            : 'text-gray-300'
+                                                    }`}
+                                                />
+                                            ))}
+                                        </div>
+                                        <span className={`px-3 py-1 rounded-full text-sm ${
+                                            feedback.status === 'pending'
+                                                ? 'bg-yellow-100 text-yellow-800'
+                                                : 'bg-green-100 text-green-800'
+                                        }`}>
+                                            {feedback.status}
+                                        </span>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
+                                <p className="text-gray-700 mb-4">{feedback.comment}</p>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-500">{feedback.date}</span>
+                                    <div className="flex items-center gap-4">
+                                        <button className="flex items-center gap-1 text-green-600 hover:text-green-700">
+                                            <ThumbsUp className="w-5 h-5" />
+                                            <span>Approve</span>
+                                        </button>
+                                        <button className="flex items-center gap-1 text-red-600 hover:text-red-700">
+                                            <ThumbsDown className="w-5 h-5" />
+                                            <span>Reject</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>

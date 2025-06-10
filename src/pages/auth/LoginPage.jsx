@@ -3,27 +3,35 @@ import OptionModal from '../../components/modal/OptionModal'
 import { asset } from '../../assets/asset'
 import { v4 as uuidv4 } from 'uuid'
 import Cookie from 'js-cookie'
-import ErrorAlert from '../../components/global/ErrorAlert'
-import SuccessAlert from '../../components/global/SuccessAlert'
-import WarningAlert from '../../components/global/WarningAlert'
 import { useNavigate } from 'react-router-dom'
 import DonorRegistration from './DonorRegistration'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { loginSchema } from '../../forms/StudentSchemas'
+import toast from 'react-hot-toast'
+import { useAuth } from '../../hooks/participant/useAuth.js'
 
-
-const LoginPage
- = () => {
+const LoginPage = () => {
     const [open, setOpen] = React.useState(true)
     const [token, setToken] = React.useState()
 
-    // form state
-    const [username, setUsername] = React.useState('')
-    const [password, setPassword] = React.useState('')
-    const [rememberMe, setRememberMe] = React.useState(false)
+    const { login } = useAuth()
 
-    // Action Notification
-    const [showError, setError] = React.useState(false)
-    const [showSuccess, setSuccess] = React.useState(false)
-    const [showWarning, setWarning] = React.useState(false)
+    // form state
+    const { 
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting }
+
+     } = useForm({
+        resolver: zodResolver(loginSchema),
+        defaultValues: {
+            email: '',
+            password: '',
+            rememberMe: false
+        }
+    })
+
 
     // Define Naviate Link
     const navigate = useNavigate()
@@ -85,30 +93,6 @@ const LoginPage
         return () => clearInterval(checkTokenInterval);
     }, [token]);
 
-
-    const handleSubmit = (e) => {
-        e.preventDefault()
-        if (username === '' || password === '') {
-            return setWarning(true)
-        }
-
-        setUsername('')
-        setPassword('')
-        setRememberMe(false)
-        console.log({ username, password, rememberMe })
-
-        // if form is successfuly submitte then it will throw
-        setSuccess(true)
-
-        // fading the throw alert
-        throw setInterval(() => {
-            setSuccess(false)
-            setError(false)
-            setWarning(false)
-        }, 5000)
-
-    }
-
     React.useEffect(() => {
         if (token) {
             console.log(`our token ${Cookie.get('token')}`)
@@ -118,15 +102,30 @@ const LoginPage
         }
     }, [])
 
+    React.useEffect(() => {
+        errors.email && toast.error(errors.email.message)
+    }, [errors.email])
 
+    React.useEffect(() => {
+        errors.password && toast.error(errors.password.message)
+    }, [errors.password])
+
+
+
+    const onSubmitForm = async(data) => {
+        const success = await login({
+            email: data.email,
+            password: data.password
+        })
+        if(!success) return
+        if(data.rememberMe) { localStorage.set('rememberMe', email) }
+        setTimeout(() => navigate('/participant/home'), 2000)
+    }
 
     return (
         <>
 
             <OptionModal open={open}>
-                <ErrorAlert open={showError}>Invalid Credentials</ErrorAlert>
-                <SuccessAlert open={showSuccess}>Account Successfuly Logged In</SuccessAlert>
-                <WarningAlert open={showWarning}>Fill Out the Blank</WarningAlert>
                 <div className="content flex justify-between">
                     <div className="logo px-2 py-4">
                         <img src={asset.logo} alt="UCLM CARES"
@@ -146,7 +145,7 @@ const LoginPage
                 </div>
 
                 <div className="formContainer flex flex-col justify-center items-center mt-6">
-                    <form onSubmit={handleSubmit} className="space-y-2">
+                    <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-2">
                         <div className="relative w-[18rem]">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -156,10 +155,9 @@ const LoginPage
                             </svg>
 
                             <input
-                                className="input input-bordered w-full pl-10 focus:outline-none bg-white text-gray-500 border-gray-300"
+                                className={`input input-bordered w-full pl-10 focus:outline-none bg-white text-gray-500`}
                                 type="text"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
+                                {...register('email')  }
                                 placeholder="ID number or Email"
                             />
                         </div>
@@ -173,24 +171,25 @@ const LoginPage
                             </svg>
 
                             <input
-                                className="input input-bordered w-full pl-10 focus:outline-none bg-white text-gray-500 border-gray-300"
+                                className={`input input-bordered w-full pl-10 focus:outline-none bg-white text-gray-500`}
                                 type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                {...register('password')  }
                                 placeholder="Password"
                             />
                         </div>
+
                         <label className="fieldset-label flex justify-end items-center mt-1.5">
                             <input type="checkbox" className="checkbox checkbox-xs text-gray-500 mr-0.5 border-gray-100"
-                                checked={rememberMe}s
-                                onChange={(e) => setRememberMe(e.target.checked)}
+                            {...register('rememberMe')}
                             />
                             <span className='text-gray-500 text-[11px]'>Remember me</span>
                         </label>
 
-                        <div className="OptionSelection flex justify-center items-center mt-1 flex-col">
-                            <button onClick={() => navigate('/participant/home')} className='bg-blue-600 rounded-md text-white w-full px-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white' type='submit'>
-                                Login
+                        <div className="OptionSelection flex justify-center items-center mt-1 flex-col"> 
+                            <button className={`bg-blue-600 rounded-md text-white w-full px-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white`}
+                            disabled={isSubmitting}
+                            type='submit'>
+                                { isSubmitting ? `LoggingIn...`: `Login` }
                             </button>
                         </div>
                     </form>
