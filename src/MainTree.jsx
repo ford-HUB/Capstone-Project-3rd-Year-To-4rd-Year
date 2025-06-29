@@ -1,7 +1,7 @@
 import React from 'react'
 import GuestHome from './pages/guest/GuestHome'
 import Fallback from './pages/fallback'
-import Timeline from './pages/guest/Timeline'
+import Accomplishments from './pages/guest/Accomplishments.jsx'
 import Programs from './pages/guest/Programs'
 import UpComingEvents from './pages/guest/UpComingEvents'
 import LoginWrapper from './utils/LoginWrapper'
@@ -30,13 +30,19 @@ import Settings from './pages/staff/Settings'
 import CertificateManagement from './pages/staff/CertificateManagement'
 import CertificateEditor from './pages/staff/CertificateEditor'
 import StudentVerifyAccountPage from './components/modal/VerifyCode'
-import ProtectedStudent from './utils/ProtectedStudent'
 import StaffRequestToken from './utils/StaffRequestToken'
 import DirectorLogin from './pages/director/DirectorLogin'
 import DirectorLayout from './components/director/DirectorLayout'
 import CoordinatorLayout from './components/coordinator/CoordinatorLayout'
 import ProtectedDirector from './utils/ProtectedDirector'
 import DirectorDashboard from './pages/director/DirectorDashboard'
+import ManageApprovals from './pages/director/ManageApprovals'
+import CheckInterestWrapper from './utils/CheckInterestWrapper'
+import ProtectedStudent from './utils/ProtectedStudent'
+import StaffLogin from './pages/staff/StaffLogin'
+import ProtectedStaff from './utils/ProtectedStaff'
+import { allowedRole } from './static/allowedRole.js'
+
 
 const MainTree = [
     {
@@ -56,10 +62,10 @@ const MainTree = [
         navbar: 'guest'
     },
     {
-        path: '/timeline/guest/:id',
+        path: '/accomplishments/guest/:id',
         element:
             <ProtectedGuest>
-                <Timeline />
+                <Accomplishments />
             </ProtectedGuest>,
         navbar: 'guest'
     },
@@ -102,8 +108,10 @@ const MainTree = [
     // Participant Routes
     {
         path: '/participant/home',
-        element: <ProtectedStudent>
-            <ParticipantHomePage/>
+        element: <ProtectedStudent roles={allowedRole}>
+            <CheckInterestWrapper>
+                <ParticipantHomePage/>
+            </CheckInterestWrapper>
         </ProtectedStudent>,
         navbar: 'user'
     },
@@ -175,6 +183,10 @@ const MainTree = [
                 element: <ManageUsers />
             },
             {
+                path: 'request-approvals',
+                element: <ManageApprovals/>
+            },
+            {
                 path: 'reports',
                 element: <ManageReports />
             },
@@ -206,10 +218,17 @@ const MainTree = [
     },
 
     {
+        path: '/secret staff/login',
+        element: <StaffLogin/>
+
+    },
+
+    {
         path: '/staff/*',
-        element: <ProtectedDirector>
-            <DirectorLayout/>
-        </ProtectedDirector>,
+        element:
+            <ProtectedStaff roles={allowedRole}>
+                <StaffLayout/>
+            </ProtectedStaff>,
         navbar: 'staff',
         children: [
             {
@@ -248,10 +267,10 @@ const MainTree = [
                 path: 'settings',
                 element: <Settings />
             },
-            {
-                path: 'calendar',
-                element: <StaffCalendarPage />
-            }
+            // {
+            //     path: 'calendar',
+            //     element: <StaffCalendarPage />
+            // }
         ]
     },
 

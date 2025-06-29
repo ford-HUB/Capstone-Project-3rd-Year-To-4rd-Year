@@ -3,11 +3,13 @@ import { asset } from '../../assets/asset'
 import { useAuth } from '../../hooks/participant/useAuth'
 import Logout from '../modal/Logout'
 import { useNavigate } from 'react-router-dom'
+import VolunteerSettings from '../modal/VolunteerSettings'
 
 const ParticipantNavbar = () => {
     const { authenticatedUser, logout } = useAuth()
     const navigate = useNavigate()
 
+    const [isSettingModalOpen, setSettingModalOpen] = React.useState(false)
     const [isLogoutModalOpen, setIsLogoutModalOpen] = React.useState(false)
 
     const handleLogout = async() => {
@@ -53,7 +55,7 @@ const ParticipantNavbar = () => {
                                     <span className="badge">New</span>
                                 </a>
                             </li>
-                            <li><a>Settings</a></li>
+                            <li onClick={() => setSettingModalOpen(true)}><a>Settings</a></li>
                             <li><a onClick={() => setIsLogoutModalOpen(true)}>Logout</a></li>
                         </ul>
                     </div>
@@ -64,6 +66,12 @@ const ParticipantNavbar = () => {
         onOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
         onConfirm={handleLogout}
+        />
+
+        <VolunteerSettings
+        isOpen={isSettingModalOpen}
+        onClose={() => setSettingModalOpen(false)}
+        userData={authenticatedUser}
         />
     </>
   )

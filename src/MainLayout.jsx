@@ -3,6 +3,7 @@ import Navbar from "./components/global/Navbar"
 import ParticipantNavbar from './components/participant/ParticipantNavbar'
 import CoordinatorNavbar from './components/coordinator/CoordinatorNavbar'
 import DirectorNavbar from './components/director/DirectorNavbar'
+import StaffNavbar from './components/staff/StaffNavbar'
 import MainTree from './MainTree'
 
 const MainLayout = () => {
@@ -21,7 +22,7 @@ const MainLayout = () => {
                 // it check the path of our URL kung asa siya na location path if nay mo match
                 // then e return niya ang '/location/path/id
                 const guestMatchedPath = matchPath('/home/guest/:id', location.pathname) ||
-                    matchPath('/timeline/guest/:id', location.pathname) ||
+                    matchPath('/accomplishments/guest/:id', location.pathname) ||
                     matchPath('/programs/guest/:id', location.pathname) ||
                     matchPath('/upcomingEvents/guest/:id', location.pathname)
 
@@ -40,7 +41,7 @@ const MainLayout = () => {
                 return <DirectorNavbar/>
             
             case 'staff':
-                return null // Staff has its own sidebar
+                return <StaffNavbar/>
                 
             default:
                 return null;

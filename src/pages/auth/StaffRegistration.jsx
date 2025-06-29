@@ -14,41 +14,39 @@ const StaffRegistration = () => {
   const navigate = useNavigate()
   const { departmentCourses } = useDepartment()
   const { signup } = useAuthHooks()
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(staffRegistrationSchema),
     defaultValues: {
       staff_id_number: undefined,
       email: '',
+      password: '',
+      confirmPassword: '',
       firstname: '',
       lastname: '',
       middle_initial: '',
       position: '',
-      department: '',
       gender: '',
       phoneNumber: '',
-      password: '',
-      confirmPassword: ''
+      department: ''
     }
   })
 
   const position = [
-    { id: 1, name: 'Lead Organizer' },
-    { id: 2, name: 'Event Coordinator' },
-    { id: 3, name: 'Volunteer Manager' },
-    { id: 4, name: 'Technical Support' },
-    { id: 5, name: 'Financial Officer' },
-    { id: 6, name: 'Donor Relations Officer' },
-    { id: 7, name: 'Certificate Manager' }
+    { id: 1, name: 'Lead Organizer', value: 'Lead Organizer' },
+    { id: 2, name: 'Event Coordinator', value: 'Event Coordinator' },
+    { id: 3, name: 'Volunteer Manager', value: 'Volunteer Manager'},
+    { id: 4, name: 'Technical Support', value: 'Technical Support'},
+    { id: 5, name: 'Financial Officer', value: 'Financial Officer'},
+    { id: 6, name: 'Donor Relations Officer', value: 'Donor Relations Officer' },
+    { id: 7, name: 'Certificate Manager', value: 'Certificate Manager' }
   ]
 
   const onSubmitForm = async (formData) => {
+    const success = await signup(token, formData)
     console.log(formData)
-    const success = await signup({ permissionToken: token }, formData)
     if(!success) return
-
-    setTimeout(() => {
       navigate('/')
-    }, 1000)
+
   }
 
   return (
@@ -117,9 +115,9 @@ const StaffRegistration = () => {
                           type="text"
                           name='firstname'
                           id='firstname'
-                          {...register('firstName')  }
-                          className={`input focus:outline-none ${errors.firstName ? 'border-red-500' : 'border-gray-300'} focus:border-none focus:ring-2 focus:ring-blue-500`} />
-                          {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName.message}</p>}
+                          {...register('firstname')  }
+                          className={`input focus:outline-none ${errors.firstname ? 'border-red-500' : 'border-gray-300'} focus:border-none focus:ring-2 focus:ring-blue-500`} />
+                          {errors.firstname && <p className="text-red-500 text-sm mt-1">{errors.firstname.message}</p>}
                         </div>
 
                         <div>
@@ -128,9 +126,9 @@ const StaffRegistration = () => {
                           type="text"
                           name='lastname'
                           id='lastname'
-                          {...register('lastName') }
-                          className={`input focus:outline-none ${errors.lastName ? 'border-red-500' : 'border-gray-300'} focus:border-none focus:ring-2 focus:ring-blue-500`} />
-                          {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName.message}</p>}
+                          {...register('lastname') }
+                          className={`input focus:outline-none ${errors.lastname ? 'border-red-500' : 'border-gray-300'} focus:border-none focus:ring-2 focus:ring-blue-500`} />
+                          {errors.lastname && <p className="text-red-500 text-sm mt-1">{errors.lastname.message}</p>}
                         </div>
 
                         <div>
@@ -220,7 +218,7 @@ const StaffRegistration = () => {
                       <div>
                         <label htmlFor="Password">Password *</label>
                         <input
-                        type="text"
+                        type="password"
                         id='password'
                         name='password'
                         {...register('password')  }
@@ -231,7 +229,7 @@ const StaffRegistration = () => {
                       <div>
                         <label htmlFor="confirmPassword">Confirm Password *</label>
                         <input
-                        type="text"
+                        type="password"
                         id='confirmPassword'
                         name='confirmPassword'
                         {...register('confirmPassword')  }

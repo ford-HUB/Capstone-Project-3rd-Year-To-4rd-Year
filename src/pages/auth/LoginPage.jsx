@@ -10,6 +10,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { loginSchema } from '../../forms/StudentSchemas'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../hooks/participant/useAuth.js'
+import { roleRedirection } from '../../utils/roleRedirection.js'
+import DonorLoginPage from './DonorLoginPage.jsx'
 
 const LoginPage = () => {
     const [open, setOpen] = React.useState(true)
@@ -38,7 +40,13 @@ const LoginPage = () => {
 
     // Page To Posistion Page
     const [isNextPage, setNextPage] = React.useState(false)
+    const [showDonorLogin, setShowDonorLogin] = React.useState(false)
     const [isDonor, setDonor] = React.useState(false)
+
+    const ShowDonorLogin = () => {
+        setShowDonorLogin(true)
+        setNextPage(false)
+    }
 
     const GoToDonor = () => {
         setDonor(true)
@@ -111,15 +119,18 @@ const LoginPage = () => {
     }, [errors.password])
 
 
-
     const onSubmitForm = async(data) => {
-        const success = await login({
+        const checkSuccess = await login({
             email: data.email,
             password: data.password
         })
-        if(!success) return
+        if(!checkSuccess.success) return
+
         if(data.rememberMe) { localStorage.set('rememberMe', email) }
-        setTimeout(() => navigate('/participant/home'), 2000)
+        const redirectPath = roleRedirection[checkSuccess.role] || '/'
+
+        setTimeout(() => navigate(redirectPath), 2000)
+
     }
 
     return (
@@ -159,6 +170,7 @@ const LoginPage = () => {
                                 type="text"
                                 {...register('email')  }
                                 placeholder="ID number or Email"
+                                autoComplete='current-email'
                             />
                         </div>
 
@@ -175,6 +187,7 @@ const LoginPage = () => {
                                 type="password"
                                 {...register('password')  }
                                 placeholder="Password"
+                                autoComplete='current-password'
                             />
                         </div>
 
@@ -205,11 +218,18 @@ const LoginPage = () => {
                     </div>
                 </div>
 
-                <div className="forgetPassword flex justify-center items-center">
-                    <button onClick={null} className='absolute bottom-[-25px] left-30 text-[12px] text-gray-900 cursor-pointer font-[Roboto] hover:text-slate-600 transition-colors duration-300'>
+                <div className="forgetPassword flex justify-start items-center">
+                    <button onClick={null} className='absolute bottom-[-30px] left-10 text-[12px] bg-white/50 px-2 rounded-sm text-gray-900 cursor-pointer font-[Roboto] hover:text-blue-700 transition-colors duration-300'>
                         Forget Password?
                     </button>
                 </div>
+
+                <div className="forgetPassword flex justify-start items-center">
+                    <button onClick={ShowDonorLogin} className='absolute bottom-[-30px] right-10 text-[12px] bg-white/50 px-2 rounded-sm text-gray-900 cursor-pointer font-[Roboto] hover:text-blue-700 transition-colors duration-300'>
+                        Login as donor
+                    </button>
+                </div>
+
             </OptionModal>
 
             {/*Choice Modal*/}
@@ -250,6 +270,10 @@ const LoginPage = () => {
                     >Request Approval Registration</button>
                 </div>
             </OptionModal>
+
+            {
+                showDonorLogin && <DonorLoginPage/>
+            }
 
             {
                 isDonor && <DonorRegistration />

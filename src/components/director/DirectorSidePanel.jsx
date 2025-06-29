@@ -22,7 +22,7 @@ const DirectorSidePanel = () => {
             </Link>
           </button>
           <button className="p-2 rounded-xl hover:bg-gray-200" title="Staff Registration Approval">
-            <Link to="/director/staff-approval">
+            <Link to="/director/request-approvals">
               <UserPlus size={25} />
             </Link>
           </button>

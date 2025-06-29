@@ -1,6 +1,6 @@
 import React from 'react';
 import DirectorSidePanel from '../../components/director/DirectorSidePanel';
-import { Search, Filter, MessageSquare, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Search, Filter, Star, ThumbsUp, ThumbsDown } from 'lucide-react';
 
 const ManageFeedback = () => {
     // Temporary data for feedback

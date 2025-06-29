@@ -22,7 +22,7 @@ const StaffNavbar = () => {
 
   return (
     <>
-        <nav className='flex p-3 md:flex-nowrap justify-between shadow-md rounded-b-md sticky top-0 z-[100] bg-white'>
+        <nav className='flex p-3 md:flex-nowrap justify-between shadow-md rounded-b-md sticky top-0 z-10 bg-white'>
                 <div className="logo flex mx-4 items-center">
                     <img src={asset.logo} alt="uclm-cares" className='w-12' />
                     <h1 className='px-2 text-2xl font-bold'>UCLM CARES</h1>

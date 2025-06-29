@@ -39,7 +39,7 @@ export const useAuth = create((set) => ({
             }
 
             toast.success(response.data.message)
-            return true
+            return { success: true, role: response.data.role }
         } catch (error) {
             console.log('login hooks in participant failed', error.message)
             return false

@@ -1,25 +1,93 @@
 import React from 'react'
+import VerifyDonorCode from '../../components/modal/VerifyDonorCode.jsx'
 import OptionModal from '../../components/modal/OptionModal'
 import { asset } from '../../assets/asset'
-import VerifyAccountPage from './VerifyAccountPage'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { signupSchema } from '../../forms/DonorSchema.js'
+import toast from 'react-hot-toast'
+import { useAuthHooks } from '../../hooks/donor/useAuthHooks.js'
+import { X } from 'lucide-react'
 
 const DonorRegistration = () => {
     const [open, setOpen] = React.useState(true)
-    const [nextPage, setNextPage] = React.useState(false)
+    const [openVerifyModal, setVerifyModal] = React.useState(() => { return localStorage.getItem('verifyDonorModalOpen') === 'true' })
+    const { signup } = useAuthHooks()
 
-    const handleSubmit = (e) => {
-        e.preventDefault()
-        setNextPage(true)
+    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+        resolver: zodResolver(signupSchema),
+        defaultValues: {
+            email: '',
+            password: '',
+            termsAndCondtion: false
+        }
+    })
+
+    const onSubmitForm = async (formData) => {
+
+        console.log(formData)
+        const success = await signup({
+            email: formData.email,
+            password: formData.password,
+            confirmPassword: formData.confirmPassword
+        })
+        if(!success) return
+        localStorage.setItem('verifyDonorModalOpen', 'true')
+        setVerifyModal(true)
         setOpen(false)
     }
+
+     const [verification, setVerification] = React.useState(false)
+    
+      const handleVerification = () => {
+        localStorage.removeItem('verifyDonorModalOpen')
+        setVerification(true)
+        setVerifyModal(false)
+      }
+    
+      React.useEffect(() => {
+        return () => {
+          localStorage.removeItem('verifyDonorModalOpen');
+        };
+      }, []);
+    
+      const [isMounted, setIsMounted] = React.useState(false);
+    
+      React.useEffect(() => {
+        setIsMounted(true);
+      }, [])
+
+
+
+    React.useEffect(() => {
+        errors.email && toast.error(errors.email.message)
+    }, [errors.email])
+
+    React.useEffect(() => {
+        errors.password && toast.error(errors.password.message)
+    }, [errors.password])
+
+    React.useEffect(() => {
+        errors.confirmPassword && toast.error(errors.confirmPassword.message)
+    }, [errors.confirmPassword])
+
+
     return (
         <>
-            <OptionModal open={open}>
+            {
+                isMounted && openVerifyModal && <VerifyDonorCode onVerificationComplete={handleVerification}/>
+            }
+            <OptionModal open={open} setOpen={open}>
+                <a href='/' className='absolute right-5 top-4'>
+                <X className='text-gray-500 cursor-pointer' size={14}/>
+                </a>
+
                 <div className="content flex justify-between">
                     <div className="logo px-2 py-4">
                         <img src={asset.logo} alt="UCLM CARES"
                             className='h-24 w-24' />
                     </div>
+                    
                     <div className="titleContainer flex justify-end flex-col py-5 pl-2.5">
                         <span className='flex justify-center items-end text-slate-500 text-[12px]'>Welcome To University Of Cebu</span>
                         <h1 className='text-[26px] font-base'>Register<br /> Account</h1>
@@ -29,12 +97,12 @@ const DonorRegistration = () => {
                 <div className="divisor w-full flex items-center justify-center mt-4">
                     <hr className="w-full border-t border-slate-300" />
                     <span className="absolute bg-white px-2 my- 3 text-sm font-base text-gray-400">
-                        Donor Registeration
+                        Donor Login
                     </span>
                 </div>
 
                 <div className="formContainer flex flex-col justify-center items-center mt-6">
-                    <form onSubmit={handleSubmit} className="space-y-2">
+                    <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-2">
                         <div className="relative w-[18rem]">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -45,9 +113,9 @@ const DonorRegistration = () => {
 
                             <input
                                 className="input input-bordered w-full pl-10 focus:outline-none"
+                                id='email'
                                 type="text"
-                                value={null}
-                                onChange={null}
+                                {...register('email')  }
                                 placeholder="Email"
                             />
                         </div>
@@ -62,9 +130,9 @@ const DonorRegistration = () => {
 
                             <input
                                 className="input input-bordered w-full pl-10 focus:outline-none"
+                                id='password'
                                 type="password"
-                                value={null}
-                                onChange={null}
+                                {...register('password')  }
                                 placeholder="Password"
                             />
                         </div>
@@ -78,16 +146,19 @@ const DonorRegistration = () => {
 
                             <input
                                 className="input input-bordered w-full pl-10 focus:outline-none"
+                                id='confirmPassword'
                                 type="password"
-                                value={null}
-                                onChange={null}
+                                {...register('confirmPassword')  }
                                 placeholder="Confirm Password"
                             />
                         </div>
 
                         <div className="w-[18rem] text-xs text-gray-500 mt-2">
                             <label className="flex items-start space-x-2">
-                                <input type="checkbox" required className="mt-1" />
+                                <input
+                                {...register('termsAndCondtion')  }
+                                required
+                                type="checkbox" className="mt-1" />
                                 <span>
                                     I agree to the <a href="/TermsAndCondtion" className="text-blue-600 hover:underline">Terms and Conditions</a> and <a href="/Privacy-Policy" className="text-blue-600 hover:underline">Privacy Policy</a>.
                                 </span>
@@ -95,17 +166,13 @@ const DonorRegistration = () => {
                         </div>
 
                         <div className="OptionSelection flex justify-center items-center mt-1 flex-col">
-                            <button className='bg-blue-600 rounded-md text-white w-full px-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white' type='submit'
-                                onClick={() => setOpen(false)}
-                            >Register</button>
+                            <button disabled={isSubmitting}
+                            className='bg-blue-600 rounded-md text-white w-full px-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white' type='submit'
+                            >{ isSubmitting ? 'Registering...': 'Register' }</button>
                         </div>
                     </form>
                 </div>
             </OptionModal>
-
-            {
-                nextPage && <VerifyAccountPage />
-            }
         </>
     )
 }

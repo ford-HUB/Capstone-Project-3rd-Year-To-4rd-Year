@@ -1,58 +1,76 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import DirectorSidePanel from '../../components/director/DirectorSidePanel';
 import { Mail, Calendar, AlertCircle, Settings, User2, CheckCircle2, XCircle } from 'lucide-react';
 import ApprovalModal from '../../components/modal/ApprovalModal';
+import { useApprovalsHooks } from '../../hooks/director/useApprovalsHooks.js';
 
 const ManageApprovals = () => {
+  const { listApprovals, getRequestList, approvedRequest, rejectRequest, deleteRequest } = useApprovalsHooks();
+
+  React.useEffect(() => {
+    let isMounted = true;
+
+    const fetchApprovals = async () => {
+      if (listApprovals.length > 0) return;
+
+      try {
+        await getRequestList();
+      } catch (error) {
+        if (isMounted) {
+          console.error("Fetch error:", error);
+        }
+      }
+    };
+
+    fetchApprovals();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [getRequestList, listApprovals.length]);
+
   // Modal state
-  const [modalState, setModalState] = useState({
+  const [modalState, setModalState] = React.useState({
     isOpen: false,
     email: '',
     action: null,
     requestId: null
   });
 
-  // Static example data
-  const [staffRequests, setStaffRequests] = useState([
-    {
-      id: 1,
-      email: "john.doe@uclm.edu.ph",
-      dateApplied: "2024-03-15",
-      status: "pending"
-    },
-    {
-      id: 2,
-      email: "maria.santos@uclm.edu.ph",
-      dateApplied: "2024-03-14",
-      status: "pending"
-    },
-    {
-      id: 3,
-      email: "james.rodriguez@uclm.edu.ph",
-      dateApplied: "2024-03-13",
-      status: "approved"
-    },
-    {
-      id: 4,
-      email: "sarah.garcia@uclm.edu.ph",
-      dateApplied: "2024-03-12",
-      status: "rejected"
-    }
-  ]);
+  const handleApproval = async (requestId, newStatus) => {
+    let success = false;
 
-  const handleApproval = (requestId, newStatus) => {
-    setStaffRequests(staffRequests.map(request => 
-      request.id === requestId ? { ...request, status: newStatus } : request
-    ));
+    switch (newStatus) {
+      case 'approved':
+        success = await approvedRequest(requestId);
+        break;
+
+      case 'rejected':
+        success = await rejectRequest(requestId);
+        break;
+
+      default:
+        console.log('Operation is out of scope');
+        return;
+    }
+
+    if (!success) {
+      console.log(`${newStatus} request failed`);
+      return;
+    }
+
+    console.log(`${newStatus} request succeeded`);
+    await getRequestList(); // Refresh the list after update
     setModalState({ isOpen: false, email: '', action: null, requestId: null });
-  };
+};
+
 
   const openModal = (email, action, requestId) => {
     setModalState({
       isOpen: true,
-      email,
-      action,
-      requestId
+      email: email,
+      action: action,
+      requestId: requestId
     });
   };
 
@@ -88,13 +106,13 @@ const ManageApprovals = () => {
             <div className="flex justify-between items-center">
               <h1 className="text-2xl font-bold text-gray-800">Email Registration Requests</h1>
               <div className="text-sm text-gray-600">
-                {staffRequests.filter(r => r.status === 'pending').length} pending requests
+                {listApprovals.filter(r => r.status === 'pending').length} pending requests
               </div>
             </div>
           </div>
             
           <div className="mt-6 bg-white rounded-lg shadow-sm max-h-[calc(100vh-16rem)] overflow-y-auto">
-            {staffRequests.length === 0 ? (
+            {listApprovals.length === 0 ? (
               <div className="p-4 text-center text-gray-500">
                 No pending registration requests
               </div>
@@ -136,8 +154,8 @@ const ManageApprovals = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {staffRequests.map((request) => (
-                      <tr key={request.id} className="hover:bg-gray-50">
+                    {listApprovals.map((request) => (
+                      <tr key={request.ra_id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium text-lg ${getInitialColor(getEmailInitial(request.email))}`}>
                             {getEmailInitial(request.email)}
@@ -145,7 +163,7 @@ const ManageApprovals = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{request.email}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                          {new Date(request.dateApplied).toLocaleDateString('en-US', {
+                          {new Date(request.createdAt).toLocaleDateString('en-US', {
                             year: 'numeric',
                             month: 'short',
                             day: 'numeric'
@@ -163,14 +181,14 @@ const ManageApprovals = () => {
                           {request.status === 'pending' && (
                             <div className="flex space-x-4">
                               <button
-                                onClick={() => openModal(request.email, 'approved', request.id)}
+                                onClick={() => openModal(request.email, 'approved', request.ra_id)}
                                 className="p-1.5 rounded-full hover:bg-gray-100 transition-colors duration-200"
                                 title="Approve"
                               >
                                 <CheckCircle2 size={20} className="text-green-600" />
                               </button>
                               <button
-                                onClick={() => openModal(request.email, 'rejected', request.id)}
+                                onClick={() => openModal(request.email, 'rejected', request.ra_id)}
                                 className="p-1.5 rounded-full hover:bg-gray-100 transition-colors duration-200"
                                 title="Reject"
                               >
@@ -189,11 +207,10 @@ const ManageApprovals = () => {
         </div>
       </div>
 
-      {/* Approval Modal */}
       <ApprovalModal
         isOpen={modalState.isOpen}
         onClose={() => setModalState({ isOpen: false, email: '', action: null, requestId: null })}
-        onConfirm={(action) => handleApproval(modalState.requestId, action)}
+        onConfirm={() => handleApproval(modalState.requestId, modalState.action)}
         email={modalState.email}
         action={modalState.action}
       />
@@ -201,4 +218,4 @@ const ManageApprovals = () => {
   );
 };
 
-export default ManageApprovals; 
+export default ManageApprovals;
