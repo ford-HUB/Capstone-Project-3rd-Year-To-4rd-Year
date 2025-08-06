@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Cloud Certificate</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .certificate {
+            width: 900px;
+            height: 600px;
+            background-image: url('../asset/certificateGoogleThemeBG.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            border: 2px solid #7c8188;
+            border-radius: 4px;
+            padding: 60px;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .google-logo {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .google-text {
+            font-size: 48px;
+            font-weight: 400;
+            letter-spacing: -1px;
+        }
+        
+        .google-g { color: #4285f4; }
+        .google-o1 { color: #ea4335; }
+        .google-o2 { color: #fbbc05; }
+        .google-g2 { color: #4285f4; }
+        .google-l { color: #34a853; }
+        .google-e { color: #ea4335; }
+        .cloud-text { color: #5f6368; margin-left: 8px; }
+        
+        .acknowledgment {
+            text-align: center;
+            color: #5f6368;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .name {
+            text-align: center;
+            font-size: 48px;
+            font-weight: 400;
+            color: #202124;
+            margin-bottom: 30px;
+        }
+        
+        .completion-text {
+            text-align: center;
+            color: #5f6368;
+            font-size: 16px;
+            margin-bottom: 40px;
+        }
+        
+        .certification-type {
+            text-align: center;
+            color: #5f6368;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        
+        .title {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 400;
+            color: #202124;
+            margin-bottom: 40px;
+            line-height: 1.2;
+        }
+        
+        .bottom-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 60px;
+        }
+        
+        .certificate-details {
+            font-size: 12px;
+            color: #5f6368;
+            line-height: 1.4;
+        }
+        
+        .signature-section {
+            text-align: center;
+        }
+        
+        .signature {
+            position: absolute;
+            top: 18rem;
+            left: 16rem;
+            font-family: cursive;
+            font-size: 24px;
+            color: #202124;
+            transform: rotate(-2deg);
+        }
+        
+        .signature-name {
+            font-size: 14px;
+            color: #202124;
+            font-weight: 500;
+        }
+        
+        .signature-title {
+            font-size: 12px;
+            color: #5f6368;
+        }
+        
+        .badge {
+            width: 80px;
+            height: 80px;
+            position: relative;
+        }
+        
+        .badge-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #4285f4, #34a853, #fbbc05, #ea4335);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .badge-inner {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .cloud-icon {
+            width: 30px;
+            height: 20px;
+            background: linear-gradient(45deg, #4285f4, #34a853);
+            border-radius: 15px 15px 5px 5px;
+            position: relative;
+        }
+        
+        .cloud-icon::before {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(45deg, #fbbc05, #ea4335);
+            border-radius: 50%;
+            top: -6px;
+            left: 5px;
+        }
+        
+        .cloud-icon::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: linear-gradient(45deg, #34a853, #4285f4);
+            border-radius: 50%;
+            top: -4px;
+            right: 3px;
+        }
+        
+        .badge-text {
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 8px;
+            color: #5f6368;
+            text-align: center;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+        
+        @media (max-width: 900px) {
+            .certificate {
+                width: 90%;
+                height: auto;
+                padding: 40px 30px;
+            }
+            
+            .google-text {
+                font-size: 36px;
+            }
+            
+            .name {
+                font-size: 36px;
+            }
+            
+            .title {
+                font-size: 24px;
+            }
+            
+            .bottom-section {
+                flex-direction: column;
+                gap: 20px;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="certificate">
+        <div class="google-logo">
+            <span class="google-text">
+                <span class="google-g">G</span><span class="google-o1">o</span><span class="google-o2">o</span><span class="google-g2">g</span><span class="google-l">l</span><span class="google-e">e</span><span class="cloud-text">Cloud</span>
+            </span>
+        </div>
+        
+        <div class="acknowledgment">
+            This certificate is awarded to
+        </div>
+        
+        <div class="name">
+            Elyes Manai
+        </div>
+        
+        <div class="completion-text">
+            for exemplary participation in the
+        </div>
+        
+        <div class="certification-type">
+            UCLM CARES INITIATIVE
+        </div>
+        
+        <div class="title">
+            Community Outreach and Leadership Program
+        </div>
+        
+        <div class="bottom-section">
+            <div class="certificate-details">
+                Series ID: 107<br>
+                Issue Date: 15 Oct 2020<br>
+                Expiration Date: 15 Oct 2022<br>
+                Certification ID: JtMTup<br>
+                Certified As: Elyes Manai
+            </div>
+            
+            <div class="signature-section">
+                <div class="signature">
+                    <img src="../asset/sampleSignature.png" alt="">
+                </div>
+                <div class="signature-name">Dr. Richie Montebon</div>
+                <div class="signature-title">UCLM CARES Director</div>
+            </div>
+            
+            <div class="badge">
+                <div class="badge-circle">
+                    <div class="badge-inner">
+                        <div class="cloud-icon"></div>
+                    </div>
+                </div>
+                <div class="badge-text">
+                    Google Cloud Certified<br>
+                    MACHINE LEARNING ENGINEER
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
