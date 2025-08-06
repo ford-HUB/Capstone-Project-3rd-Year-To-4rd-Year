@@ -12,3 +12,4 @@ backend/dist/
 
 # Logs
 *.log
+.vercel

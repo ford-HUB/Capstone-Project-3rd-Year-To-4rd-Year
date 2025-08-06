@@ -1,6 +1,6 @@
 import React from 'react'
 import GuestHome from './pages/guest/GuestHome'
-import Fallback from './pages/fallback'
+import NotFound from './pages/NotFound.jsx'
 import Accomplishments from './pages/guest/Accomplishments'
 import Programs from './pages/guest/Programs'
 import UpComingEvents from './pages/guest/UpComingEvents'
@@ -197,7 +197,7 @@ const MainTree = [
     // fallback is the route is not found
     {
         path: '*',
-        element: <Fallback />
+        element: <NotFound />
     }
 ]
 
