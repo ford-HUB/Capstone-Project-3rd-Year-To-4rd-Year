@@ -1,58 +1,71 @@
-import { Sequelize } from "sequelize"
-import dotenv from 'dotenv'
-dotenv.config()
+import { Sequelize } from "sequelize";
+import dotenv from "dotenv";
+dotenv.config();
 
-const db = new Sequelize(
-    {
-        database: process.env.POSTGRES_DB,
-        username: process.env.POSTGRES_USER,
-        password: process.env.POSTGRES_PASSWORD,
-        host: 'localhost',
-        port: process.env.POSTGRES_PORT,
-        dialect: 'postgres',
-        logging: false, // this will disable the console raw data display
-        pool: {
-        max: 20,         // Max number of connections allowed at once
-        min: 0,         // Min number of connections Sequelize keeps alive (even if idle)
-        acquire: 30000, // Max time (ms) Sequelize will try to get a connection before throwing error
-        idle: 10000     // How long (ms) a connection can be idle before being released
-        }
-    }
-)
+let db;
 
-import '../models/index.js'
+if (process.env.DATABASE_URL) {
+  db = new Sequelize(process.env.DATABASE_URL, {
+    dialect: "postgres",
+    protocol: "postgres",
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false, // Allow Railway's self-signed SSL
+      },
+    },
+    logging: false,
+  });
+} else {
+  db = new Sequelize({
+    database: process.env.POSTGRES_DB,
+    username: process.env.POSTGRES_USER,
+    password: process.env.POSTGRES_PASSWORD,
+    host: "localhost",
+    port: process.env.POSTGRES_PORT,
+    dialect: "postgres",
+    logging: false,
+    pool: {
+      max: 20,
+      min: 0,
+      acquire: 30000,
+      idle: 10000,
+    },
+  });
+}
+
+import "../models/index.js";
 
 const testConnection = async () => {
-    try {
-        await db.authenticate()
-        console.log('postgres database connected')
-    } catch (error) {
-        console.log(error.message)
-    }
-}
+  try {
+    await db.authenticate();
+    console.log("✅ PostgreSQL database connected");
+  } catch (error) {
+    console.error("❌ Database connection failed:", error.message);
+  }
+};
 
 const dropTables = async () => {
-    try {
-        await db.sync({force: true})
-        console.log('all tables successfully dropped')
-    } catch (error) {
-        console.log('drop tables failed:', error.message)
-    }
-}
+  try {
+    await db.sync({ force: true });
+    console.log("✅ All tables successfully dropped");
+  } catch (error) {
+    console.error("❌ Drop tables failed:", error.message);
+  }
+};
 
 const updateSchemaChanges = async () => {
-    try {
-        await db.sync()
-        console.log('updating schema always every render')
-    } catch (error) {
-        console.log('drop tables failed:', error.message)
-    }
-}
+  try {
+    await db.sync();
+    console.log("✅ Schema synchronized");
+  } catch (error) {
+    console.error("❌ Schema update failed:", error.message);
+  }
+};
 
-
-export {
+export { 
     db,
     updateSchemaChanges,
     testConnection,
-    dropTables
-}
+    dropTables 
+};
