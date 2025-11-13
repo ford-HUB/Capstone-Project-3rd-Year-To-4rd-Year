@@ -5,6 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon src/server.js",
+    "prod": "node src/server.js",
     "tunnel" : "lt --port 8000 --print-requests",
     "seed": "node src/seeders/seed.js"
   },
