@@ -10,7 +10,6 @@ import CertificatePreview from '../ui/CertificatePreview.jsx';
 import DropdownMenu from '../dropdown/DropdownMenu.jsx';
 import Button from '../ui/Button.jsx';
 import TemplateMetadata from '../ui/templateMetadata.jsx';
-import TemplateMetadata from '../ui/templateMetadata';
 import ErrorMessage from '../error/ErrorMessage.jsx';
 import PreviewCertificateTemplateModal from '../../../modal/v2/deployed-certificate-template/PreviewCertificateTemplateModal.jsx';
 
