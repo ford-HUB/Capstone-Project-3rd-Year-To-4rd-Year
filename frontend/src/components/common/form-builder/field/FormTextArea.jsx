@@ -1,4 +1,4 @@
-import { INPUT_STYLES } from "../../../../constants/formBuilder.JS";
+import { INPUT_STYLES } from "../../../../constants/formBuilder.js";
 
 const FormTextArea = ({ label, value, onChange, placeholder, rows = 3, className = "", ...props }) => (
     <div className={className}>
