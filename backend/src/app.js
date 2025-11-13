@@ -141,5 +141,8 @@ app.use('/api/v1/payment', paymentRouter)
 
 app.use('/api/guest', guestEventRouter)
 
+app.get('/health', (req, res) => {
+    res.json({ success: true, status: 'Health check is OK', timestamp: new Date() })
+})
 
 export default app
