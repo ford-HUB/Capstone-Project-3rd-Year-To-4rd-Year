@@ -4,7 +4,7 @@ const OptionModal = ({ open, setOpen, children }) => {
         <>
             {/* our z or z-[9999] is making sure that our modal naa gyud sa taas na layer */}
             {/* to prevent overriding the modal */}
-            <div className={`fixed inset-0 z-[9999] flex justify-center items-center transition-colors  
+            <div className={`fixed inset-0 z-[9999] backdrop-blur-[1px] flex justify-center items-center transition-colors  
                 ${open ? 'visible bg-black/20' : 'invisible'}`} onClick={() => setOpen}
             >
                 {/* Modal Interface */}

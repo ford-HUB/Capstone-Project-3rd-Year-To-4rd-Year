@@ -42,3 +42,35 @@ export const deleteEvent = async (id) => {
         message: response.data.message
     }
 }
+
+export const getParticipants = async (event_id) => {
+    const response = await apiInstance.get(`/api/event/get-participants/${event_id}`)
+    return {
+        success: response.data.success,
+        list: response.data.participants
+    }
+}
+
+export const getParticipantRegisterStatus = async (event_id) => {
+    const response = await apiInstance.get(`/api/event/get-event-user-status/${event_id}`)
+    return response.data.status
+}
+
+export const getParticipantCount = async (event_id) => {
+    const response = await apiInstance.get(`/api/event/get-event-participant-count/${event_id}`)
+    return {
+        success: response.data.success,
+        message: response.data.message,
+        registeredParticipant: response.data.count
+    }
+}
+
+export const removeEventRegistration = async (registration_id, reason) => {
+    const response = await apiInstance.delete(`/api/event/remove-registration/${registration_id}`, {
+        data: { reason }
+    })
+    return {
+        success: response.data.success,
+        message: response.data.message
+    }
+}

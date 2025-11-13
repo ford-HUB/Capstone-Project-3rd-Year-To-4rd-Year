@@ -10,13 +10,15 @@ Certificate.init({
         autoIncrement: true
     },
 
-    volunteer_id: {
+    participant_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        references: {
-        model: 'volunteer',
-        key: 'volunteer_id'
-        }
+    },
+
+    participant_type: {
+        type: DataTypes.ENUM('volunteer', 'staff', 'assistant_coordinator', 'coordinator', 'director'),
+        defaultValue: 'volunteer',
+        allowNull: false
     },
 
     event_id: {
@@ -43,6 +45,16 @@ Certificate.init({
         unique: true
     },
 
+    type: {
+        type: DataTypes.ENUM('appreciation', 'recognation'),
+        defaultValue: 'appreciation'
+    },
+
+    img_url: {
+        type: DataTypes.TEXT,
+        allowNull: false
+    },
+
     pdf_url: {
         type: DataTypes.TEXT,
         allowNull: false
@@ -52,15 +64,19 @@ Certificate.init({
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW
     },
-
-    expiry_date: {
-        type: DataTypes.DATE,
-        allowNull: true
+    
+    director_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            key: 'director_id',
+            model: 'director'
+        }
     },
 
-    series_id: {
-        type: DataTypes.STRING,
-        allowNull: true
+    additional_signatory_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false
     },
 
     cert_title: {

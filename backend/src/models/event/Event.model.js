@@ -10,6 +10,14 @@ Event.init({
         autoIncrement: true
     },
 
+    organizer_id: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: 'organizer',
+            key: 'organizer_id'
+        }
+    },
+
     title: {
         type: DataTypes.STRING,
         allowNull: false
@@ -35,16 +43,6 @@ Event.init({
     allowNull: false
     },
 
-    latitude: {
-    type: DataTypes.DECIMAL(9, 6),
-    allowNull: true
-    },
-
-    longitude: {
-    type: DataTypes.DECIMAL(9, 6),
-    allowNull: true
-    },
-
     participants: {
         type: DataTypes.INTEGER,
         allowNull: true,
@@ -61,14 +59,6 @@ Event.init({
         }
     },
 
-    organizer_id: {
-        type: DataTypes.INTEGER,
-        references: {
-            model: 'organizer',
-            key: 'organizer_id'
-        }
-    },
-
     funds_donation: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
@@ -79,11 +69,44 @@ Event.init({
         defaultValue: false
     },
 
+    status: {
+        type: DataTypes.ENUM('Upcoming', 'Ongoing', 'Cancelled', 'Completed'),
+        defaultValue: 'Upcoming',
+        allowNull: false
+    },
+
     event_image: {
         type: DataTypes.STRING,
         allowNull: true,
         defaultValue: ''
     },
+
+    certificate_generated: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+        defaultValue: false
+    },
+
+    notified_before_starting: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+        defaultValue: false
+    },
+
+    // Beneficiary applicability fields
+    beneficiary_applicable: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+    },
+
+    max_beneficiaries: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        validate: {
+            min: 1
+        }
+    }
 
 }, {
     sequelize: db,

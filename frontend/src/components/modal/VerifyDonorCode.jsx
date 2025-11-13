@@ -4,7 +4,7 @@ import { FormatTime } from '../../utils/FormatTime.js';
 import { useNavigate } from 'react-router-dom';
 import { asset } from '../../assets/asset.jsx';
 import { useVerificationStore } from '../../store/donor/useVerificationStore.js';
-import { useAuthStore } from '../../store/donor/useAuthStore.js';
+import { useDonorAuthStore } from '../../store/donor/useDonorAuthStore.js';
 
 const VerifyDonorCode = ({ onVerificationComplete }) => {
     const [current, setCurrent] = React.useState(true)
@@ -39,16 +39,16 @@ const VerifyDonorCode = ({ onVerificationComplete }) => {
         return () => clearInterval(intervalId);
     }, [otp_expiration ])
 
-    const { checkAuth, authenticatedDonor } = useAuthStore()
+    const { checkAuth, authenticatedUser } = useDonorAuthStore()
 
     React.useEffect(() => {
         const runCheck = async () => {
-            if (!authenticatedDonor) return
+            if (!authenticatedUser) return
             await checkAuth()
         }
 
         runCheck();
-    }, [authenticatedDonor])
+    }, [authenticatedUser])
 
     const handleSubmit = async (e) => {
         e.preventDefault()

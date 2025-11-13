@@ -1,6 +1,11 @@
 import z from 'zod'
 
 export const signupSchema = z.object({
+    fullname: z.string()
+        .min(2, "Full name must be at least 2 characters")
+        .max(100, "Full name must not exceed 100 characters")
+        .regex(/^[a-zA-Z\s]+$/, "Full name can only contain letters and spaces"),
+
     email: z.string().email({ pattern: /^(?!\.)(?!.*\.\.)([a-z0-9_'+\-\.]*)[a-z0-9_+-]@([a-z0-9][a-z0-9\-]*\.)+[a-z]{2,}$/i })
     .min(1, 'email is required'),
 

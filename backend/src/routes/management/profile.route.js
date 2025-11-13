@@ -10,14 +10,16 @@ import { upload } from "../../middleware/cloudinaryUpload.js"
 
 
 // @ Controllers
-import { createOrUpdateInfo, createOrUpdateAddress, updateAccountEmailAvatar, updatePassword } from "../../controllers/management/profile.controller.js"
+import { createOrUpdateInfo, createOrUpdateAddress, updateAccountEmailAvatar, updatePassword, getCurrentProfile, updateSignature } from "../../controllers/management/profile.controller.js"
 
 const managementProfile = express.Router()
 
-managementProfile.post('/add-profile', validateRequest(profileInfoSchema), guard('staff', 'coordinator'), createOrUpdateInfo)
-managementProfile.post('/add-address', validateRequest(addressSchema), guard('staff', 'coordinator'), createOrUpdateAddress)
-managementProfile.put('/update-email-avatar', validateRequest(updateEmailSchema), guard('staff','coordinator'), upload.single('avatar'), updateAccountEmailAvatar)
-managementProfile.put('/update-password', validateRequest(updatePasswordSchema), guard('staff', 'coordinator'), updatePassword)
+managementProfile.get('/current-profile', guard('staff', 'coordinator', 'assistant_coordinator'), getCurrentProfile)
+managementProfile.post('/add-profile', guard('staff', 'coordinator', 'assistant_coordinator'), validateRequest(profileInfoSchema), createOrUpdateInfo)
+managementProfile.post('/add-address',guard('staff', 'coordinator', 'assistant_coordinator'), validateRequest(addressSchema), createOrUpdateAddress)
+managementProfile.put('/update-email-avatar', guard('staff','coordinator', 'assistant_coordinator'), upload.single('avatar'), validateRequest(updateEmailSchema), updateAccountEmailAvatar)
+managementProfile.put('/update-password', guard('staff', 'coordinator', 'assistant_coordinator'), validateRequest(updatePasswordSchema), updatePassword)
+managementProfile.put('/update-signature', guard('staff', 'coordinator', 'assistant_coordinator'), upload.single('signature'), updateSignature)
 
 
 

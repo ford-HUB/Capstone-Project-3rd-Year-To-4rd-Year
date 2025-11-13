@@ -1,0 +1,1 @@
+export const allowedRole = ['Student','Lead Organizer', 'Event Coordinator', 'Assistant Coordinator', 'Volunteer Manager', 'Technical Support','Financial Officer', 'Donor Relations Officer', 'Certificate Manager']

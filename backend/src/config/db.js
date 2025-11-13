@@ -12,13 +12,15 @@ const db = new Sequelize(
         dialect: 'postgres',
         logging: false, // this will disable the console raw data display
         pool: {
-        max: 5,         // Max number of connections allowed at once
+        max: 20,         // Max number of connections allowed at once
         min: 0,         // Min number of connections Sequelize keeps alive (even if idle)
         acquire: 30000, // Max time (ms) Sequelize will try to get a connection before throwing error
         idle: 10000     // How long (ms) a connection can be idle before being released
         }
     }
 )
+
+import '../models/index.js'
 
 const testConnection = async () => {
     try {
@@ -38,8 +40,19 @@ const dropTables = async () => {
     }
 }
 
+const updateSchemaChanges = async () => {
+    try {
+        await db.sync()
+        console.log('updating schema always every render')
+    } catch (error) {
+        console.log('drop tables failed:', error.message)
+    }
+}
+
+
 export {
     db,
+    updateSchemaChanges,
     testConnection,
     dropTables
 }

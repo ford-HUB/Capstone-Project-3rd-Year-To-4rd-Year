@@ -32,7 +32,12 @@ RequestApproval.init({
 
     status: {
         type: DataTypes.ENUM,
-        values: ['requesting', 'approved'],
+        values: ['requesting', 'approved', 'rejected'],
+        allowNull: true
+    },
+
+    rejection_reason: {
+        type: DataTypes.TEXT,
         allowNull: true
     }
 
@@ -40,7 +45,8 @@ RequestApproval.init({
     sequelize: db,
     modelName: 'RequestApproval',
     tableName: 'request_approval',
-    timestamps: true
+    timestamps: true,
+    paranoid: true // Enable soft delete
 })
 
 export default RequestApproval

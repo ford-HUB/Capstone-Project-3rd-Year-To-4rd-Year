@@ -85,6 +85,12 @@ Coordinator.init({
         type: DataTypes.STRING,
         defaultValue: '',
         allowNull: true
+    },
+
+    signature_img: {
+        type: DataTypes.STRING,
+        defaultValue: '',
+        allowNull: true
     }
 }, {
     sequelize: db,

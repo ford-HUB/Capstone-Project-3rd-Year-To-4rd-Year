@@ -1,17 +1,17 @@
 import { create } from "zustand";
-import { currentProfile, insertPersonalInfo, insertAddress, updateSigningEmail, updatePassword } from "../../services/director/profileService.js";
+import { getCurrentProfile, insertPersonalInfo, insertAddress, updateSigningEmail, updatePassword, updateSignature } from "../../services/director/profileService.js";
 import toast from "react-hot-toast";
 
 export const useProfileStore = create((set) => ({
-    currentDirectorInfo: [],
+    currentDirectorInfo: {},
     currentPaymentInfo: [],
 
-    getCurrentProfile: async (formData) => {
+    currentProfile: async (formData) => {
         try {
-            const response = await currentProfile(formData)
+            const response = await getCurrentProfile(formData)
             if(!response.success) return false
-            set({ currentDirectorInfo: response.directorInfo })
-            set({ currentPaymentInfo: response.paymentInfo })
+            set({ currentDirectorInfo: response.directorInfo || {} })
+            set({ currentPaymentInfo: response.paymentInfo || [] })
             return true
         } catch (error) {
             console.log('get current profile failed: ', error.message)
@@ -49,7 +49,7 @@ export const useProfileStore = create((set) => ({
         }
     },
 
-    updateEmail: async (formData) => {
+    updateEmailOrAvatar: async (formData) => {
         try {
             const response = await updateSigningEmail(formData)
             if(!response.success) {
@@ -76,6 +76,21 @@ export const useProfileStore = create((set) => ({
             return true
         } catch (error) {
             console.log('update password director failed: ', error.message)
+        }
+    },
+
+    updateSignature: async (formData) => {
+        try {
+            const response = await updateSignature(formData)
+            if(!response.success) {
+                toast.error(response.message)
+                return false
+            }
+
+            toast.success(response.message)
+            return true
+        } catch (error) {
+            console.log('update signature director failed: ', error.message)
         }
     }
 }))

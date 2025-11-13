@@ -1,0 +1,186 @@
+import React, { useState, useEffect, useRef } from 'react';
+import toast from 'react-hot-toast';
+import { Html5Qrcode } from 'html5-qrcode';
+import { Camera, RefreshCcw, X } from 'lucide-react';
+import { useScanQRAttendanceStore } from '../../../store/common/useScanQRAttendanceStore';
+import BeneficiaryCustomToast from '../../../components/toast/attendance/BeneficiaryCustomToast';
+import { useBeneficiaryProfileStore } from '../../../store/beneficiary/useBeneficiaryProfileStore.js';
+import QrCodeInstruction from '../../../components/common/scanner/QrCodeInstruction';
+
+const AttendanceScanner = () => {
+    const [isScanning, setIsScanning] = useState(false);
+    const [scannedData, setScannedData] = useState('');
+    const [error, setError] = useState('');
+    const [cameraMode, setCameraMode] = useState('environment');
+    const [scanHistory, setScanHistory] = useState([]);
+
+    const scannerRef = useRef(null);
+    const containerId = 'qr-scanner-container';
+
+    const { scanQrTrigger } = useScanQRAttendanceStore();
+    const { currentProfileInfo } = useBeneficiaryProfileStore();
+    
+
+    const startScanning = async () => {
+        if (isScanning) return;
+        setError('');
+        setScannedData('');
+
+        try {
+            if (scannerRef.current) {
+                await scannerRef.current.stop().catch(() => {});
+                await scannerRef.current.clear().catch(() => {});
+                scannerRef.current = null;
+            }
+
+            scannerRef.current = new Html5Qrcode(containerId);
+
+            await scannerRef.current.start(
+                { facingMode: cameraMode },
+                { fps: 10, qrbox: 250 },
+                async (decodedText) => {
+                    setScannedData(decodedText);
+                    stopScanning();
+                    
+                    if (decodedText.startsWith('/api/attendance/scanQr/attendance?')) {
+                        const response = await scanQrTrigger(decodedText);
+                        if (!response.success) {
+                            toast.error(response.message);
+                            return;
+                        }
+                        
+                        // Add to scan history
+                        const scanRecord = {
+                            id: Date.now(),
+                            timestamp: new Date().toLocaleString(),
+                            eventName: response.eventDetails?.title || 'Unknown Event',
+                            status: 'Success',
+                            message: response.message
+                        };
+                        setScanHistory(prev => [scanRecord, ...prev.slice(0, 9)]); // Keep last 10 records
+                        
+                        toast.custom((t) => (
+                            <BeneficiaryCustomToast 
+                                t={t} 
+                                message={response.message} 
+                                userData={currentProfileInfo} 
+                                eventDetails={response.eventDetails}
+                            />
+                        ));
+                    } else {
+                        toast.error('Invalid QR code format');
+                    }
+                },
+                () => {}
+            );
+
+            setIsScanning(true);
+        } catch (err) {
+            console.error('Camera error:', err);
+            setError('Failed to access camera. Please allow camera permissions.');
+        }
+    };
+
+    const stopScanning = async () => {
+        if (!scannerRef.current) return;
+        try {
+            await scannerRef.current.stop();
+            await scannerRef.current.clear();
+        } catch (err) {
+            console.error('Error stopping scanner:', err);
+        } finally {
+            scannerRef.current = null;
+            setIsScanning(false);
+        }
+    };
+
+    const toggleCamera = async () => {
+        setCameraMode((prev) =>
+            prev === 'environment' ? 'user' : 'environment'
+        );
+        if (isScanning) {
+            // await stopScanning(); // it will stop open camera if it you switch the camera capture
+            setTimeout(startScanning, 100);
+        }
+    };
+
+    useEffect(() => {
+        return () => stopScanning();
+    }, []);
+
+
+    return (
+        <div className='flex justify-evenly bg-white'>
+            <div className="min-h-screen bg-white text-gray-50 flex flex-col items-center p-12">
+                <h1 className="text-2xl font-bold mb-2 text-black">
+                    Scan your QR Code
+                </h1>
+                <p className="text-gray-600 mb-6">
+                    Using {cameraMode === 'environment' ? 'Back' : 'Front'}{' '}
+                    Camera
+                </p>
+
+                <div className="relative w-80 h-80 mx-auto rounded-2xl overflow-hidden bg-gray-900">
+                    <div
+                        id={containerId}
+                        className={`w-full h-full ${
+                            cameraMode === 'user' ? 'scale-x-[-1]' : ''
+                        }`}
+                        style={{ backgroundColor: '#000' }}></div>
+                    {!isScanning && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500 pointer-events-none">
+                            <Camera className="w-20 h-20 mb-2" />
+                            <p>Camera preview will appear here</p>
+                        </div>
+                    )}
+                </div>
+
+                {error && (
+                    <div className="text-red-400 text-sm bg-red-900/30 p-4 rounded-xl mt-4 text-center">
+                        {error}
+                    </div>
+                )}
+
+                <div className="flex flex-col space-y-3 mt-6 w-full max-w-sm">
+                    <button
+                        onClick={startScanning}
+                        disabled={isScanning}
+                        className={`w-full flex items-center justify-center space-x-2 font-semibold py-3 px-6 rounded-xl ${
+                            isScanning
+                                ? 'bg-gray-600 cursor-not-allowed'
+                                : 'bg-green-500 hover:bg-green-600'
+                        }`}>
+                        <Camera className="w-5 h-5" />
+                        <span>{isScanning ? 'Scanning...' : 'Start Scan'}</span>
+                    </button>
+
+                    {isScanning && (
+                        <button
+                            onClick={stopScanning}
+                            className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-xl flex items-center justify-center space-x-2">
+                            <X className="w-5 h-5" />
+                            <span>Stop Scan</span>
+                        </button>
+                    )}
+
+                    <button
+                        onClick={toggleCamera}
+                        className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-xl flex items-center justify-center space-x-2">
+                        <RefreshCcw className="w-5 h-5" />
+                        <span>
+                            Switch to{' '}
+                            {cameraMode === 'environment' ? 'Front' : 'Back'}{' '}
+                            Camera
+                        </span>
+                    </button>
+                </div>
+            </div>
+            <div className='flex items-center h-screen'>
+                <QrCodeInstruction />
+            </div>
+
+        </div>
+    );
+};
+
+export default AttendanceScanner;

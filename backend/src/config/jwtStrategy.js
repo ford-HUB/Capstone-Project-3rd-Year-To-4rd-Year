@@ -15,7 +15,6 @@ const options = {
 
 export const jwtStrategy = new Strategy(options, async (jwt_payload, done) => {
     try {
-        console.log("JWT payload:", jwt_payload.id); // debugging purposes
         const { Accounts, Role } = models;
         const user = await Accounts.findOne({ 
             where: { account_id: jwt_payload.id },
@@ -24,8 +23,9 @@ export const jwtStrategy = new Strategy(options, async (jwt_payload, done) => {
                 attributes: ['name']
             }],attributes: { exclude: ['password'] }  })
         
-
-        if(!user) { return done(null, false) }
+        if(!user) { 
+            return done(null, false) 
+        }
 
         return done(null, user)
         

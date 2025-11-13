@@ -4,9 +4,12 @@ import bcrypt from 'bcrypt'
 import { sendMail } from "../../services/mailService.js";
 import { generateUniqueCode } from "../../utils/generateUniqueCode.js";
 import { generateToken } from "../../utils/generateToken.js";
+import { Op } from "sequelize";
+import { emitUserActivityUpdate } from "../../socket.js";
 
 export const signup = async (req, res) => {
-    const t = await db.transaction()
+    const t = await db.transaction();
+
     try {
         const { 
             studentId,
@@ -22,127 +25,227 @@ export const signup = async (req, res) => {
             address,
             department,
             course,
-            yearLevel
-        } = req.validatedBody
+            yearLevel,
+            isBeneficiary,
+            beneficiaryType,
+            organization_name
+        } = req.validatedBody;
 
-        const picture_id_image = req.file.path
+        const picture_id_image = req.file ? req.file.path : null;
+        const { Accounts, Role, Beneficiary, Department, Course, YearLevel, Student, StrandCourse, Volunteer, VerificationCodes } = models;
 
-        console.log(email)
+        // Check if email exists
+        const isEmailExist = await Accounts.findOne({ where: { email } });
+        if (isEmailExist) {
+            await t.rollback();
+            return res.status(400).json({ message: 'Your email account already exists' });
+        }
 
-        const {
-            Student,
-            Accounts,
-            Department,
-            StudentDepartment,
-            Course,
-            YearLevel,
-            Role,
-            VerificationCodes
-        } = models
+        // Hash password
+        const truePassword = password || confirmPassword;
+        const salt = await bcrypt.genSalt(10);
+        const hashPassword = await bcrypt.hash(truePassword, salt);
 
-
-        const isEmailExist = await Accounts.findOne({ where: { email: email } })
-        if(isEmailExist) { return res.json({ message: 'Your email account already exist' }) }
-
-        const truePassword = password || confirmPassword
-
-        let salt = await bcrypt.genSalt(10)
-        const hashPassword = await bcrypt.hash(truePassword, salt)
-
+        // Create account
         const newAccount = await Accounts.create({
-            email: email,
+            email,
             password: hashPassword,
             is_active: false
-        }, { transaction: t })
+        }, { transaction: t });
 
-        const newCourse = await Course.create({
-            course_name: course
-        }, { transaction: t })
+        const IsBeneficiary = isBeneficiary === "true"
 
-        const newYearLevel = await YearLevel.create({
-            year_level: yearLevel
-        }, { transaction: t })
+        console.log('is beneficiary type: ', typeof IsBeneficiary)
+        console.log('is beneficiary type: ', IsBeneficiary)
+        
+        // Create role
+        await Role.create({
+            account_id: newAccount.account_id,
+            name: IsBeneficiary ? 'beneficiary' : 'student',
+            description: IsBeneficiary 
+                ? 'This role allows access to beneficiary events' 
+                : 'This role allows access to volunteer events'
+        }, { transaction: t });
 
-        const [dept] = await Department.findOrCreate({
+        // ===== BENEFICIARY FLOW =====
+        if (IsBeneficiary) {
+            await Beneficiary.create({
+                account_id: newAccount.account_id,
+                firstname,
+                lastname,
+                middle_initial: middlename,
+                phone_number: phoneNumber,
+                current_address: address,
+                age,
+                gender,
+                organization_name: beneficiaryType === 'organization' ? organization_name : null
+            }, { transaction: t });
+
+            // send verification email & generate token
+            const uniqueCode = await generateUniqueCode();
+            const ONE_MINUTE = new Date(Date.now() + 60_000);
+
+            await VerificationCodes.create({
+                account_id: newAccount.account_id,
+                code: uniqueCode,
+                expires_at: ONE_MINUTE,
+                used: false
+            }, { transaction: t });
+
+            await sendMail(
+                email,
+                'Verify Your Account',
+                'Verify Your Account Fallback',
+                'mailingTemplate.html',
+                { email: process.env.AUTH_MAILER, code: uniqueCode, company_name: 'uclmcares' }
+            );
+
+            await generateToken(newAccount.account_id, res);
+
+            await t.commit();
+
+            return res.json({ 
+                success: true, 
+                message: 'Beneficiary registration successful! Please verify your email.', 
+                otp_expiration: ONE_MINUTE 
+            });
+        }
+
+        // Department
+        const [newDepartment] = await Department.findOrCreate({
             where: { department_name: department },
             defaults: { department_name: department },
             transaction: t
-        })
+        });
 
-        await Student.create({
-            student_number: studentId,
+        let courseId = null
+        let strandCourseId = null
+
+        console.log('department data: ' + department)
+
+        if(department === 'Senior High Department') {
+            const [strandCourse] = await StrandCourse.findOrCreate({
+                where: { name: course },
+                defaults: { name: course },
+                transaction: t
+            })
+            strandCourseId = strandCourse.strand_course_id
+        } else {
+            const [regularCourse] = await Course.findOrCreate({
+                where: { course_name: course },
+                defaults: { course_name: course },
+                transaction: t
+            });
+            courseId = regularCourse.course_id
+        }
+
+        // YearLevel
+        const [newYearLevel] = await YearLevel.findOrCreate({
+            where: { year_level: yearLevel },
+            defaults: { year_level: yearLevel },
+            transaction: t
+        });
+
+        // Student
+        const newStudent = await Student.create({
             account_id: newAccount.account_id,
-            firstname: firstname,
-            lastname: lastname,
+            student_number: studentId,
+            firstname,
+            lastname,
             middle_initial: middlename,
             phone_number: phoneNumber,
             current_address: address,
-            age: age,
-            gender: gender,
-            student_image_id: picture_id_image,
-            course_id: newCourse.course_id,
-            department_id: dept.department_id,
+            age,
+            gender,
+            profile_image: picture_id_image,
+            strand_course_id: strandCourseId,
+            course_id: courseId,
+            department_id: newDepartment.department_id,
             yl_id: newYearLevel.yl_id
-        }, { transaction: t })
+        }, { transaction: t });
 
-        await Role.create({
-            account_id: newAccount.account_id,
-            name: 'Student',
-            description: 'student role allowed to be part of voluntary events'
-        }, { transaction: t })
+        await Volunteer.create({
+            student_id: newStudent.student_id,
+            department_id: newDepartment.department_id,
+            course_id: courseId,
+            strand_course_id: strandCourseId,
+            yl_id: newYearLevel.yl_id,
+            profile_image: picture_id_image,
+            is_subscribed: true
+        }, { transaction: t });
 
-        const uniqueCode = await generateUniqueCode()
-        await sendMail(email, 'Verify Your Account', 'Verify Your Account Fallback', 'mailingTemplate.html', { email: process.env.AUTH_MAILER, code: uniqueCode, company_name: 'uclmcares' })
-
-        // const FIVE_MINUTES = new Date(Date.now() + 5 * 60 * 1000) // this will set expireration to 5 minutes
-        const ONE_MINUTE = new Date(Date.now() + 60_000); // debugging purposes
+        // send verification email & generate token
+        const uniqueCode = await generateUniqueCode();
+        const ONE_MINUTE = new Date(Date.now() + 60_000);
 
         await VerificationCodes.create({
             account_id: newAccount.account_id,
             code: uniqueCode,
-            expires_at: ONE_MINUTE, 
+            expires_at: ONE_MINUTE,
             used: false
-        }, { transaction: t })
+        }, { transaction: t });
 
-        await generateToken(newAccount.account_id, res)
-        await t.commit()
-        res.json({ success: true, message: "Account Successfully Registered", otp_expiration: ONE_MINUTE })
-        
+        await sendMail(
+            email,
+            'Verify Your Account',
+            'Verify Your Account Fallback',
+            'mailingTemplate.html',
+            { email: process.env.AUTH_MAILER, code: uniqueCode, company_name: 'uclmcares' }
+        );
+
+        await generateToken(newAccount.account_id, res);
+
+        await t.commit();
+
+        res.json({ 
+            success: true, 
+            message: 'Volunteer registration successful! Please verify your email.', 
+            otp_expiration: ONE_MINUTE 
+        });
+
     } catch (error) {
-        await t.rollback()
-        res.status(500).json({ message: 'Internal Server Error' })
-        console.error('sign up controller failed :', error.message)
+        await t.rollback();
+        console.error('Sign up controller failed:', error);
+        res.json({ message: 'Internal Server Error' });
     }
-}
+};
 
 export const login = async (req, res) => {
     try {
         const { email, password } = req.validatedBody
-        console.log(email)
-        console.log(password)
         const { Accounts, VerificationCodes, Role, ApprovalToken, RequestApproval } = models
 
         const isValid = await Accounts.findOne({ where: { email: email } })
         if(!isValid) { return res.json({ message: 'Invalid Credentials' }) }
         
-        const isStudent = await Role.findOne({ where: { account_id: isValid.account_id, name: 'Student' } })
+        const roleType = await Role.findOne({ where: { account_id: isValid.account_id } })
 
-        if(!isStudent) {
+        // Restrict director and donor from logging in through this endpoint
+        if(roleType.name === 'director' || roleType.name === 'donor') {
+            return res.json({ message: 'Invalid Credentials' })
+        }
+
+        if(roleType.name !== 'student') {
             const isMatch = await bcrypt.compare(password, isValid.password)
             if(!isMatch) { return res.json({ message: 'Invalid Credentials' }) }
-
-            const requestAccount = await RequestApproval.findOne({ where: { email: isValid.email } })
-
-            const verified = await ApprovalToken.findOne({ where: { ra_id: requestAccount.ra_id, used: true } })
-            if(!verified) { return res.json({ message: 'Account is not fully verified' }) }
-
             await Accounts.update({ is_active: true }, { where: { account_id: isValid.account_id } })
-
             const role = await Role.findOne({ where: { account_id: isValid.account_id } })
             console.log(role.name)
             console.log(email)
             await generateToken(isValid.account_id, res)
-            return res.json({ success: true, message: 'Login Successfully', role: role.name })
+            
+            // Emit socket event for user login
+            try {
+                emitUserActivityUpdate(isValid.account_id, "online", {
+                    email: isValid.email,
+                    role: role.name,
+                    loginTime: new Date()
+                });
+            } catch (socketError) {
+                console.log('Socket emit failed:', socketError.message);
+            }
+            
+            return res.json({ success: true, message: 'Login Successfully', role: role.name, userId: isValid.account_id })
         }
 
         const isVerified = await VerificationCodes.findOne({ where: { account_id: isValid.account_id, used: true } })
@@ -156,7 +259,18 @@ export const login = async (req, res) => {
         const role = await Role.findOne({ where: { account_id: isValid.account_id } })
         await generateToken(isValid.account_id, res)
 
-        return res.json({ success: true, message: 'Login Successfully', role: role.name })
+        // Emit socket event for user login
+        try {
+            emitUserActivityUpdate(isValid.account_id, "online", {
+                email: isValid.email,
+                role: role.name,
+                loginTime: new Date()
+            });
+        } catch (socketError) {
+            console.log('Socket emit failed:', socketError.message);
+        }
+
+        return res.json({ success: true, message: 'Login Successfully', role: role.name, userId: isValid.account_id })
 
     } catch (error) {
         res.status(500).json({ message: 'Internal Server Error' })
@@ -164,15 +278,265 @@ export const login = async (req, res) => {
     }
 }
 
+export const checkEmailExists = async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        if (!email) {
+            return res.json({ 
+                success: false, 
+                message: 'Email is required' 
+            });
+        }
+
+        const { Accounts } = models;
+        
+        // Check if email exists (including soft-deleted records)
+        const account = await Accounts.findOne({
+            where: { email: email },
+            paranoid: false // include soft-deleted records
+        });
+        
+        if (!account) {
+            return res.json({ 
+                success: true, 
+                exists: false,
+                message: 'Email not found'
+            });
+        }
+
+        // Return account details for status checking
+        return res.json({ 
+            success: true, 
+            exists: true,
+            account: {
+                account_id: account.account_id,
+                email: account.email,
+                is_active: account.is_active,
+                is_deactivated: account.is_deactivated,
+                activeAt: account.activeAt
+            },
+            message: 'Email found'
+        });
+    } catch (error) {
+        console.error('checkEmailExists controller failed:', error.message);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Internal Server Error' 
+        });
+    }
+};
+
+export const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.validatedBody;
+
+        const { Accounts, Student, Beneficiary, Staff, Coordinator, Director, Role, ResetPassword } = models;
+        
+        // Check if email exists in database
+        const account = await Accounts.findOne({ 
+            where: { email: email },
+            include: [
+                {
+                model: Role,
+                attributes: ['name']
+            },
+            {
+                model: Student,
+                attributes: ['firstname'],
+                required: false
+            },
+            {
+                model: Beneficiary,
+                attributes: ['firstname'],
+                required: false
+            },
+            {
+                model: Staff,
+                attributes: ['firstname'],
+                required: false
+            },
+            {
+                model: Coordinator,
+                attributes: ['firstname'],
+                required: false
+            },
+            {
+                model: Director,
+                attributes: ['firstname'],
+                required: false
+            },
+
+        ]
+        });
+
+        // console.log('test payload data: ', account)
+
+        const accountData = {
+            account_id: account.account_id,
+            email: account.email,
+            is_deactivated: account.is_deactivated,
+            firstname: account.Director ? account.Director.firstname :
+            account.Staff ? account.Staff.firstname :
+            account.Coordinator ? account.Coordinator.firstname :
+            account.Student ? account.Student.firstname : 'User'
+        }
+        
+        if (!account) {
+            return res.json({ 
+                success: false, 
+                message: 'Email not found in our system' 
+            });
+        }
+
+        // Check if account is deactivated
+        if (accountData.is_deactivated) {
+            return res.json({ 
+                success: false, 
+                message: 'This account is deactivated. Please contact support.' 
+            });
+        }
+
+        // Generate a unique reset token
+        const resetToken = await generateUniqueCode();
+        
+        // Set expiration time (1 hour from now)
+        const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+        
+        // Store reset token in database
+        await ResetPassword.create({
+            account_id: accountData.account_id,
+            reset_token: resetToken,
+            expires_at: expiresAt,
+            used: false,
+            ip_address: req.ip || req.connection.remoteAddress,
+            user_agent: req.get('User-Agent')
+        });
+        
+        // Send reset email
+        await sendMail(
+            email,
+            'Password Reset Request - UCLM CARES',
+            { text: 'Please click the link to reset your password' },
+            'passwordReset.html',
+            {
+                resetToken: resetToken,
+                email: accountData.email,
+                firstName: accountData.firstname || 'User',
+                resetLink: `${process.env.NODE_ENV === 'development' ? process.env.FRONT_END_URL : process.env.FRONTEND_URL_PROD}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`
+            }
+        );
+
+        return res.json({ 
+            success: true, 
+            message: 'Password reset instructions have been sent to your email'
+        });
+    } catch (error) {
+        console.error('forgotPassword controller failed:', error.message);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Internal Server Error' 
+        });
+    }
+};
+
+export const resetPassword = async (req, res) => {
+    try {
+        const { token, email, newPassword } = req.validatedBody;
+
+        const { Accounts, ResetPassword } = models;
+        
+        // Find the account
+        const account = await Accounts.findOne({ where: { email: email } });
+        
+        if (!account) {
+            return res.json({ 
+                success: false, 
+                message: 'Invalid reset request' 
+            });
+        }
+
+        // Find the reset token
+        const resetRecord = await ResetPassword.findOne({
+            where: {
+                account_id: account.account_id,
+                reset_token: token,
+                used: false
+            }
+        });
+
+        if (!resetRecord) {
+            return res.json({ 
+                success: false, 
+                message: 'Invalid or expired reset token' 
+            });
+        }
+
+        // Check if token is expired
+        if (new Date() > resetRecord.expires_at) {
+            return res.json({ 
+                success: false, 
+                message: 'Reset token has expired. Please request a new one.' 
+            });
+        }
+
+        // Hash the new password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+        
+        // Update the password
+        await Accounts.update(
+            { password: hashedPassword },
+            { where: { account_id: account.account_id } }
+        );
+
+        // Mark the reset token as used
+        await ResetPassword.update(
+            { 
+                used: true,
+                used_at: new Date()
+            },
+            { where: { reset_id: resetRecord.reset_id } }
+        );
+
+        return res.json({ 
+            success: true, 
+            message: 'Password has been reset successfully' 
+        });
+    } catch (error) {
+        console.error('resetPassword controller failed:', error.message);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Internal Server Error' 
+        });
+    }
+};
+
 export const logout = async (req, res) => {
     try {
+        const { Accounts } = models;
+        const accountId = req.user.account_id;
+
+        // Clear the JWT cookie
         res.clearCookie('jwt', {
             httpOnly: true,
             sameSite: true,
             secure: process.env.NODE_ENV === 'production'
-        })
+        });
 
-        return res.json({ success: true, message: 'logout successfully' })
+        // Set user as inactive
+        await Accounts.update({ is_active: false }, { where: { account_id: accountId } });
+
+        // Emit socket event for user logout
+        try {
+            emitUserActivityUpdate(accountId, "offline", {
+                logoutTime: new Date()
+            });
+        } catch (socketError) {
+            console.log('Socket emit failed:', socketError.message);
+        }
+
+        return res.json({ success: true, message: 'logout successfully', userId: accountId })
     } catch (error) {
         res.status(500).json({ message: 'Internal Server Error' })
         console.error('logout controller failed :', error.message)
@@ -190,6 +554,8 @@ export const VerifyCode = async (req, res) => {
 
         if(isMatch.used) { return res.json({ message: 'Verification Code Already Used, Please attempt resend code' }) }
 
+        console.log(isMatch.expires_at)
+
         const now = Date.now()
         const expiresAt = new Date(isMatch.expires_at)
         if(now > expiresAt) { return res.json({ message: 'Verification Code is Expired' }) }
@@ -197,7 +563,11 @@ export const VerifyCode = async (req, res) => {
         const updateStatus = await VerificationCodes.update({ used: true }, { where: { vc_id: isMatch.vc_id } })
         if(!updateStatus) { return res.json({ message: 'verification code is not successfully updated the status' }) }
 
-        res.json({ success: true, message: 'Verification Code Accepted',  })
+        // Activate the account after successful verification
+        const { Accounts } = models;
+        await Accounts.update({ is_active: true }, { where: { account_id: accountId } });
+
+        res.json({ success: true, message: 'Verification Code Accepted - Account Activated!',  })
 
     } catch (error) {
         res.status(500).json({ message: 'Internal Server Error' })

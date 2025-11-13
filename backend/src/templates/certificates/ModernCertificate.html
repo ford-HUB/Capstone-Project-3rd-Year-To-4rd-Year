@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UCLM CARES Certificate</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@300;400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .certificate {
+            width: 1123px;
+            height: 625px;
+            background: white;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            max-width: 100%;
+        }
+
+        #certificate-container {
+            aspect-ratio: 1123 / 625;
+        }
+
+        /* Decorative corner borders */
+        .corner {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border: 3px solid #8bc34a;
+        }
+
+        .corner.top-left {
+            top: 20px;
+            left: 20px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .corner.top-right {
+            top: 20px;
+            right: 20px;
+            border-left: none;
+            border-bottom: none;
+        }
+
+        .corner.bottom-left {
+            bottom: 20px;
+            left: 20px;
+            border-right: none;
+            border-top: none;
+        }
+
+        .corner.bottom-right {
+            bottom: 20px;
+            right: 20px;
+            border-left: none;
+            border-top: none;
+        }
+
+        /* Decorative accent */
+        .top-accent {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(90deg, #0066ff, #8bc34a, #0066ff);
+        }
+
+        .content-wrapper {
+            padding: 50px 70px;
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Section */
+        .header {
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 20px;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .header-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .header-info-left {
+            text-align: left;
+        }
+
+        .header-info-right {
+            text-align: right;
+        }
+
+        .logo-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 1;
+        }
+
+        .cares-logo {
+            width: 80px;
+            height: 80px;
+            background: url('https://res.cloudinary.com/dhkp7er6i/image/upload/v1759076077/transparent-logo_siemwc.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .header-center {
+            text-align: center;
+        }
+
+        .org-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: #0066ff;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .initiative-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            letter-spacing: 1px;
+        }
+
+        /* Main Content */
+        .certificate-title {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .title-main {
+            font-family: 'Playfair Display', serif;
+            font-size: 40px;
+            font-weight: 700;
+            color: #1a1a1a;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+
+        .title-sub {
+            font-size: 22px;
+            font-weight: 300;
+            color: #8bc34a;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .presented-to {
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .recipient-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 38px;
+            font-weight: 600;
+            text-align: center;
+            color: #0066ff;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .description {
+            text-transform: lowercase;
+            text-align: center;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #444;
+            margin-bottom: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .program-highlight {
+            font-weight: 600;
+            color: #8bc34a;
+        }
+
+        .date-box, .cert-id-box {
+            text-align: inherit;
+        }
+
+        .info-label {
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 3px;
+        }
+
+        .info-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0066ff;
+        }
+
+        /* Signatures */
+        .signatures {
+            display: flex;
+            justify-content: space-evenly;
+            align-items: flex-start;
+            margin-top: auto;
+            padding-top: 20px;
+            position: relative;
+            flex-wrap: wrap;
+            gap: 0;
+        }
+
+        .signature-block {
+            text-align: center;
+            flex: 1;
+            padding: 0 15px;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .signature-img {
+            height: 50px;
+            width: 100px;
+            object-fit: contain;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .signature-line {
+            width: 150px;
+            height: 2px;
+            background: #333;
+            margin: 0 auto 6px auto;
+            display: block;
+        }
+
+        .signature-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 2px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .signature-title {
+            font-size: 10px;
+            color: #666;
+            font-style: italic;
+            text-align: center;
+            width: 100%;
+        }
+
+        .third-signature {
+            position: static;
+            transform: none;
+            text-align: center;
+        }
+
+        .third-signature.hide {
+            display: none !important;
+        }
+
+        /* Watermark */
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.03;
+            width: 600px;
+            height: 600px;
+            background: url('https://res.cloudinary.com/dhkp7er6i/image/upload/v1759076077/transparent-logo_siemwc.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @media (max-width: 1200px) {
+            .certificate {
+                width: 95%;
+                height: auto;
+            }
+            
+            .content-wrapper {
+                padding: 40px;
+            }
+
+            .title-main {
+                font-size: 36px;
+            }
+
+            .recipient-name {
+                font-size: 40px;
+            }
+
+            .signatures {
+                flex-wrap: wrap;
+            }
+
+            .signature-block {
+                flex: 0 0 50%;
+                margin-bottom: 30px;
+            }
+
+            .third-signature {
+                position: static;
+                transform: none;
+                margin-top: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="certificate-container" class="certificate">
+        <!-- Decorative corners -->
+        <div class="corner top-left"></div>
+        <div class="corner top-right"></div>
+        <div class="corner bottom-left"></div>
+        <div class="corner bottom-right"></div>
+        
+        <!-- Top accent -->
+        <div class="top-accent"></div>
+
+        <!-- Watermark -->
+        <div class="watermark"></div>
+        
+        <div class="content-wrapper">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-top">
+                    <div class="header-info header-info-left">
+                        <div class="date-box">
+                            <div class="info-label">Date Issued</div>
+                            <div class="info-value">{{issued_date}}</div>
+                        </div>
+                    </div>
+                    <div class="logo-section">
+                        <div class="cares-logo"></div>
+                    </div>
+                    <div class="header-info header-info-right">
+                        <div class="cert-id-box">
+                            <div class="info-label">Certificate ID</div>
+                            <div class="info-value">{{cert_uuid}}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-center">
+                    <div class="org-name">UCLM CARES</div>
+                    <div class="initiative-text">{{category_name}}</div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Certificate Title -->
+                <div class="certificate-title">
+                    <div class="title-main">CERTIFICATE</div>
+                    <div class="title-sub">of {{certificate_type}}</div>
+                </div>
+
+                <!-- Presented To -->
+                <div class="presented-to">This certificate is proudly presented to</div>
+
+                <!-- Recipient Name -->
+                <div class="recipient-name">{{participant_name}}</div>
+
+                <!-- Description -->
+                <div class="description">
+                    In {{certificate_type}} of your outstanding dedication and continued commitment to volunteering time and effort 
+                    to the <span class="program-highlight">{{event_title}}</span>. 
+                    Thank you for bettering the lives of our community members and the younger generation.
+                </div>
+            </div>
+
+            <!-- Signatures -->
+            <div class="signatures">
+                <div class="signature-block">
+                    <img class="signature-img" src="{{director_signatory_img}}" alt="Director Signature">
+                    <div class="signature-line"></div>
+                    <div class="signature-name">Dr. {{director_name}}</div>
+                    <div class="signature-title">UCLM CARES Director</div>
+                </div>
+
+                <div class="signature-block third-signature {{#unless isDirector}}hide{{/unless}}">
+                    <img class="signature-img" src="https://res.cloudinary.com/dhkp7er6i/image/upload/v1758120082/sampleSignature_gtl1av.png" alt="Official Signature">
+                    <div class="signature-line"></div>
+                    <div class="signature-name">{{official_signatory_name}}</div>
+                    <div class="signature-title">{{official_signatory_role}}</div>
+                </div>
+
+                <div class="signature-block">
+                    <img class="signature-img" src="{{additional_signatory_img}}" alt="Signatory">
+                    <div class="signature-line"></div>
+                    <div class="signature-name">{{additional_signatory_name}}</div>
+                    <div class="signature-title">{{additional_signatory_role}}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

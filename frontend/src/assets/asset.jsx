@@ -28,9 +28,69 @@ import maya from './mayaLogoBlack.jpeg'
 import paypal from './paypal.png'
 import visa from './VisaLogo.svg'
 import mastercard from './MasterCardLogo.svg'
+import certificateIcon from './certificate.png'
+import bot from './bot.png'
+import uclmFrontBuilding from './uclm-front-view-building.png'
+import one from './BarangayLoocLogo.jpg'
+import two from './BarangayOpao.jpg'
+import three from './BarangayUmpad.jpg'
+import four from './BarangayPaknaan.jpg'
+import five from './BidliwFoundation.png'
+import six from './Tesda.png'
+import seven from './deped.png'
+import eight from './MandaueCityJail.jpg'
+import nine from './APAP.png'
+import ten from './DENS.png'
+import eleven from './AFOS.png'
+import twelve from './CebuChamberOfCommerceInc.png'
+import ako from './Acomplishments.png'
+import raaaa from './CommunityProgramCapture.png'
+import brg from './BarangayVisit.png'
+import brgtwo from './RecognationCares.png'
+import weee from './PAEPI.png'
+import wooo from './RecognationCaresPeople.png'
+import quuu from './CARES-MEETING-PROGRAM.png'
+import jaaa from './A-PAD.png'
+import kaaa from './WorldCleanUpDay.png'
+import kani from './UCLMCARES-CHART.png'
+import tuuu from './TyphoonVictems.png'
+import yve from './MedicalCollaboration.png'
+import lunox from './ChristmasGiftActivity.png'
+import uclmcaresOrgChard from './UCLMCARES-CHART.png'
+import uclmcaresRawChart from './UCLMCARES-RAW-CHART.png'
 
 
 export const asset = {
+    one,
+    two,
+    three,
+    four,
+    five,
+    six,
+    seven,
+    eight,
+    nine,
+    ten,
+    eleven,
+    twelve,
+    ako,
+    raaaa,
+    brg,
+    brgtwo,
+    weee,
+    wooo,
+    quuu,
+    jaaa,
+    kaaa,
+    kani,
+    tuuu,
+    yve,
+    lunox,
+    uclmcaresRawChart,
+    uclmcaresOrgChard,
+    uclmFrontBuilding,
+    bot,
+    certificateIcon,
     paypal,
     visa,
     mastercard,

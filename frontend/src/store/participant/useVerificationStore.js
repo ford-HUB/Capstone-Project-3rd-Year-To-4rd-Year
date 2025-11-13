@@ -43,10 +43,10 @@ export const useVerificationStore = create((set, get) => ({
         try {
             const response = await verifyCodeUser(otp)
             if(!response.success) {
-                toast.error('code failed to resent!')
+                toast.error(response.message)
                 return false
             }
-            toast.success(response.message)
+            // toast.success(response.message)
             return true
 
         } catch (error) {

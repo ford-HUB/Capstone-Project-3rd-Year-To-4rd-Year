@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Request Rejected</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+        .status-badge {
+            display: inline-block;
+            background-color: #ef4444;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+        .content {
+            margin: 20px 0;
+        }
+        .info-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .reason-box {
+            background-color: #f8fafc;
+            border: 1px solid #e5e7eb;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #2563eb;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+        .highlight {
+            color: #2563eb;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">{{company_name}}</div>
+            <div class="status-badge">✗ REJECTED</div>
+        </div>
+
+        <div class="content">
+            <h2>Document Request Rejected</h2>
+            <p>Dear <span class="highlight">{{requester_name}}</span>,</p>
+            
+            <p>We regret to inform you that your document request has been <strong>rejected</strong> by <span class="highlight">{{reviewer_name}}</span>.</p>
+
+            <div class="info-box">
+                <h3>Request Details:</h3>
+                <p><strong>Document:</strong> {{document_title}}</p>
+                <p><strong>Status:</strong> <span style="color: #ef4444; font-weight: 600;">REJECTED</span></p>
+                <p><strong>Reviewed by:</strong> {{reviewer_name}}</p>
+                <p><strong>Date:</strong> {{current_date}}</p>
+            </div>
+
+            <div class="reason-box">
+                <h3>Reason for Rejection:</h3>
+                <p style="font-style: italic; color: #6b7280;">{{rejection_reason}}</p>
+            </div>
+
+            <p>Please review the reason provided above and consider resubmitting your request with the necessary corrections or additional information.</p>
+
+            <p>If you have any questions about this decision or need clarification on the requirements, please contact the reviewer or our support team.</p>
+
+            <p>Thank you for your understanding.</p>
+        </div>
+
+        <div class="footer">
+            <p>This is an automated notification from {{company_name}} Document Management System.</p>
+            <p>Please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html>

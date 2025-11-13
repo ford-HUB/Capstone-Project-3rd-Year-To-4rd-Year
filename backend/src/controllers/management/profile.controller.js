@@ -1,4 +1,36 @@
 import models from "../../models/index.js";
+import bcrypt from 'bcrypt'
+
+export const getCurrentProfile = async (req, res) => {
+    try {
+        const accountId = req.user.account_id
+        const roleType = req.user.Role.name
+        const { Staff, Coordinator, Department } = models;
+
+        if(roleType !== 'staff') {
+            const coordinator = await Coordinator.findOne({ where: { account_id: accountId },
+            include: {
+              model: Department
+            }
+            })
+
+            if(!coordinator) { return res.json({ success: false, info: null, message: 'Must manually add your personal information' }) }
+
+            return res.json({ success: true, info: coordinator })
+        }
+
+        const staff = await Staff.findOne({ where: { account_id: accountId } })
+
+        if (!staff) { return res.json({ success: false, info: null, message: 'Must manually add your personal information'}) }
+        
+        return res.json({ success: true, info: staff })
+
+    } catch (error) {
+        res.json({ success: false, message: 'Internal Server Error' });
+        console.error('get current profile failed:', error.message);
+        return
+    }
+};
 
 export const createOrUpdateInfo = async (req, res) => {
   try {
@@ -161,5 +193,36 @@ export const updatePassword = async (req, res) => {
   } catch (error) {
     res.json({ success: false, message: 'Internal Server Error' })
     console.log('new password management failed: ', error.message)
+  }
+}
+
+export const updateSignature = async (req, res) => {
+  try {
+    const { Staff, Coordinator } = models
+    const signaturePath = req.file.path
+    const accountId = req.user.account_id
+    const roleType = req.user.Role.name
+
+    if(roleType !== 'staff') {
+      const updateSignature = await Coordinator.update(
+        { signature_img: signaturePath },
+        { where: { account_id: accountId } }
+      )
+
+      if(!updateSignature) { return res.json({ success: false, message: 'signature failed to upload' }) }
+      return res.json({ success: true, message: 'signature successfully uploaded' })
+    }
+
+    const updateSignature = await Staff.update(
+      { signature_img: signaturePath },
+      { where: { account_id: accountId } }
+    )
+
+    if(!updateSignature) { return res.json({ success: false, message: 'signature failed to upload' }) }
+    return res.json({ success: true, message: 'signature successfully uploaded' })
+
+  } catch (error) {
+    res.json({ success: false, message: 'Internal Server Error' })
+    console.log('update signature management failed: ', error.message)
   }
 }

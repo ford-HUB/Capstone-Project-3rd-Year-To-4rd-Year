@@ -40,11 +40,22 @@ export const eventSchema = Joi.object({
   category: Joi.string().valid(
     'School', 'Community',
     'Emergency', 'Donation Drive',
-    'Charity', 'Relief Pogram',
-    'Health', 'Outreach'
+    'Charity', 'Relief Program',
+    'Health', 'Outreach', 'Training', 'Seminar', 'Others'
   ).required().messages({
-    'any.required': 'Event image URL or filename is required',
-    'string.empty': 'Event image cannot be empty'
+    'any.required': 'Category is required',
+    'string.empty': 'Category cannot be empty',
+    'any.only': 'Category must be one of the predefined options'
+  }),
+
+  specified_category: Joi.when('category', {
+    is: 'Others',
+    then: Joi.string().required().min(1).messages({
+        'any.required': 'Specified category is required when category is Others',
+        'string.empty': 'Specified category cannot be empty',
+        'string.min': 'Specified category must not be empty'
+    }),
+    otherwise: Joi.string().allow("").optional()
   }),
 
   department: Joi.when('category', {
@@ -53,6 +64,24 @@ export const eventSchema = Joi.object({
         'any.required': 'Department is required for school events'
     }),
     otherwise: Joi.string().allow("").optional() // prevent insertion if it is not school
+  }),
+
+  // Beneficiary applicability fields
+  beneficiary_applicable: Joi.boolean().default(false).messages({
+    'boolean.base': 'Beneficiary applicable must be true or false'
+  }),
+
+  max_beneficiaries: Joi.when('beneficiary_applicable', {
+    is: true,
+    then: Joi.number().integer().min(1).required().messages({
+      'any.required': 'Max beneficiaries is required when beneficiary applicable is true',
+      'number.base': 'Max beneficiaries must be a number',
+      'number.min': 'There must be at least 1 beneficiary allowed'
+    }),
+    otherwise: Joi.number().integer().min(1).optional().messages({
+      'number.base': 'Max beneficiaries must be a number',
+      'number.min': 'There must be at least 1 beneficiary allowed'
+    })
   })
 })
 

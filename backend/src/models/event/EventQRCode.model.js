@@ -4,7 +4,7 @@ import { db } from "../../config/db.js";
 class EventQRCode extends Model {}
 
 EventQRCode.init({
-  qr_id: {
+  qrcode_id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true
@@ -21,7 +21,7 @@ EventQRCode.init({
 
   type: {
     type: DataTypes.ENUM('in', 'out'),
-    allowNull: false
+    allowNull: false,
   },
 
   qrcode_url: {
@@ -30,30 +30,20 @@ EventQRCode.init({
   },
 
   token: {
-    type: DataTypes.STRING(255),
+    type: DataTypes.STRING,
     allowNull: true
   },
 
   expires_at: {
     type: DataTypes.DATE,
     allowNull: true
-  },
-
-  created_at: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW
-  },
-
-  updated_at: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW
   }
 
 }, {
   sequelize: db,
   modelName: 'EventQRCode',
   tableName: 'event_qrcodes',
-  timestamps: false 
+  timestamps: true 
 });
 
 export default EventQRCode;

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cisco Certificate</title>
+  <link rel="stylesheet" href="/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<style>
+    * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.global-holder {
+  padding: 20px;
+}
+
+.cisco {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  border: 10px solid black;
+  font-family: 'Poppins', sans-serif;
+  padding: 10px 30px;
+  color: #47494b;
+}
+
+.main, .main2{
+  padding: 0 40px;
+}
+
+.header img {
+  width: 100px;
+  margin-top: 30px;
+}
+
+.header {
+  padding: 0 40px;
+}
+
+.main, .main2 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* MAIN1 */
+
+.cisco-title {
+  font-size: 35px;
+  color: #545658;
+}
+
+.name {
+  font-size: 40px;
+  color: #3d3f41;
+}
+
+.title-des {
+  font-size: small;
+}
+
+/* MAIN2 */
+
+.image-part {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.image-part p {
+  font-size: 35px;
+}
+
+.image-part img {
+  width: 150px;
+}
+table {
+  margin: 10px 0;
+}
+table tr td {
+  font-size: 12px;
+  padding: 0 20px;
+}
+
+/* FOOTER PART */
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  height: 150px;
+}
+
+.copywrite {
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  font-size: 12px;
+  color: #2b2d2e;
+}
+
+.signature {
+  display: flex;
+}
+
+.sign {
+  font-size: 12px;
+}
+
+.sign img {
+  width: 150px;
+}
+
+.digits {
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  font-size: 12px;
+}
+</style>
+<body>
+  <div id="certificate-container" class="global-holder">
+    <div class="cisco">
+      <div class="header">
+      </div>
+
+      <div class="main">
+        <p class="cisco-title">Cisco Certifications</p>
+        <p class="name">Jerson Jay Gwapo</p>
+        <p class="title-des">has successfully completed the Cisco certification exam requirements and is recognized as a</p>
+      </div>
+
+      <div class="main2">
+        <div class="image-part">
+          <p>Cisco Certified Network Associate Routing and Switching</p>
+          <img src="./cisco-certified.png" alt="cisco certified logo">
+        </div>
+        <table>
+          <tr>
+            <td><p>Date Certified</p></td>
+            <td><p>April 18, 2016</p></td>
+          </tr>
+          <tr>
+            <td><p>Valid Through</p></td>
+            <td><p>April 18, 2019</p></td>
+          </tr>
+          <tr>
+            <td><p>Cisco ID No.</p></td>
+            <td><p>CSCO12987808</p></td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="footer">
+        <div class="copywrite">
+          <p>Validate this certicate's authenticity at</p>
+          <p>www.cisco.com/go/verifycertificate</p>
+          <p>Certificate Vertification No. 424844168707BTLK</p>
+          <br>
+          <p>© 2016 Cisco and/or its affiliates</p>
+        </div>
+
+        <div class="signature">
+          <div class="sign">
+            <img src="/signature.png" alt="signature">
+            <p>Chuck Robbins</p>
+            <p>Chief Executive Officer</p>
+            <p>Cisco Systems, Inc</p>
+          </div>
+          <div class="digits">
+            <p>7090104021</p>
+            <p>0428</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

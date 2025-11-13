@@ -1,6 +1,7 @@
 import React from 'react';
 import DirectorSidePanel from '../../components/director/DirectorSidebarPanel';
-import { Users, Calendar, Clock, ChevronRight, MessageSquare } from 'lucide-react';
+import { Users, Calendar, Clock, ChevronRight, MessageSquare, CreditCard } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const DirectorDashboard = () => {
     const stats = {
@@ -93,6 +94,35 @@ const DirectorDashboard = () => {
                                     </div>
                                     <MessageSquare className="w-12 h-12 text-green-200" />
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* Quick Actions Section */}
+                        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-xl font-semibold text-gray-800">Quick Actions</h2>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <Link 
+                                    to="/director/profile" 
+                                    className="flex items-center p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+                                >
+                                    <CreditCard className="w-8 h-8 text-blue-600 mr-3" />
+                                    <div>
+                                        <h3 className="font-medium text-blue-900">Set Up Payment Methods</h3>
+                                        <p className="text-sm text-blue-700">Configure payment methods to receive donations</p>
+                                    </div>
+                                </Link>
+                                <Link 
+                                    to="/director/event-list" 
+                                    className="flex items-center p-4 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors"
+                                >
+                                    <Calendar className="w-8 h-8 text-green-600 mr-3" />
+                                    <div>
+                                        <h3 className="font-medium text-green-900">Manage Events</h3>
+                                        <p className="text-sm text-green-700">Create and manage your events</p>
+                                    </div>
+                                </Link>
                             </div>
                         </div>
 

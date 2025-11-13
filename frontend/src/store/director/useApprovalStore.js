@@ -1,9 +1,10 @@
 import { create } from "zustand"
 import toast from "react-hot-toast"
-import { currentRequestList, approveUser, deleteUser } from "../../services/director/approvalService.js"
+import { currentRequestList, approveUser, rejectUser, getRejectedRequests, acceptRejectedRequest } from "../../services/director/approvalService.js"
 
 export const useApprovalStore = create((set) => ({
     requestList: null,
+    rejectedRequests: null,
 
     getRequestList: async () => {
         try {
@@ -39,9 +40,9 @@ export const useApprovalStore = create((set) => ({
     },
 
 
-    deleteRequest: async (id) => {
+    rejectRequest: async (id, reason) => {
         try {
-            const response = await deleteUser(id)
+            const response = await rejectUser(id, reason)
             if(!response.success) {
                 toast.error(response.message)
                 return false
@@ -52,7 +53,41 @@ export const useApprovalStore = create((set) => ({
             toast.success(response.message)
             return true
         } catch (error) {
-            console.log('delete request store failed:', error.message)
+            console.log('reject request store failed:', error.message)
+            return false
+        }
+    },
+
+    getRejectedRequests: async () => {
+        try {
+            const response = await getRejectedRequests()
+            if(!response.success) {
+                set({ rejectedRequests: null })
+                return false
+            }
+            set({ rejectedRequests: response.requests })
+            return true
+        } catch (error) {
+            console.log('get rejected requests store failed:', error.message)
+            set({ rejectedRequests: null })
+            return false
+        }
+    },
+
+    acceptRejectedRequest: async (id) => {
+        try {
+            const response = await acceptRejectedRequest(id)
+            if(!response.success) {
+                toast.error(response.message)
+                return false
+            }
+            set(state => ({
+                rejectedRequests: state.rejectedRequests.filter(req => req.ra_id !== id)
+            }));
+            toast.success(response.message)
+            return true
+        } catch (error) {
+            console.log('accept rejected request store failed:', error.message)
             return false
         }
     }

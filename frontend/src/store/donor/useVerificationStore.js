@@ -2,7 +2,7 @@ import { create } from "zustand"
 import { apiInstance } from "../../api/_base.js"
 import toast from "react-hot-toast"
 
-const VERIFICATION_EXPIREATION = 'DonorVerficationExpireAt'
+const VERIFICATION_EXPIREATION = 'DonorVerificationExpireAt'
 
 export const useVerificationStore = create((set, get) => ({
     otp_expiration: localStorage.getItem(VERIFICATION_EXPIREATION) || null,

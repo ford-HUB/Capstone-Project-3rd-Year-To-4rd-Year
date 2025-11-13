@@ -1,5 +1,5 @@
 import React from "react";
-import { Calendar, LayoutDashboard, ChevronDown, CircleUser, Database, Users, FileCogIcon, FileUser, HandCoins, StickyNote } from "lucide-react";
+import { Calendar, LibraryBig, FileVolume, LayoutDashboard, ChevronDown, CircleUser, Database, Users, FileCogIcon, FileUser, HandCoins, StickyNote, CreditCard, Pickaxe } from "lucide-react";
 import MenuItem from "../common/MenuItem";
 import ExpandableMenuItem from "../common/ExpandableMenuItem";
 import '../../styles/scrollbar.css'
@@ -9,7 +9,10 @@ import { NavLink } from "react-router-dom";
 const DirectorSidebarPanel = ({ sidebarCollapsed }) => {
   const [dashboardExpanded, setDashboardExpanded] = React.useState(true);
   const [eventExpanded, setEventExpanded] = React.useState(false);
+  const [beneficiaryExpanded, setBeneficiaryExpanded] = React.useState(false)
   const [volunteerExpanded, setVolunteerExpanded] = React.useState(false);
+  const [certificateExpanded, setCertificateExpanded] = React.useState(false)
+  const [formBuilderExpanded, setFormBuilderExpanded] = React.useState(false)
   const [dFExpanded, setDFExpanded] = React.useState(false);
   const [feedbackExpanded, setFeedbackExpanded] = React.useState(false)
   const [drExpanded, setDrExpanded] = React.useState(false)
@@ -23,7 +26,7 @@ const DirectorSidebarPanel = ({ sidebarCollapsed }) => {
             <div className="rounded-lg flex items-center justify-center">
               <img src={asset.logo} alt="UCLMCARES" className={`h-12 w-12 ${sidebarCollapsed ? `h-5 w-5`: ``}`} />
             </div>
-            {!sidebarCollapsed ? <span className="ml-3 text-xl font-bold text-gray-800">CARES ADMIN</span>: ''}<br/>
+            {!sidebarCollapsed ? <span className="ml-3 text-xl font-bold text-gray-800">CARES DIRECTOR</span>: ''}<br/>
           </div>
           <div className="pl-1 mb-4">
             {!sidebarCollapsed && <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">MENU</span>}
@@ -52,34 +55,38 @@ const DirectorSidebarPanel = ({ sidebarCollapsed }) => {
               ${dashboardExpanded && !sidebarCollapsed ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}
             `}
           >
-            <a
-              href="#"
-              className="block px-3 py-2 text-gray-800 rounded-md hover:bg-gray-50"
+            <NavLink to="/director/overview" end className={({ isActive }) => {
+              return `block px-3 py-2 rounded-md hover:bg-gray-50
+              ${isActive ? 'text-blue-600 bg-gray-50 rounded-md': 'text-gray-800'}`
+            }}
             >
               Overview
-            </a>
+            </NavLink>
 
-            <a
-              href="#"
-              className="block px-3 py-2 text-gray-800 rounded-md hover:bg-gray-50"
+            <NavLink to="/director/statistics" end className={({ isActive }) => {
+              return `block px-3 py-2 rounded-md hover:bg-gray-50
+              ${isActive ? 'text-blue-600 bg-gray-50 rounded-md': 'text-gray-800'}`
+            }}
             >
               Statistics
-            </a>
+            </NavLink>
 
-            <a
-              href="#"
-              className="block px-3 py-2 text-gray-800 rounded-md hover:bg-gray-50"
+            <NavLink to="/director/system-performance" end className={({ isActive }) => {
+              return `block px-3 py-2 rounded-md hover:bg-gray-50
+              ${isActive ? 'text-blue-600 bg-gray-50 rounded-md': 'text-gray-800'}`
+            }}
             >
-              System Summary
-            </a>
+              System Performance
+            </NavLink>
       
           </div>
         </div>
 
           <div className="space-y-4">
-            <MenuItem icon={Calendar} label="Calendar" route={'/director/calendar'} collapsed={sidebarCollapsed} />            
             <MenuItem icon={CircleUser} label="User Profile" route={'/director/profile'} collapsed={sidebarCollapsed} />
             <MenuItem icon={Users} label="Manage User" badge="" route={'/director/manage-users'} collapsed={sidebarCollapsed} />
+            <MenuItem icon={FileVolume} label="Post Monthly Report" route={'/director/post-requirements'} collapsed={sidebarCollapsed} />
+            <MenuItem icon={LibraryBig} label="Inter Donation Tracking" route={'/director/internal-donation-tracking'} collapsed={sidebarCollapsed} />
 
             <div className="mt-4">
               <ExpandableMenuItem 
@@ -91,150 +98,146 @@ const DirectorSidebarPanel = ({ sidebarCollapsed }) => {
               />
               <div className={`mt-2.5 ml-10 text-sm bg-white overflow-hidden transition-all duration-300 ease-in-out
               ${eventExpanded && !sidebarCollapsed ? 'max-h-40 opacity-100 ' : 'max-h-0 opacity-0'}`}>
-                <NavLink to="/director/map" end className={({ isActive }) => {
-                  return `block px-3 py-2 rounded-md hover:bg-gray-50
-                  ${isActive ? 'text-blue-600 bg-gray-50 rounded-md': 'text-gray-800'}`
-                }}
-                >
-                  Map
-                </NavLink>
 
                 <NavLink to="/director/event-list" end className={({ isActive }) => {
                   return `block px-3 py-2 rounded-md hover:bg-gray-50
                   ${isActive ? 'text-blue-600 bg-gray-50 rounded-md': 'text-gray-800'}`
                 }}
                 >
+                  Event
+                </NavLink>
+
+                <NavLink to="/director/attendance-log" end className={({ isActive }) => {
+                  return `block px-3 py-2 rounded-md hover:bg-gray-50
+                  ${isActive ? 'text-blue-600 bg-gray-50 rounded-md': 'text-gray-800'}`
+                }}
+                >
+                  Attendance
+                </NavLink>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <ExpandableMenuItem 
+              icon={FileCogIcon} 
+              label="Manage Beneficiary" 
+              expanded={beneficiaryExpanded}
+              onToggle={() => setBeneficiaryExpanded(!beneficiaryExpanded)}
+              collapsed={sidebarCollapsed}
+              />
+              <div className={`mt-2.5 ml-10 text-sm bg-white overflow-hidden transition-all duration-300 ease-in-out
+              ${beneficiaryExpanded && !sidebarCollapsed ? 'max-h-40 opacity-100 ' : 'max-h-0 opacity-0'}`}>
+
+                <NavLink to="/director/beneficiary-list" end className={({ isActive }) => {
+                  return `block px-3 py-2 rounded-md hover:bg-gray-50
+                  ${isActive ? 'text-blue-600 bg-gray-50 rounded-md': 'text-gray-800'}`
+                }}
+                >
                   List
                 </NavLink>
-                {/* <a
-                  href="#"
-                  className="block px-3 py-2 text-gray-800 rounded-md hover:bg-gray-50"
-                >
-                  List
-                </a>
 
-                <a
-                  href="#"
-                  className="block px-3 py-2 text-gray-800 rounded-md hover:bg-gray-50"
+                <NavLink to="/director/beneficiary-request" end className={({ isActive }) => {
+                  return `block px-3 py-2 rounded-md hover:bg-gray-50
+                  ${isActive ? 'text-blue-600 bg-gray-50 rounded-md': 'text-gray-800'}`
+                }}
                 >
-                  QR CODE Attendance Log
-                </a>
-       */}
+                  Request
+                </NavLink>
               </div>
             </div>
 
             <div className="mt-4">
               <ExpandableMenuItem 
-              icon={FileUser} 
-              label="Manage Volunteer" 
-              expanded={volunteerExpanded}
-              onToggle={() => setVolunteerExpanded(!volunteerExpanded)}
+              icon={CreditCard} 
+              label="Manage Certficate" 
+              expanded={certificateExpanded}
+              onToggle={() => setCertificateExpanded(!certificateExpanded)}
               collapsed={sidebarCollapsed}
               />
               <div className={`mt-2.5 ml-10 text-sm bg-white overflow-hidden transition-all duration-300 ease-in-out
-              ${volunteerExpanded && !sidebarCollapsed ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
-                <a
-                  href="#"
-                  className="block px-3 py-2 text-gray-800 rounded-md hover:bg-gray-50"
+              ${certificateExpanded && !sidebarCollapsed ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
+                <NavLink to="/director/templates-list" end className={({ isActive }) => {
+                  return `block px-3 py-2 rounded-md hover:bg-gray-50
+                  ${isActive ? 'text-blue-600 bg-gray-50 rounded-md': 'text-gray-800'}`
+                }}
                 >
-                  Volunteer Profiles
-                </a>
+                  Templates
+                </NavLink>
 
-                <a
-                  href="#"
-                  className="block px-3 py-2 text-gray-800 rounded-md hover:bg-gray-50"
+                <NavLink to="/director/deployed-certificate-templates" end className={({ isActive }) => {
+                  return `block px-3 py-2 rounded-md hover:bg-gray-50
+                  ${isActive ? 'text-blue-600 bg-gray-50 rounded-md': 'text-gray-800'}`
+                }}
                 >
-                  Deployed Certificates
-                </a>
+                  Deployed Certificate Templates
+                </NavLink>
               </div>
             </div>
 
             <div className="mt-4">
               <ExpandableMenuItem 
-              icon={HandCoins} 
-              label="Donation & Financial" 
-              expanded={dFExpanded}
-              onToggle={() => setDFExpanded(!dFExpanded)}
+              icon={Pickaxe} 
+              label="Google Forms" 
+              expanded={formBuilderExpanded}
+              onToggle={() => setFormBuilderExpanded(!formBuilderExpanded)}
               collapsed={sidebarCollapsed}
               />
               <div className={`mt-2.5 ml-10 text-sm bg-white overflow-hidden transition-all duration-300 ease-in-out
-              ${dFExpanded && !sidebarCollapsed ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
-                <a
-                  href="#"
-                  className="block px-3 py-2 text-gray-800 rounded-md hover:bg-gray-50"
-                >
-                  Donation Records
-                </a>
+              ${formBuilderExpanded && !sidebarCollapsed ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
 
-                <a
-                  href="#"
-                  className="block px-3 py-2 text-gray-800 rounded-md hover:bg-gray-50"
+                <NavLink to="/director/upload-form" end className={({ isActive }) => {
+                  return `block px-3 py-2 rounded-md hover:bg-gray-50
+                  ${isActive ? 'text-blue-600 bg-gray-50 rounded-md': 'text-gray-800'}`
+                }}
                 >
-                  Financial Reports
-                </a>
-                <a
-                  href="#"
-                  className="block px-3 py-2 text-gray-800 rounded-md hover:bg-gray-50"
+                  Upload Form
+                </NavLink>
+
+                <NavLink to="/director/google-form-list" end className={({ isActive }) => {
+                  return `block px-3 py-2 rounded-md hover:bg-gray-50
+                  ${isActive ? 'text-blue-600 bg-gray-50 rounded-md': 'text-gray-800'}`
+                }}
                 >
-                  Export Statments
-                </a>
+                    Forms
+                </NavLink>
+
               </div>
             </div>
 
             <div className="mt-4">
               <ExpandableMenuItem 
               icon={Database} 
-              label="Document Repo" 
+              label="Document Repository" 
               expanded={drExpanded}
               onToggle={() => setDrExpanded(!drExpanded)}
               collapsed={sidebarCollapsed}/>
 
               <div className={`mt-2.5 ml-10 text-sm bg-white overflow-hidden transition-all duration-300 ease-in-out
               ${drExpanded && !sidebarCollapsed ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
-                <a
-                  href="#"
-                  className="block px-3 py-2 text-gray-800 rounded-md hover:bg-gray-50"
-                >
-                  Upload Documents
-                </a>
 
-                <a
-                  href="#"
-                  className="block px-3 py-2 text-gray-800 rounded-md hover:bg-gray-50"
+                <NavLink to="/director/request-approval-document" end className={({ isActive }) => {
+                  return `block px-3 py-2 rounded-md hover:bg-gray-50
+                  ${isActive ? 'text-blue-600 bg-gray-50 rounded-md': 'text-gray-800'}`
+                }}
+                >
+                    Document Request Approval
+                </NavLink>
+
+                <NavLink to="/director/manage-files" end className={({ isActive }) => {
+                  return `block px-3 py-2 rounded-md hover:bg-gray-50
+                  ${isActive ? 'text-blue-600 bg-gray-50 rounded-md': 'text-gray-800'}`
+                }}
                 >
                   Manage Files
-                </a>
-                <a
-                  href="#"
-                  className="block px-3 py-2 text-gray-800 rounded-md hover:bg-gray-50"
-                >
-                  Downloadable Resources
-                </a>
-              </div>
-            </div>
+                </NavLink>
 
-            <div>
-              <ExpandableMenuItem 
-              icon={StickyNote} 
-              label="Feedback" 
-              expanded={feedbackExpanded}
-              onToggle={() => setFeedbackExpanded(!feedbackExpanded)}
-              collapsed={sidebarCollapsed}
-              />
-              <div className={`mt-2.5 ml-10 text-sm bg-white overflow-hidden transition-all duration-300 ease-in-out
-              ${feedbackExpanded && !sidebarCollapsed ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
-                <a
-                  href="#"
-                  className="block px-3 py-2 text-gray-800 rounded-md hover:bg-gray-50"
+                <NavLink to="/director/submitted-documents" end className={({ isActive }) => {
+                  return `block px-3 py-2 rounded-md hover:bg-gray-50
+                  ${isActive ? 'text-blue-600 bg-gray-50 rounded-md': 'text-gray-800'}`
+                }}
                 >
-                  System Feedback
-                </a>
-                <a
-                  href="#"
-                  className="block px-3 py-2 text-gray-800 rounded-md hover:bg-gray-50"
-                >
-                  Event Feedback
-                </a>
+                  Submitted Documents
+                </NavLink>
               </div>
             </div>
           </div>

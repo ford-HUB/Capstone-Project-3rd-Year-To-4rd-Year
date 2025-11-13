@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import toast from "react-hot-toast"
-import { loginUser, logoutUser, currentUser } from "../../services/director/authService.js"
+import { loginUser, logoutUser, currentUser, forgotPassword, resetPassword, checkEmailForPasswordReset } from "../../services/director/authService.js"
 
 export const useAuthStore = create((set) => ({
     authenticatedDirector: null,
@@ -47,6 +47,59 @@ export const useAuthStore = create((set) => ({
         } catch (error) {
             console.log('director store auth failed:', error.message)
             return false
+        }
+    },
+
+    // Forgot password functionality
+    forgotPassword: async (email) => {
+        try {
+            const response = await forgotPassword(email)
+            if(!response.success) {
+                toast.error(response.message)
+                return false
+            }
+            toast.success(response.message)
+            return true
+        } catch (error) {
+            console.log('director forgot password failed:', error.message)
+            return false
+        }
+    },
+
+    // Reset password functionality
+    resetPassword: async (resetData) => {
+        try {
+            const response = await resetPassword(resetData)
+            if(!response.success) {
+                toast.error(response.message)
+                return false
+            }
+            toast.success(response.message)
+            return true
+        } catch (error) {
+            console.log('director reset password failed:', error.message)
+            return false
+        }
+    },
+
+    // Check email for password reset
+    checkEmailForPasswordReset: async (email) => {
+        try {
+            const response = await checkEmailForPasswordReset(email)
+            return {
+                success: response.success,
+                exists: response.exists,
+                account: response.account,
+                message: response.message
+            }
+        } catch (error) {
+            console.log('director check email failed:', error.message)
+            return {
+                success: false,
+                exists: false,
+                account: null,
+                message: 'Network error. Please try again.'
+            }
         }
     }
 

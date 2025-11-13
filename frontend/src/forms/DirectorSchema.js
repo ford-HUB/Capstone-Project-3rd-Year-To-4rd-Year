@@ -3,31 +3,10 @@ import z from 'zod'
 export const directorLoginSchema = z.object({
     email: z.string().email({ pattern: /^(?!\.)(?!.*\.\.)([a-z0-9_'+\-\.]*)[a-z0-9_+-]@([a-z0-9][a-z0-9\-]*\.)+[a-z]{2,}$/i })
     .min(1, 'Email is required'),
-    password: z.string().min(1, 'password is required'),
-    rememberMe: z.boolean().optional()
+    password: z.string().min(1, 'password is required')
 })
 
 export const createDirectorInfoSchema = z.object({
-    facebook: z.string()
-    .url({ message: 'Facebook must be a valid URL' })
-    .or(z.literal('').or(z.null()))
-    .optional(),
-
-    insta: z.string()
-    .url({ message: 'Instagram must be a valid URL' })
-    .or(z.literal('').or(z.null()))
-    .optional(),
-
-    linkedin: z.string()
-    .url({ message: 'LinkedIn must be a valid URL' })
-    .or(z.literal('').or(z.null()))
-    .optional(),
-
-    X: z.string()
-    .url({ message: 'X (Twitter) must be a valid URL' })
-    .or(z.literal('').or(z.null()))
-    .optional(),
-
     firstname: z.string({
       required_error: 'Firstname is required',
       invalid_type_error: 'Firstname must be a string',

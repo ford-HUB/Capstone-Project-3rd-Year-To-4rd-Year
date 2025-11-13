@@ -10,15 +10,6 @@ Attendance.init({
         autoIncrement: true
     },
 
-    volunteer_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: 'volunteer',
-            key: 'volunteer_id'
-        }
-    },
-
     event_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -27,6 +18,17 @@ Attendance.init({
             key: 'event_id'
         }
     },
+
+    participant_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
+
+    participant_type: {
+        type: DataTypes.ENUM('volunteer', 'staff', 'coordinator', 'director', 'assistant_coordinator', 'beneficiary'),
+        allowNull: false
+    },
+
 
     time_in: {
         type: DataTypes.DATE,

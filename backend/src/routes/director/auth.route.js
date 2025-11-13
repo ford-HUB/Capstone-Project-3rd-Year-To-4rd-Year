@@ -12,8 +12,8 @@ import { login, logout, check_auth_director } from "../../controllers/director/a
 
 const authDirectorRouter = express.Router()
 
-authDirectorRouter.post('/uclm-director-login', validateRequest(loginSchema), limiter, login )
-authDirectorRouter.post('/uclm-director-logout', logout)
+authDirectorRouter.post('/uclm-director-login', validateRequest(loginSchema), login )
+authDirectorRouter.post('/uclm-director-logout', guard('director'), logout)
 authDirectorRouter.get('/check-director-auth', guard('director'), check_auth_director)
 
 authDirectorRouter.get('/testing', (req, res) => {

@@ -1,72 +1,6 @@
-import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Calendar, Clock, MapPin, Users } from 'lucide-react';
-
-// Sample event data
-const EVENTS = [
-  {
-    id: 1,
-    title: "Team Meeting",
-    date: "2025-05-22",
-    time: "10:00 AM - 11:30 AM",
-    location: "Conference Room A",
-    attendees: ["Jane Smith", "John Doe", "Alex Johnson"],
-    category: "work",
-  },
-  {
-    id: 2,
-    title: "Project Deadline",
-    date: "2025-05-23",
-    time: "5:00 PM",
-    location: "Online",
-    attendees: ["All Team Members"],
-    category: "deadline",
-  },
-  {
-    id: 3,
-    title: "Lunch with Clients",
-    date: "2025-05-24",
-    time: "12:30 PM - 2:00 PM",
-    location: "Bistro Downtown",
-    attendees: ["Sarah Williams", "Mike Peters", "You"],
-    category: "social",
-  },
-  {
-    id: 4,
-    title: "Quarterly Review",
-    date: "2025-05-26",
-    time: "2:00 PM - 4:00 PM",
-    location: "Board Room",
-    attendees: ["Executive Team", "Department Heads"],
-    category: "work",
-  },
-  {
-    id: 5,
-    title: "Product Launch",
-    date: "2025-05-28",
-    time: "10:00 AM - 12:00 PM",
-    location: "Main Auditorium",
-    attendees: ["All Staff", "Media Partners"],
-    category: "special",
-  },
-  {
-    id: 6,
-    title: "Training Workshop",
-    date: "2025-05-29",
-    time: "9:00 AM - 4:00 PM",
-    location: "Training Center",
-    attendees: ["New Employees", "HR Team"],
-    category: "training",
-  },
-  {
-    id: 7,
-    title: "Happy Hour",
-    date: "2025-05-30",
-    time: "5:30 PM - 7:30 PM",
-    location: "Skyline Bar",
-    attendees: ["Anyone Available"],
-    category: "social",
-  }
-];
+import { useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight, Calendar, Clock, MapPin } from 'lucide-react';
+import { getUpcomingEvents } from '../../services/guest/eventService.js';
 
 // Helper functions
 const getDaysInMonth = (year, month) => {
@@ -77,22 +11,53 @@ const getFirstDayOfMonth = (year, month) => {
   return new Date(year, month, 1).getDay();
 };
 
-// Get category color class
-const getCategoryColor = (category) => {
-  switch (category) {
-    case 'work':
+// Get category color class based on status
+const getCategoryColor = (status) => {
+  switch (status) {
+    case 'Upcoming':
       return 'bg-blue-500';
-    case 'social':
+    case 'Ongoing':
       return 'bg-green-500';
-    case 'deadline':
-      return 'bg-red-500';
-    case 'training':
-      return 'bg-yellow-500';
-    case 'special':
-      return 'bg-purple-500';
     default:
       return 'bg-gray-500';
   }
+};
+
+// Format time from datetime string
+const formatTime = (startDate, endDate) => {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  
+  const startTime = start.toLocaleTimeString('en-US', { 
+    hour: 'numeric', 
+    minute: '2-digit',
+    hour12: true 
+  });
+  const endTime = end.toLocaleTimeString('en-US', { 
+    hour: 'numeric', 
+    minute: '2-digit',
+    hour12: true 
+  });
+  
+  return `${startTime} - ${endTime}`;
+};
+
+// Transform API event data to calendar format
+const transformEvent = (event) => {
+  const startDate = new Date(event.event_started);
+  const dateStr = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
+  
+  return {
+    id: event.event_id,
+    title: event.title,
+    date: dateStr,
+    time: formatTime(event.event_started, event.event_ended),
+    location: event.location || 'TBA',
+    status: event.status,
+    description: event.description,
+    event_started: event.event_started,
+    event_ended: event.event_ended
+  };
 };
 
 const UpCommingEvent = () => {
@@ -102,6 +67,34 @@ const UpCommingEvent = () => {
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedEvents, setSelectedEvents] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch upcoming events on component mount
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const result = await getUpcomingEvents();
+        
+        if (result.success) {
+          const transformedEvents = result.events.map(transformEvent);
+          setEvents(transformedEvents);
+        } else {
+          setError(result.message || 'Failed to load events');
+        }
+      } catch (err) {
+        console.error('Error fetching events:', err);
+        setError('Failed to load events. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
 
   // Month navigation
   const goToPreviousMonth = () => {
@@ -147,7 +140,7 @@ const UpCommingEvent = () => {
     // Add cells for each day of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const date = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      const eventsForDay = EVENTS.filter(event => event.date === date);
+      const eventsForDay = events.filter(event => event.date === date);
       const isToday = day === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear();
       const isSelected = selectedDate === date;
 
@@ -170,7 +163,8 @@ const UpCommingEvent = () => {
             {eventsForDay.slice(0, 2).map(event => (
               <div 
                 key={event.id} 
-                className={`text-xs text-white p-1 rounded truncate ${getCategoryColor(event.category)}`}
+                className={`text-xs text-white p-1 rounded truncate ${getCategoryColor(event.status)}`}
+                title={event.title}
               >
                 {event.title}
               </div>
@@ -187,6 +181,26 @@ const UpCommingEvent = () => {
 
     return cells;
   };
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto p-4">
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <p className="text-gray-600">Loading upcoming events...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto p-4">
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <p className="text-red-600">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-4">
@@ -250,8 +264,13 @@ const UpCommingEvent = () => {
           ) : (
             <div className="space-y-4">
               {selectedEvents.map(event => (
-                <div key={event.id} className="border-l-4 pl-4 py-2" style={{ borderColor: getCategoryColor(event.category).replace('bg-', 'rgb(') + ')' }}>
+                <div key={event.id} className="border-l-4 pl-4 py-2" style={{ 
+                  borderLeftColor: event.status === 'Upcoming' ? '#3b82f6' : '#10b981' 
+                }}>
                   <h4 className="font-medium text-lg">{event.title}</h4>
+                  {event.description && (
+                    <p className="text-sm text-gray-500 mt-1">{event.description}</p>
+                  )}
                   <div className="mt-2 space-y-1 text-sm text-gray-600">
                     <div className="flex items-center">
                       <Clock size={16} className="mr-2" />
@@ -262,8 +281,10 @@ const UpCommingEvent = () => {
                       <span>{event.location}</span>
                     </div>
                     <div className="flex items-center">
-                      <Users size={16} className="mr-2" />
-                      <span>{event.attendees.join(', ')}</span>
+                      <Calendar size={16} className="mr-2" />
+                      <span className="text-xs px-2 py-1 rounded bg-gray-100">
+                        {event.status}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -275,26 +296,14 @@ const UpCommingEvent = () => {
       
       {/* Legend */}
       <div className="mt-6 flex flex-wrap gap-2">
-        <div className="text-sm font-medium mr-2">Categories:</div>
+        <div className="text-sm font-medium mr-2">Event Status:</div>
         <div className="flex items-center">
           <div className="w-3 h-3 rounded-full bg-blue-500 mr-1"></div>
-          <span className="text-sm">Work</span>
+          <span className="text-sm">Upcoming</span>
         </div>
         <div className="flex items-center">
           <div className="w-3 h-3 rounded-full bg-green-500 mr-1"></div>
-          <span className="text-sm">Social</span>
-        </div>
-        <div className="flex items-center">
-          <div className="w-3 h-3 rounded-full bg-red-500 mr-1"></div>
-          <span className="text-sm">Deadline</span>
-        </div>
-        <div className="flex items-center">
-          <div className="w-3 h-3 rounded-full bg-yellow-500 mr-1"></div>
-          <span className="text-sm">Training</span>
-        </div>
-        <div className="flex items-center">
-          <div className="w-3 h-3 rounded-full bg-purple-500 mr-1"></div>
-          <span className="text-sm">Special</span>
+          <span className="text-sm">Ongoing</span>
         </div>
       </div>
     </div>

@@ -8,7 +8,7 @@ import { guard } from "../../middleware/guard.js"
 import { validateRequest } from "../../middleware/validateRequest.middleware.js"
 import { upload } from "../../middleware/cloudinaryUpload.js"
 // @ Controllers
-import { getCurrentProfile, createOrUpdateDirectorInformation, createOrUpdateDirectorAddress, updateAccountEmailAvatar, updatePassword } from "../../controllers/director/profile.controller.js"
+import { getCurrentProfile, createOrUpdateDirectorInformation, createOrUpdateDirectorAddress, updateAccountEmailAvatar, updatePassword, updateSignature } from "../../controllers/director/profile.controller.js"
 
 const directorProfileRouter = express.Router()
 
@@ -17,6 +17,7 @@ directorProfileRouter.post('/add-director-info', validateRequest(InfoSchema), gu
 directorProfileRouter.post('/add-director-address', validateRequest(addressSchema), guard('director'), createOrUpdateDirectorAddress)
 directorProfileRouter.put('/update-director-signing-email', upload.single('avatar'), validateRequest(directorEmailSchema), guard('director'), updateAccountEmailAvatar)
 directorProfileRouter.put('/update-director-password', validateRequest(directorPasswordSchema), guard('director'), updatePassword)
+directorProfileRouter.put('/update-director-signature', upload.single('signature'), guard('director'), updateSignature)
 
 
 directorProfileRouter.get('/testing', (req, res) => {

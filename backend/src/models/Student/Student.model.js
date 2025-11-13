@@ -21,7 +21,7 @@ Student.init({
 
     student_number : {
         type: DataTypes.INTEGER,
-        allowNull: false
+        allowNull: true
     },
 
     firstname: {
@@ -62,6 +62,17 @@ Student.init({
         allowNull: false
     },
 
+    disability: {
+        type: DataTypes.STRING,
+        defaultValue: 'prefer not to say',
+        allowNull: true
+    },
+
+    disability_specification: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
+
     student_image_id : {
         type: DataTypes.STRING,
         allowNull: true,
@@ -70,11 +81,13 @@ Student.init({
 
     course_id: {
         type: DataTypes.INTEGER,
+        allowNull: true,
         references: {
             model: 'course',
             key: 'course_id'
         }
     },
+
     department_id: {
         type: DataTypes.INTEGER,
         references: {
@@ -82,6 +95,16 @@ Student.init({
             key: 'department_id'
         }
     },
+
+    strand_course_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            key: 'strand_course_id',
+            model: 'strand_course'
+        }
+    },
+    
     yl_id: {
         type: DataTypes.INTEGER,
         references: {

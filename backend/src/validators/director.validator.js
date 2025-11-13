@@ -13,22 +13,6 @@ export const loginSchema = Joi.object({
 })
 
 export const InfoSchema = Joi.object({
-  facebook: Joi.string().uri().allow(null, '').messages({
-    'string.uri': 'Facebook must be a valid URL'
-  }),
-
-  insta: Joi.string().uri().allow(null, '').messages({
-    'string.uri': 'Instagram must be a valid URL'
-  }),
-
-  linkedin: Joi.string().uri().allow(null, '').messages({
-    'string.uri': 'LinkedIn must be a valid URL'
-  }),
-
-  X: Joi.string().uri().allow(null, '').messages({
-    'string.uri': 'X (Twitter) must be a valid URL'
-  }),
-  
   firstname: Joi.string().required().messages({
     'any.required': 'Firstname is required',
     'string.base': 'Firstname must be a string'

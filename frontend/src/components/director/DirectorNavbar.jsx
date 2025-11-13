@@ -1,45 +1,62 @@
 import React from 'react'
-import { Bell, Search, Moon, ChevronDown, AlignLeft, CircleUser, Settings, LogOut, AlignRight } from 'lucide-react'
+import { Bell, Search, Moon, ChevronDown, AlignLeft, CircleUser, Settings, LogOut, AlignRight, ScanText, FileBadge2, Trophy } from 'lucide-react'
+import NotificationToggle from '../modal/NotificationToggle.jsx'
 import LogoutModal from '../modal/Logout'
 import EditDirectorInformationModal from '../modal/EditDirectorInformationModal.jsx'
 import { useAuthStore } from '../../store/director/useAuthStore.js'
-import { useNavigate } from 'react-router-dom'
-import DirectorAccountSettings from '../modal/DirectorAccountSetting.jsx'
+import { NavLink, useNavigate } from 'react-router-dom'
+import DirectorAccountSettings from '../modal/AccountSetting.jsx'
 import { useProfileStore } from '../../store/director/useProfileStore.js'
 import { GetFirstLetter } from '../../utils/GetFirstLetter.js'
+import { useNotifStore } from '../../store/notification/useNotifStore.js'
 
 const DirectorNavbar = ({ collapseSidebar, mobileCollapseSidebar }) => {
-  const { logout } = useAuthStore()
+  const { authenticatedDirector, logout } = useAuthStore()
+  const { unreadCount, initializeNotificationCount } = useNotifStore()
   const navigate = useNavigate()
   const headerRef = React.useRef(null)
   const dropdownRef = React.useRef(null)
   const [showAccountSettings, setShowAccountSettings] = React.useState(false)
+  const [showNotificationToggle, setShowNotificationToggle] = React.useState(false)
   const [showLogoutModal, setShowLogoutModal] = React.useState(false)
   const [showEditDirectorInfoModal, setEditDirectorInfoModal] = React.useState(false)
   const [isToggle, setToggle] = React.useState(false)
 
-  const { currentDirectorInfo, getCurrentProfile } = useProfileStore()
+  const { currentDirectorInfo, currentProfile } = useProfileStore()
   
-      React.useEffect(() => {
-          let isMounted = true
-          const fetchInfo = async () => {
-              if(currentDirectorInfo.length > 0 ) return
-                  try {
-                      await getCurrentProfile()
-                  }catch(error){
-                      if (isMounted) {
-                      console.error("Fetch error:", error);
-                  }
-              }
-          }
+    React.useEffect(() => {
+      let isMounted = true
+        const fetchInfo = async () => {
+        if(currentDirectorInfo.length > 0 ) return
+        try {
+          await currentProfile()
+        }catch(error){
+        if (isMounted) {
+          console.error("Fetch error:", error);
+        }}
+    }
   
-          fetchInfo()
+    fetchInfo()
   
-          return () => {
-              isMounted = false
-          }
+    return () => {
+      isMounted = false
+    }
   
-      }, [currentDirectorInfo?.length])
+  }, [currentDirectorInfo?.length, currentProfile])
+
+  // Initialize notification count when component mounts
+  React.useEffect(() => {
+    const initNotifications = async () => {
+      try {
+        // Pass the director role to initialize notification count
+        await initializeNotificationCount('director')
+      } catch (error) {
+        console.error("Failed to initialize notification count:", error)
+      }
+    }
+    
+    initNotifications()
+  }, [initializeNotificationCount])
 
   const handleClickOutside = (event) => {
     if (
@@ -59,16 +76,12 @@ const DirectorNavbar = ({ collapseSidebar, mobileCollapseSidebar }) => {
     const success = await logout()
     if (!success) return
     setTimeout(() => {
-      navigate('/one secret/login')
+      navigate('/one-secret/login')
     })
   }
 
   const handleCompleteEditInfo = () => {
 
-  }
-
-  const handleCompleteAccountSettings = () => {
-    
   }
 
   return (
@@ -95,12 +108,27 @@ const DirectorNavbar = ({ collapseSidebar, mobileCollapseSidebar }) => {
             </div>
 
             <div className="flex items-center space-x-4 mr-3">
-              <button className="p-2 rounded-lg hover:bg-gray-100">
-                <Moon className="w-6 h-6 text-gray-500" />
-              </button>
-              <button className="p-2 rounded-lg hover:bg-gray-100 relative">
-                <Bell className="w-6 h-6 text-gray-500" />
-                <span className="absolute top-0 right-0 w-2 h-2 bg-orange-500 animate-pulse rounded-full"></span>
+                <NavLink to={'/director/QrCode-Scanner'} end className={({ isActive }) => {
+                    return `p-2 rounded-lg 
+                    ${isActive ? ` bg-gray-100`: `hover:bg-gray-100`}`
+                }}>
+                    <ScanText className="w-6 h-6 text-gray-500" />
+                </NavLink>
+                <NavLink to={'/director/certificate'} end className={({ isActive }) => {
+                    return `p-2 rounded-lg 
+                    ${isActive ? ` bg-gray-100`: `hover:bg-gray-100`}`
+                }}>
+                    <Trophy className="w-6 h-6 text-gray-500" />
+                </NavLink>
+
+              <button onClick={() => setShowNotificationToggle(!showNotificationToggle)}
+                className={`p-2 rounded-lg relative ${showNotificationToggle ? `bg-blue-100` : `hover:bg-gray-100 `}`}>
+                <Bell color={showNotificationToggle ? 'blue' : 'gray'} className={`w-6 h-6 text-gray-500`} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-semibold rounded-full px-1 ">
+                    {unreadCount}
+                  </span>
+                ) }
               </button>
               <button onClick={() => setToggle(!isToggle)}
                 className="flex items-center space-x-3 cursor-pointer">
@@ -125,7 +153,7 @@ const DirectorNavbar = ({ collapseSidebar, mobileCollapseSidebar }) => {
             onClick={(e) => e.stopPropagation()}
           >
             <span className='font-semibold text-[16px] pl-2'>{`${currentDirectorInfo.firstname || ''} ${currentDirectorInfo.lastname || ''}`}</span>
-            <p className='text-[12px] text-gray-500 pl-2'>{currentDirectorInfo.email_address || ''}</p>
+            <p className='text-[12px] text-gray-500 pl-2'>{authenticatedDirector.email || ''}</p>
 
             <div className="actionButton border-b-1 border-b-gray-300 pb-3">
               <button onClick={() => setEditDirectorInfoModal(true)}
@@ -153,6 +181,11 @@ const DirectorNavbar = ({ collapseSidebar, mobileCollapseSidebar }) => {
           </div>
         )}
 
+        <NotificationToggle
+          isOpen={showNotificationToggle}
+          setOpen={setShowNotificationToggle}
+        />
+
       <LogoutModal 
         onOpen={showLogoutModal} 
         onClose={() => setShowLogoutModal(false)}
@@ -168,7 +201,7 @@ const DirectorNavbar = ({ collapseSidebar, mobileCollapseSidebar }) => {
       <DirectorAccountSettings
       open={showAccountSettings}
       setOpen={setShowAccountSettings}
-      onComplete={handleCompleteAccountSettings}
+      role={authenticatedDirector.Role.name}
       />
     </div>
   )

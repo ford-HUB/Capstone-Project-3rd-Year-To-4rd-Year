@@ -1,11 +1,22 @@
 import React from 'react';
-import { Mail } from 'lucide-react';
+import { Mail, CircleUser } from 'lucide-react';
 import { useApprovalStore } from '../../store/director/useApprovalStore';
 import ApprovalModal from './ApprovalModal';
+import Confirmation from './v2/confirmation-modal/Confirmation';
 
 const RequestList = ({ open, setOpen, flag, onComplete }) => {
-    const { requestList, getRequestList, approve, deleteRequest } = useApprovalStore();
+    const { requestList, getRequestList, approve, rejectRequest } = useApprovalStore();
     const [isLoading, setLoading] = React.useState(false)
+
+    // Helper function to format role names for display
+    const formatRoleName = (role) => {
+        const roleMap = {
+            'staff': 'Staff',
+            'coordinator': 'Coordinator',
+            'assistant_coordinator': 'Assistant Coordinator'
+        };
+        return roleMap[role] || role;
+    };
 
     const fetchData = React.useCallback(async () => {
         try {
@@ -26,6 +37,14 @@ const RequestList = ({ open, setOpen, flag, onComplete }) => {
         action: null,
         requestId: null
     });
+
+    // Confirmation modal state
+    const [showConfirmationModal, setShowConfirmationModal] = React.useState({
+        open: false,
+        type: '',
+        requestData: null,
+        isLoading: false
+    });
     
     const handleApproval = async (requestId, newStatus) => {
         setLoading(true);
@@ -35,9 +54,6 @@ const RequestList = ({ open, setOpen, flag, onComplete }) => {
             switch (newStatus) {
                 case 'confirm':
                     success = await approve(requestId)
-                    break;
-                case 'delete':
-                    success = await deleteRequest(requestId)
                     break;
                 default:
                     throw new Error('Invalid action')
@@ -65,6 +81,51 @@ const RequestList = ({ open, setOpen, flag, onComplete }) => {
         });
     };
 
+    const handleRejectAction = (request) => {
+        console.log('Reject action - request data:', request);
+        console.log('Reject action - ra_id:', request.ra_id);
+        setShowConfirmationModal({ 
+            open: true, 
+            type: 'REJECT_REQUEST', 
+            requestData: request, 
+            isLoading: false 
+        });
+    };
+
+    const handleRejectOperation = async ({ action, userData, reason }) => {
+        setShowConfirmationModal(prev => ({ ...prev, isLoading: true }));
+        
+        // Get the ID from various possible field names
+        const requestId = userData?.ra_id || userData?.id || userData?.requestId;
+        console.log(`action ${action} and id ${requestId}`, userData, reason);
+        
+        if (!requestId) {
+            console.error('No valid ID found in request data:', userData);
+            setShowConfirmationModal(prev => ({ ...prev, isLoading: false, open: false }));
+            return;
+        }
+        
+        let success = false;
+
+        try {
+            switch(action) {
+                case 'REJECT_REQUEST':
+                    success = await rejectRequest(requestId, reason);
+                    break;
+                default:
+                    console.log('action type is out of our scope');
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setShowConfirmationModal(prev => ({ ...prev, isLoading: false, open: false }));
+            if(success) {
+                await fetchData();
+                onComplete();
+            }
+        }
+    };
+
     if (!open) return null;
 
 
@@ -88,8 +149,10 @@ const RequestList = ({ open, setOpen, flag, onComplete }) => {
                             <thead>
                                 <tr className="text-left border-b border-gray-200">
                                     <th className="pb-3 font-semibold text-gray-600">Email</th>
-                                    <th className="pb-3 font-semibold text-gray-600">Details</th>
-                                    <th className="pb-3 font-semibold text-gray-600">Actions</th>
+                                    <th className="pb-3 font-semibold text-gray-600">Name</th>
+                                    <th className="pb-3 font-semibold text-gray-600">Reason</th>
+                                    <th className="pb-3 font-semibold text-gray-600">Requested</th>
+                                    <th className="pb-3 pl-19 font-semibold text-gray-600">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -108,21 +171,32 @@ const RequestList = ({ open, setOpen, flag, onComplete }) => {
                                             </td>
                                             <td className="py-4">
                                                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                    <Mail className="w-4 h-4" />
-                                                    {user.email}
+                                                    {user.fullname}
                                                 </div>
                                             </td>
                                             <td className="py-4">
-                                                <div className="flex items-center gap-2 transition-all duration-300">
+                                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                                    {user.reason.split(' ').length > 4
+                                                    ? user.reason.split(' ').slice(0, 4).join(' ') + '...'
+                                                    : user.reason}
+                                                </div>
+                                            </td>
+                                            <td className="py-4">
+                                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                                    {formatRoleName(user.requested_role)}
+                                                </div>
+                                            </td>
+                                            <td className="py-4">
+                                                <div className="flex justify-end items-center gap-2 transition-all duration-300">
                                                     <button onClick={() => openModal(user.email, 'confirm', user.ra_id)}
                                                     disabled={isLoading}
                                                     className="p-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg">
                                                         Confirm
                                                     </button>
-                                                    <button onClick={() => openModal(user.email, 'delete', user.ra_id)}
+                                                    <button onClick={() => handleRejectAction(user)}
                                                     disabled={isLoading}
-                                                    className="p-2 bg-gray-300 text-gray-800 hover:bg-gray-100 rounded-lg transition-colors duration-300">
-                                                        Delete
+                                                    className="p-2 bg-red-600 text-white hover:bg-red-700 rounded-lg transition-colors duration-300">
+                                                        Reject
                                                     </button>
                                                 </div>
                                             </td>
@@ -146,6 +220,14 @@ const RequestList = ({ open, setOpen, flag, onComplete }) => {
             onConfirm={() => handleApproval(modalState.requestId, modalState.action)}
             email={modalState.email}
             action={modalState.action}
+        />
+
+        <Confirmation
+            open={showConfirmationModal.open}
+            setOpen={(isOpen) => setShowConfirmationModal((prev) => ({ ...prev, open: isOpen }))}
+            type={showConfirmationModal.type}
+            userData={showConfirmationModal.requestData}
+            onConfirm={handleRejectOperation}
         />
         </div>
     );

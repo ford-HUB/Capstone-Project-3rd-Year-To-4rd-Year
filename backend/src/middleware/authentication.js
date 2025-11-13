@@ -8,18 +8,16 @@ export const jwtAuthenticate = passport.authenticate('jwt', { session: false })
 export const loginGoogle = passport.authenticate('google', { scope: ['profile', 'email'] })
 
 export const googleCallback = passport.authenticate('google', {
-  // successRedirect: `http://localhost:${process.env.FRONT_END_PORT}/donor/dashboard`,
-  successRedirect: 'http://localhost:8000/api/donor-auth/protected',
-  failureRedirect: 'http://localhost:8000/api/donor-auth/google/login',
+  successRedirect: `/api/donor-auth/oauth-success`,
+  failureRedirect: `${process.env.NODE_ENV === 'development' ? process.env.FRONT_END_URL : process.env.FRONTEND_URL_PROD}/donor/login?error=oauth_failed`,
   session: true
 })
 
 export const facebookLogin = passport.authenticate('facebook', { scope: ['public_profile', 'email'] })
 
 export const facebookCallback = passport.authenticate('facebook', {
-  // successRedirect: `http://localhost:${process.env.FRONT_END_PORT}/donor/dashboard`,
-  successRedirect: 'http://localhost:8000/api/donor-auth/protected',
-  failureRedirect: 'http://localhost:5173/',
+  successRedirect: `/api/donor-auth/oauth-success`,
+  failureRedirect: `${process.env.NODE_ENV === 'development' ? process.env.FRONT_END_URL : process.env.FRONTEND_URL_PROD}/donor/login?error=oauth_failed`,
   session: true
 })
 

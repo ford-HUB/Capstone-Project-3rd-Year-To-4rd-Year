@@ -8,12 +8,9 @@ import { guard } from "../../middleware/guard.js"
 // @ Controllers
 import { getMatchedEvents } from "../../controllers/user/event.controller.js"
 
-// @ Static
-import { allowedRole } from "../../static/allowedStaffRole.js"
-
 const matchRouter = express.Router()
 
-matchRouter.get('/matched-events', guard(...allowedRole), getMatchedEvents)
+matchRouter.get('/matched-events', guard('student'), getMatchedEvents)
 
 matchRouter.get('/testing', (req, res) => {
     res.send("routes working")

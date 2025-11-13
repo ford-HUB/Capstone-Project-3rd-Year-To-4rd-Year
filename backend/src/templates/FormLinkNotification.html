@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mailtrap Notification</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+
+        .logo-section {
+            text-align: center;
+            padding: 30px 20px;
+            background-color: #ffffff;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 28px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border-radius: 8px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-icon::before {
+            content: '';
+            width: 24px;
+            height: 20px;
+            border: 3px solid white;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+        }
+
+        .content {
+            padding: 40px 50px;
+            background-color: #fafafa;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        p {
+            color: #4a4a4a;
+            margin-bottom: 16px;
+            font-size: 15px;
+        }
+
+        strong {
+            font-weight: 600;
+        }
+
+        .note {
+            margin-top: 20px;
+        }
+
+        .note strong {
+            color: #1a1a1a;
+        }
+
+        .error-code {
+            font-style: italic;
+            color: #666;
+        }
+
+        .cta-button {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 12px 28px;
+            background-color: #4f7df3;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .cta-button:hover {
+            background-color: #3d6de0;
+        }
+
+        .signature {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .team-name {
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+        }
+
+        .support-link {
+            color: #4f7df3;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .support-link:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            padding: 30px 50px;
+            background-color: #ffffff;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .footer p {
+            font-size: 13px;
+            color: #999;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <div class="content">
+            <h1>Hello, {{participant_name}}</h1>
+            
+            <p>We hope you enjoyed attending <strong>{{event_name}}</strong>.</p>
+            
+            <p>To help us improve future activities, we kindly ask you to take a few minutes to complete our <strong>Event Evaluation Form</strong>.</p>
+            
+            <div class="note">
+                <p><strong>Note:</strong> Your honest feedback is highly appreciated and will be kept confidential. This evaluation will also be used as part of the event documentation and for generating your participation certificate, <br>if you are part of volunteering.</p>
+            </div>
+                        
+            <a href="{{google_form_link}}" class="cta-button">Complete the Evaluation Form</a>
+            
+            <div class="signature">
+                <p>Thank you for your time and valuable insights!</p>
+                <p class="team-name">UCLM CARES</p>
+                <a href="mailto:uclmcaressupport.com" class="support-link">uclmcaressupport.com</a>
+              </div>
+        </div>
+
+        <div class="footer">
+            <p>
+                UCLM Cares<br>
+                University of Cebu – Lapu-Lapu and Mandaue<br>
+                A.C. Cortes Ave, Looc, Mandaue City,<br>
+                Cebu 6014, Philippines
+            </p>
+        </div>
+    </div>
+</body>
+</html>

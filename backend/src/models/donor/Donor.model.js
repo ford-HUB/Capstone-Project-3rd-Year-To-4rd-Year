@@ -18,9 +18,14 @@ Donor.init({
         }
     },
 
+    xendit_customer_id: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+
     fullname: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: true
     },
 
     provider_id: {
@@ -42,7 +47,7 @@ Donor.init({
         type: DataTypes.BOOLEAN,
         defaultValue: false,
         allowNull: false
-    }
+    },
 
 }, {
     sequelize: db,

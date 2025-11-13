@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../store/participant/useAuthStore';
+import { useAuthStore } from '../store/participant/useAuthStore.js';
 
 const ProtectedStudent = ({ children, roles }) => {
     const navigate = useNavigate();

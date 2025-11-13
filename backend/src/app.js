@@ -16,10 +16,39 @@ import profileRouter from './routes/user/profile.route.js'
 import matchRouter from './routes/user/match.route.js'
 import participateRouter from './routes/user/participate.route.js'
 import authDonorRouter from './routes/donor/auth.route.js'
+import donorProfileRouter from './routes/donor/profile.route.js'
 import manageUsersRouter from './routes/director/manage.users.route.js'
 import donationRouter from './routes/donation/donation.route.js'
-import certificateRouter from './routes/event/certificate.route.js'
-import attendRouter from './routes/attendance/attend.router.js'
+import certificateRouter from './routes/certificate/certificate.route.js'
+import attendRouter from './routes/attendance/attend.route.js'
+import registerEventRouter from './routes/director/event.route.js'
+import managementEvent from './routes/management/event.route.js'
+import managementOverviewRouter from './routes/management/overview.route.js'
+import notificationRouter from './routes/notification/notif.route.js'
+import manageVolunteerRouter from './routes/director/manage.volunteer.route.js'
+import documentRouter from './routes/document/document.route.js'
+import eventEvaluationRouter from './routes/feedback/eventEvaluationRouter.route.js'
+import beneficiaryEvaluationRouter from './routes/feedback/beneficiaryEvaluationRouter.route.js'
+import formRouter from './routes/form/form.route.js'
+import formV2Router from './routes/form/v2/form.route.js'
+import requirementsRouter from './routes/requirements/requirements.route.js'
+import submissionRouter from './routes/submission/submission.route.js'
+import proofUploadRouter from './routes/event/proofUpload.routes.js'
+import beneficiaryEventRouter from './routes/beneficiary/event.route.js'
+import beneficiaryProfileRouter from './routes/beneficiary/profile.route.js'
+import manageBeneficiaryRouter from './routes/director/manage.beneficiary.route.js'
+import systemPerformanceRouter from './routes/director/systemPerformance.route.js'
+import documentRequestApprovalRouter from './routes/director/documentRequestApproval.route.js'
+import paymentRouter from './routes/donation/payment.route.js'
+import paymentDirectorRouter from './routes/director/payment.route.js'
+import webhookPaymentRouter from './routes/webhook/payment/webhook.payment.route.js'
+import donationTrackingRouter from './routes/director/donationTracking.route.js'
+import statisticsRouter from './routes/director/statistics.route.js'
+import guestEventRouter from './routes/guest/event.route.js'
+
+
+// @ Middleware
+import { updateUserActivity } from './middleware/updateActivity.js'
 
 import dotenv from 'dotenv'
 
@@ -29,9 +58,17 @@ dotenv.config()
 const app = express()
 
 app.use(cookieParser())
+
+// ✅ REGISTER WEBHOOK ROUTES BEFORE JSON PARSER
+// This is critical for signature verification - webhooks need raw body
+app.use('/api/v1/webhook/payment', webhookPaymentRouter)
+
 app.use(express.json())
+
 app.use(cors({
-    origin: `http://localhost:${process.env.FRONT_END_PORT}`,
+    origin: process.env.NODE_ENV === 'development'
+        ? process.env.FRONT_END_URL
+        : process.env.FRONTEND_URL_PROD,
     credentials: true
 }))
 
@@ -45,6 +82,9 @@ app.use(session({
 app.use(passport.initialize())
 app.use(passport.session())
 
+// Update user activity on every request
+app.use(updateUserActivity)
+
 
 // @ Default Endpoint
 app.use('/api/user-auth', authRouter)
@@ -52,6 +92,7 @@ app.use('/api/profile', profileRouter)
 app.use('/api/participate', participateRouter)
 
 app.use('/api/donor-auth', authDonorRouter)
+app.use('/api/donor', donorProfileRouter)
 
 app.use('/api/ai', matchRouter)
 
@@ -59,16 +100,46 @@ app.use('/api/event', eventRouter)
 
 app.use('/api/certificate', certificateRouter)
 
+app.use('/api/document', documentRouter)
+
+app.use('/api/notification', notificationRouter)
+
+app.use('/api/event-evaluation', eventEvaluationRouter)
+app.use('/api/beneficiary-evaluation', beneficiaryEvaluationRouter)
+
 app.use('/api/attendance', attendRouter)
 
 app.use('/api/donation', donationRouter)
 
 app.use('/api/management-auth', managementAuthRouter)
 app.use('/api/management-profile', managementProfile)
+app.use('/api/management-event', managementEvent)
+app.use('/api/management', managementOverviewRouter)
 
 app.use('/api/director-auth', authDirectorRouter)
 app.use('/api/director-manage', manageApprovalRouter)
 app.use('/api/director-manage-user', manageUsersRouter)
+app.use('/api/director-manage-volunteer', manageVolunteerRouter)
+app.use('/api/director/manage-beneficiary', manageBeneficiaryRouter)
 app.use('/api/director-profile', directorProfileRouter)
+app.use('/api/director-event', registerEventRouter)
+app.use('/api/v1/payment/director', paymentDirectorRouter)
+app.use('/api/requirements', requirementsRouter)
+app.use('/api/submissions', submissionRouter)
+
+app.use('/api/form', formRouter)
+app.use('/api/form/v2', formV2Router)
+app.use('/api/event-proof', proofUploadRouter)
+app.use('/api/beneficiary-events', beneficiaryEventRouter)
+app.use('/api/beneficiary', beneficiaryProfileRouter)
+app.use('/api/director/system-performance', systemPerformanceRouter)
+app.use('/api/director/document-request-approval', documentRequestApprovalRouter)
+app.use('/api/event-donations', donationTrackingRouter)
+app.use('/api/director/statistics', statisticsRouter)
+
+app.use('/api/v1/payment', paymentRouter)
+
+app.use('/api/guest', guestEventRouter)
+
 
 export default app

@@ -48,7 +48,7 @@ const StudentRegistration = () => {
       gender: "",
       department: "",
       course: "",
-      yearLevel: undefined,
+      year_level: undefined,
       phoneNumber: "",
       currentAddress: "",
       studentIdFile: undefined
@@ -113,10 +113,10 @@ const StudentRegistration = () => {
         formData.append('studentIdFile', data.studentIdFile, data.studentIdFile.name);
 
         // Debug Purposes
-        // console.log("FormData contents:");
-        // for (let [key, value] of formData.entries()) {
-        //   console.log(key, value);
-        // }
+        console.log("FormData contents:");
+        for (let [key, value] of formData.entries()) {
+          console.log(key, value);
+        }
 
         const success = await signup(formData);
         if (success) {

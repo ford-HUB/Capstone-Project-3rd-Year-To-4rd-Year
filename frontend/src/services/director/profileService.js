@@ -1,11 +1,11 @@
 import { apiInstance } from "../../api/_base.js";
 
-export const currentProfile = async () => {
+export const getCurrentProfile = async () => {
     const response = await apiInstance.get('/api/director-profile/get-current-profile')
     return {
         success: response.data.success,
-        directorInfo: response.data.directorInfo,
-        paymentInfo: response.data.paymentInfo
+        directorInfo: response.data.directorInfo || {},
+        paymentInfo: response.data.paymentInfo || []
     }
 }
 
@@ -37,6 +37,18 @@ export const updateSigningEmail = async (formData) => {
 
 export const updatePassword = async (formData) => {
     const response = await apiInstance.put('/api/director-profile/update-director-password', formData)
+    return {
+        success: response.data.success,
+        message: response.data.message
+    }
+}
+
+export const updateSignature = async (formData) => {
+    const response = await apiInstance.put('/api/director-profile/update-director-signature', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
     return {
         success: response.data.success,
         message: response.data.message

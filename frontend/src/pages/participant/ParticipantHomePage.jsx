@@ -1,9 +1,9 @@
+import React from "react";
 import SidePanel from "../../components/participant/SidePanel";
 import CurrentEvent from '../../components/participant/CurrentEvent.jsx'
 import NextEventCarousel from "../../components/participant/NextEventCarousel";
 import ParticipantUpcomingEvent from "../../components/participant/ParticipantUpcomingEvent";
 import QuickStatsFooter from "../../components/participant/QuickStatsFooter";
-import React from "react";
 import { useEventStore } from "../../store/participant/useEventStore.js";
 
 const ParticipantHomePage = () => {
@@ -34,10 +34,10 @@ const ParticipantHomePage = () => {
     return () => {
       isMounted = false
     }
-  }, [getMatchEvent, matchedEvents])
+  }, [getMatchEvent])
 
   if (isLoading) return <div className="">loading...</div>
-  if (error) return
+  if (error) return <div className="text-red-500">Error: {error}</div>
 
   return (
     <div className="px-6 p-2 bg-gray-50">

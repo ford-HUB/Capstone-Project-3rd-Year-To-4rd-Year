@@ -14,15 +14,19 @@ import { allowedRoleManageEvent } from "../../static/allowedStaffRole.js"
 import { upload } from "../../middleware/cloudinaryUpload.js"
 
 // @ Controllers
-import { addEvent, listEvent, updateEvent, destroyEvents, destroyEventId } from "../../controllers/event/event.controller.js"
+import { addEvent, listEvent, getParticipantEvent, updateEvent, destroyEvents, destroyEventId, getEventUserStatus, getRegisteredParticipantCount, removeEventRegistration } from "../../controllers/event/event.controller.js"
 
 const eventRouter = express.Router()
 
-eventRouter.post('/add-event', upload.single('event_image'), guard(...allowedRoleManageEvent), validateRequest(eventSchema), addEvent)
-eventRouter.get('/list-event', guard(...allowedRoleManageEvent), listEvent)
-eventRouter.put('/update-event/:id', upload.single('event_image'), validateRequest(eventSchema), guard(...allowedRoleManageEvent), updateEvent)
-eventRouter.delete('/delete-event/:id', guard(...allowedRoleManageEvent), destroyEventId)
-eventRouter.delete('/delete-all-events', guard(...allowedRoleManageEvent), destroyEvents)
+eventRouter.post('/add-event',  guard('director', 'staff', 'coordinator', 'assistant_coordinator'), upload.single('event_image'), validateRequest(eventSchema), addEvent)
+eventRouter.get('/list-event', guard('director', 'staff', 'coordinator', 'assistant_coordinator'), listEvent)
+eventRouter.get('/get-participants/:event_id', guard('director', 'staff', 'coordinator', 'assistant_coordinator'), getParticipantEvent) 
+eventRouter.get('/get-event-user-status/:event_id', guard('director', 'staff', 'coordinator', 'student', 'assistant_coordinator'), getEventUserStatus)
+eventRouter.get('/get-event-participant-count/:event_id', guard('student'), getRegisteredParticipantCount)
+eventRouter.put('/update-event/:id',  guard('director', 'staff', 'coordinator', 'assistant_coordinator'), upload.single('event_image'), validateRequest(eventSchema), updateEvent)
+eventRouter.delete('/delete-event/:id', guard('director', 'staff', 'coordinator', 'assistant_coordinator'), destroyEventId)
+eventRouter.delete('/delete-all-events', guard('director', 'staff', 'coordinator', 'assistant_coordinator'), destroyEvents)
+eventRouter.delete('/remove-registration/:registration_id', guard('director', 'staff', 'coordinator', 'assistant_coordinator'), removeEventRegistration)
 
 
 eventRouter.get('/testing', (req, res) => {

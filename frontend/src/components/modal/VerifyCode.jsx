@@ -114,14 +114,16 @@ const VerifyCode = ({ onVerificationComplete }) => {
                         </div>
 
                         {!showResend ? (
+                            <div className="text-sm text-red-500 text-center mt-4">
+                            OTP has expired. Please request a new code.
+                        </div>
+                        ) : 
+                            showResend && !isResendLoading ?    
                             <div className=" text-gray-500 text-center text-xs">
                                 Verification expires in: <span className="font-semibold">{FormatTime(timeLeft)}</span>
                             </div>
-                        ) : (
-                            <div className="text-sm text-red-500 text-center mt-4">
-                                OTP has expired. Please request a new code.
-                            </div>
-                        )}
+                            : null
+                        }
 
                         <div className="OptionSelection flex justify-center items-center mt-1 grid-cols-2 gap-2">
                             {showResend && (

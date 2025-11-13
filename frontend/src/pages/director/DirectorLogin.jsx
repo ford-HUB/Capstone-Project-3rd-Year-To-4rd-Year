@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { asset } from '../../assets/asset'
 import { useNavigate } from 'react-router-dom'
 import { directorLoginSchema } from '../../forms/DirectorSchema.js'
@@ -6,15 +6,17 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { useAuthStore } from '../../store/director/useAuthStore.js'
+import DirectorForgotPasswordModal from '../../components/auth/DirectorForgotPasswordModal.jsx'
 
 const DirectorLogin = () => {
     const { login } = useAuthStore()
+    const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
+    const [showPassword, setShowPassword] = useState(false)
     const { register, reset, handleSubmit, formState: { errors } } = useForm({
         resolver: zodResolver(directorLoginSchema),
         defaultValues: {
             email: '',
-            password: '',
-            rememberMe: false
+            password: ''
         }
     })
     const navigate = useNavigate()
@@ -27,7 +29,7 @@ const DirectorLogin = () => {
         })
 
         if(!success) return
-        navigate('/director/dashboard')
+        navigate('/director/overview')
     }
 
     React.useEffect(() => {
@@ -52,20 +54,27 @@ const DirectorLogin = () => {
                             className="input border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-blue-200 bg-white text-gray-700"
                             type="text"
                             {...register('email')  }
-                            placeholder="ID number or Email"
+                            placeholder="Given Access Email"
                         />
-                        <input
-                            className="input border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-blue-200 bg-white text-gray-700"
-                            type="password"
-                            {...register('password')  }
-                            placeholder="Password"
-                        />
+                        <div className="relative">
+                            <input
+                                className="input border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-blue-200 bg-white text-gray-700 w-full"
+                                type={showPassword ? "text" : "password"}
+                                {...register('password')  }
+                                placeholder="Password"
+                            />
+                        </div>
                         <div className="flex justify-between items-center text-xs">
-                            <label className="flex items-center gap-1">
-                                <input {...register('rememberMe')  } type="checkbox" className="accent-blue-600" />
-                                Remember me
+                            <label className="flex items-center gap-1 cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    checked={showPassword}
+                                    onChange={(e) => setShowPassword(e.target.checked)}
+                                    className="accent-blue-600" 
+                                />
+                                Show password
                             </label>
-                            {/* <button type="button" className="text-blue-600 hover:underline" onClick={() => {}}>Forgot password?</button> */}
+                            <button type="button" className="text-blue-600 hover:underline" onClick={() => setShowForgotPasswordModal(true)}>Forgot password?</button>
                         </div>
                         <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md py-2 transition-colors mt-2" type="submit">
                             Login
@@ -73,6 +82,12 @@ const DirectorLogin = () => {
                     </form>
                 </div>
             </div>
+            
+            {/* Forgot Password Modal */}
+            <DirectorForgotPasswordModal 
+                isOpen={showForgotPasswordModal}
+                onClose={() => setShowForgotPasswordModal(false)}
+            />
         </div>
     )
 }

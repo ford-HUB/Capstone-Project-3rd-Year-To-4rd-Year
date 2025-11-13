@@ -10,14 +10,18 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { loginSchema } from '../../forms/StudentSchemas'
 import toast from 'react-hot-toast'
 import { useAuthStore } from '../../store/participant/useAuthStore.js'
+import { useBeneficiaryAuthStore } from '../../store/beneficiary/useBeneficiaryAuthStore.js'
 import { roleRedirection } from '../../utils/roleRedirection.js'
 import DonorLoginPage from './DonorLoginPage.jsx'
+import { initSocket } from '../../api/socket.js'
+import ForgotPasswordModal from '../../components/auth/ForgotPasswordModal'
 
 const LoginPage = () => {
     const [open, setOpen] = React.useState(true)
     const [token, setToken] = React.useState()
 
     const { login } = useAuthStore()
+    const { login: beneficiaryLogin } = useBeneficiaryAuthStore()
 
     // form state
     const { 
@@ -29,8 +33,7 @@ const LoginPage = () => {
         resolver: zodResolver(loginSchema),
         defaultValues: {
             email: '',
-            password: '',
-            rememberMe: false
+            password: ''
         }
     })
 
@@ -42,6 +45,8 @@ const LoginPage = () => {
     const [isNextPage, setNextPage] = React.useState(false)
     const [showDonorLogin, setShowDonorLogin] = React.useState(false)
     const [isDonor, setDonor] = React.useState(false)
+    const [showForgotPassword, setShowForgotPassword] = React.useState(false)
+    const [showPassword, setShowPassword] = React.useState(false)
 
     const ShowDonorLogin = () => {
         setShowDonorLogin(true)
@@ -55,18 +60,18 @@ const LoginPage = () => {
     }
 
     const GoToParticipant = () => {
-        navigate('/register-account')
+        navigate('/register-volunteer')
         return
     }
 
-    const GotoRequestStaff = () => {
-        navigate('/requested-setup-account')
+    const GoToManagement = () => {
+        navigate('/request-account')
         return
     }
 
     const setCookie = () => {
         const generateToken = uuidv4()
-        Cookie.set('token', generateToken, { expires: 30 / (24 * 60) })
+        Cookie.set('token', generateToken, { expires: 7 / 24})
         setToken(generateToken)
         setOpen(false)
 
@@ -118,19 +123,37 @@ const LoginPage = () => {
         errors.password && toast.error(errors.password.message)
     }, [errors.password])
 
+    // Initialize socket connection
+    React.useEffect(() => {
+        try {
+            initSocket();
+        } catch (error) {
+            console.log('Socket initialization failed:', error.message);
+        }
+    }, [])
+
 
     const onSubmitForm = async(data) => {
-        const checkSuccess = await login({
+        // Try participant login first
+        let checkSuccess = await login({
             email: data.email,
             password: data.password
-        })
-        if(!checkSuccess.success) return
+        });
+        
+        // If participant login fails, try beneficiary login
+        if (!checkSuccess.success) {
+            checkSuccess = await beneficiaryLogin({
+                email: data.email,
+                password: data.password
+            });
+        }
+        
+        if (!checkSuccess.success) {
+            return;
+        }
 
-        if(data.rememberMe) { localStorage.set('rememberMe', email) }
         const redirectPath = roleRedirection[checkSuccess.role] || '/'
-
         setTimeout(() => navigate(redirectPath), 2000)
-
     }
 
     return (
@@ -184,18 +207,21 @@ const LoginPage = () => {
 
                             <input
                                 className={`input input-bordered w-full pl-10 focus:outline-none bg-white text-gray-500`}
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 {...register('password')  }
                                 placeholder="Password"
                                 autoComplete='current-password'
                             />
                         </div>
 
-                        <label className="fieldset-label flex justify-end items-center mt-1.5">
-                            <input type="checkbox" className="checkbox checkbox-xs text-gray-500 mr-0.5 border-gray-100"
-                            {...register('rememberMe')}
+                        <label className="fieldset-label flex justify-end items-center mt-1.5 cursor-pointer">
+                            <input 
+                                type="checkbox" 
+                                className="checkbox checkbox-xs text-gray-500 mr-0.5 border-gray-100"
+                                checked={showPassword}
+                                onChange={(e) => setShowPassword(e.target.checked)}
                             />
-                            <span className='text-gray-500 text-[11px]'>Remember me</span>
+                            <span className='text-gray-500 text-[11px]'>Show password</span>
                         </label>
 
                         <div className="OptionSelection flex justify-center items-center mt-1 flex-col"> 
@@ -219,7 +245,7 @@ const LoginPage = () => {
                 </div>
 
                 <div className="forgetPassword flex justify-start items-center">
-                    <button onClick={null} className='absolute bottom-[-30px] left-10 text-[12px] bg-white/50 px-2 rounded-sm text-gray-900 cursor-pointer font-[Roboto] hover:text-blue-700 transition-colors duration-300'>
+                    <button onClick={() => setShowForgotPassword(true)} className='absolute bottom-[-30px] left-10 text-[12px] bg-white/50 px-2 rounded-sm text-gray-900 cursor-pointer font-[Roboto] hover:text-blue-700 transition-colors duration-300'>
                         Forget Password?
                     </button>
                 </div>
@@ -266,8 +292,8 @@ const LoginPage = () => {
                     >Volunteer</button>
                     <button onClick={GoToDonor} className='bg-blue-600 rounded-md text-white w-full px-1.5 my-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white'
                     >Donor</button>
-                    <button onClick={GotoRequestStaff} className='bg-blue-600 rounded-md text-white w-full px-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white'
-                    >Request Approval Registration</button>
+                    <button onClick={GoToManagement} className='bg-blue-600 rounded-md text-white w-full px-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white'
+                    >Request Management Access</button>
                 </div>
             </OptionModal>
 
@@ -279,6 +305,11 @@ const LoginPage = () => {
                 isDonor && <DonorRegistration />
             }
 
+            {/* Forgot Password Modal */}
+            <ForgotPasswordModal 
+                isOpen={showForgotPassword} 
+                onClose={() => setShowForgotPassword(false)} 
+            />
 
         </>
     )

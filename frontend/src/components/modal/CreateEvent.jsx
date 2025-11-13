@@ -3,10 +3,14 @@ import { X } from "lucide-react";
 import { eventSchema } from "../../forms/EventSchema.js";
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from "react-hook-form";
+import { useAuthStore } from "../../store/management/useAuthStore.js";
+import { useProfileStore } from "../../store/management/useProfileStore.js";
 import { useDepartment } from "../../context/useDepartmentContext.jsx";
 import { useEventStore } from "../../store/event/useEventStore.js";
 
 const CreateEvent = ({ onClose, onSave }) => {
+    const { authenticatedManagement } = useAuthStore()
+    const { managementCurrentProfile } = useProfileStore()
     const { departmentCourses } = useDepartment()
     const { addEvent } = useEventStore()
     const [previewUrl, setPreviewUrl] = useState(null);
@@ -19,6 +23,7 @@ const CreateEvent = ({ onClose, onSave }) => {
         formState: { errors, isSubmitting },
     } = useForm({
         resolver: zodResolver(eventSchema),
+        mode: 'onBlur',
         defaultValues: {
         title: '',
         description: '',
@@ -27,13 +32,24 @@ const CreateEvent = ({ onClose, onSave }) => {
         location: '',
         max_participants: '',
         organizer_name: '',
-        category: '',
-        department: '',
-        event_image: undefined
+        category: authenticatedManagement?.Role?.name === 'coordinator' || authenticatedManagement?.Role?.name === 'assistant_coordinator' ? 'School' : '',
+        specified_category: '',
+        department: authenticatedManagement?.Role?.name === 'coordinator' || authenticatedManagement?.Role?.name === 'assistant_coordinator' ? managementCurrentProfile?.Department?.department_name : '',
+        event_image: undefined,
+        beneficiary_applicable: false,
+        max_beneficiaries: undefined
         }
     });
 
     const category = watch('category');
+    const beneficiaryApplicable = watch('beneficiary_applicable');
+
+    // Clear max_beneficiaries when beneficiary_applicable is unchecked
+    useEffect(() => {
+        if (!beneficiaryApplicable) {
+            setValue('max_beneficiaries', undefined, { shouldValidate: false });
+        }
+    }, [beneficiaryApplicable, setValue]);
 
     const handleImageChange = (e) => {
         const file = e.target.files?.[0];
@@ -83,6 +99,16 @@ const CreateEvent = ({ onClose, onSave }) => {
         if (data.category === 'School') {
             formData.append('department', data.department);
         }
+
+        if(data.category === 'Others') {
+            formData.append('specified_category', data.specified_category)
+        }
+        
+        // Add beneficiary applicability fields - only include max_beneficiaries when beneficiary_applicable is true
+        formData.append('beneficiary_applicable', data.beneficiary_applicable);
+        if (data.beneficiary_applicable && data.max_beneficiaries && typeof data.max_beneficiaries === 'number' && data.max_beneficiaries > 0) {
+            formData.append('max_beneficiaries', data.max_beneficiaries);
+        }
         
         if (data.event_image) {
             formData.append('event_image', data.event_image);
@@ -101,6 +127,7 @@ const CreateEvent = ({ onClose, onSave }) => {
             id: Date.now(),
             participants: []
         });
+        window.document.reload()
         onClose();
     };
 
@@ -166,7 +193,9 @@ const CreateEvent = ({ onClose, onSave }) => {
                 <input
                 type="text"
                 placeholder="Enter event title"
-                className="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full p-2 rounded-lg border ${
+                    errors.title ? 'border-red-500' : 'border-gray-300'
+                } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 {...register('title')}
                 />
                 {errors.title && (
@@ -180,7 +209,9 @@ const CreateEvent = ({ onClose, onSave }) => {
                 <textarea
                 placeholder="Enter event description"
                 rows={4}
-                className="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full p-2 rounded-lg border ${
+                    errors.description ? 'border-red-500' : 'border-gray-300'
+                } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 {...register('description')}
                 />
                 {errors.description && (
@@ -197,7 +228,9 @@ const CreateEvent = ({ onClose, onSave }) => {
                     <label className="block text-xs text-gray-500 mb-1">Start</label>
                     <input
                         type="datetime-local"
-                        className="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className={`w-full p-2 rounded-lg border ${
+                            errors.event_started ? 'border-red-500' : 'border-gray-300'
+                        } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                         {...register('event_started')}
                     />
                     {errors.event_started && (
@@ -209,7 +242,9 @@ const CreateEvent = ({ onClose, onSave }) => {
                     <label className="block text-xs text-gray-500 mb-1">End</label>
                     <input
                         type="datetime-local"
-                        className="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className={`w-full p-2 rounded-lg border ${
+                            errors.event_ended ? 'border-red-500' : 'border-gray-300'
+                        } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                         {...register('event_ended')}
                     />
                     {errors.event_ended && (
@@ -227,7 +262,9 @@ const CreateEvent = ({ onClose, onSave }) => {
                 <input
                     type="text"
                     placeholder="Enter location"
-                    className="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={`w-full p-2 rounded-lg border ${
+                        errors.location ? 'border-red-500' : 'border-gray-300'
+                    } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     {...register('location')}
                 />
                 {errors.location && (
@@ -240,7 +277,9 @@ const CreateEvent = ({ onClose, onSave }) => {
                     type="number"
                     placeholder="Enter max participants"
                     min="1"
-                    className="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={`w-full p-2 rounded-lg border ${
+                        errors.max_participants ? 'border-red-500' : 'border-gray-300'
+                    } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     {...register('max_participants', { valueAsNumber: true })}
                 />
                 {errors.max_participants && (
@@ -255,7 +294,9 @@ const CreateEvent = ({ onClose, onSave }) => {
                 <input
                 type="text"
                 placeholder="Enter organizer name"
-                className="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full p-2 rounded-lg border ${
+                    errors.organizer_name ? 'border-red-500' : 'border-gray-300'
+                } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 {...register('organizer_name')}
                 />
                 {errors.organizer_name && (
@@ -265,18 +306,31 @@ const CreateEvent = ({ onClose, onSave }) => {
 
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                <select
-                className="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                <select disabled={authenticatedManagement?.Role?.name === 'coordinator' || authenticatedManagement?.Role?.name === 'assistant_coordinator' || false}
+                className={`w-full p-2 rounded-lg border ${
+                    errors.category ? 'border-red-500' : 'border-gray-300'
+                } ${authenticatedManagement?.Role?.name === 'coordinator' || authenticatedManagement?.Role?.name === 'assistant_coordinator'  && 'bg-gray-100 cursor-not-allowed'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 {...register('category')}
                 >
-                <option value="" disabled>Select category</option>
-                <option value="School">School</option>
-                <option value="Community">Community</option>
-                <option value="Emergency">Emergency</option>
-                <option value="Donation Drive">Donation Drive</option>
-                <option value="Charity">Charity</option>
-                <option value="Health">Health</option>
-                <option value="Outreach">Outreach</option>
+                {
+                    authenticatedManagement?.Role?.name === 'coordinator' || authenticatedManagement?.Role?.name === 'assistant_coordinator' ? 
+                    <>
+                        <option value="School">School</option>
+                    </> :
+                    <>
+                        <option value="" disabled>Select category</option>
+                        <option value="School">School</option>
+                        <option value="Community">Community</option>
+                        <option value="Emergency">Emergency</option>
+                        <option value="Donation Drive">Donation Drive</option>
+                        <option value="Charity">Charity</option>
+                        <option value="Health">Health</option>
+                        <option value="Outreach">Outreach</option>
+                        <option value="Training">Training</option>
+                        <option value="Seminar">Seminar</option>
+                        <option value="Others">Others</option>
+                        </>
+                }
                 </select>
                 {errors.category && (
                 <p className="mt-1 text-sm text-red-600">{errors.category.message}</p>
@@ -286,14 +340,22 @@ const CreateEvent = ({ onClose, onSave }) => {
             {category === 'School' && (
                 <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
-                <select
-                className="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                <select disabled={authenticatedManagement?.Role?.name === 'coordinator' || authenticatedManagement?.Role?.name === 'assistant_coordinator' || false}
+                className={`w-full p-2 rounded-lg border ${
+                    errors.department ? 'border-red-500' : 'border-gray-300'
+                } ${authenticatedManagement?.Role?.name === 'coordinator' || authenticatedManagement?.Role?.name === 'assistant_coordinator' && 'bg-gray-100'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 {...register('department')}>
 
-                <option value="" disabled>Select department</option>
-                    {Object.keys(departmentCourses).map((department) => (
-                      <option key={department} value={department}>{department}</option>
-                    ))}
+                {
+                    authenticatedManagement?.Role?.name === 'coordinator' || authenticatedManagement?.Role?.name === 'assistant_coordinator' ? 
+                    <option value={managementCurrentProfile?.Department?.department_name}>{managementCurrentProfile?.Department?.department_name}</option> :
+                    <>
+                        <option value="" disabled>Select department</option>
+                        {Object.keys(departmentCourses).map((department) => (
+                            <option key={department} value={department}>{department}</option>
+                        ))}
+                    </>
+                }
                 </select>
                 {errors.department && (
                     <p className="mt-1 text-sm text-red-600">{errors.department.message}</p>
@@ -301,7 +363,69 @@ const CreateEvent = ({ onClose, onSave }) => {
                 </div>
             )}
 
-            {/* Form Actions */}
+            {
+                category === 'Others' && (
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Specify Category</label>
+                        <input 
+                        {...register('specified_category')}
+                        type="text"
+                        className={`w-full p-2 rounded-lg border ${
+                            errors.specified_category ? 'border-red-500' : 'border-gray-300'
+                        } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                        placeholder="Please specify a category..."
+                        />
+                        {errors.specified_category && (
+                            <p className="mt-1 text-sm text-red-600">{errors.specified_category.message}</p>
+                        )}
+                        </div>
+                )
+            }
+
+            {/* Beneficiary Applicability Section */}
+            <div className="border-t pt-4">
+                <div className="flex items-center space-x-3 mb-4">
+                    <input
+                        type="checkbox"
+                        id="beneficiary_applicable"
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        {...register('beneficiary_applicable')}
+                    />
+                    <label htmlFor="beneficiary_applicable" className="text-sm font-medium text-gray-700">
+                        Is this event applicable for beneficiaries?
+                    </label>
+                </div>
+                
+                {beneficiaryApplicable && (
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Maximum Beneficiaries
+                        </label>
+                        <input
+                            type="number"
+                            placeholder="Enter maximum number of beneficiaries"
+                            min="1"
+                            className={`w-full p-2 rounded-lg border ${
+                                errors.max_beneficiaries ? 'border-red-500' : 'border-gray-300'
+                            } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                            {...register('max_beneficiaries', { 
+                                setValueAs: (value) => {
+                                    if (value === '' || value === null || value === undefined) {
+                                        return undefined;
+                                    }
+                                    const num = Number(value);
+                                    return isNaN(num) ? undefined : num;
+                                },
+                                shouldUnregister: true
+                            })}
+                        />
+                        {errors.max_beneficiaries && (
+                            <p className="mt-1 text-sm text-red-600">{errors.max_beneficiaries.message}</p>
+                        )}
+                    </div>
+                )}
+            </div>
+
             <div className="flex justify-end gap-3 pt-4">
                 <button
                 type="button"

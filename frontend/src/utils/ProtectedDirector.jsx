@@ -1,6 +1,7 @@
 import React from "react";
 import { useAuthStore } from "../store/director/useAuthStore.js";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const ProtectedDirector = ({ children }) => {
   const navigate = useNavigate();
@@ -12,11 +13,11 @@ const ProtectedDirector = ({ children }) => {
       try {
         const isAuthenticated = await checkAuth();
         if (!isAuthenticated) {
-          navigate('/one secret/login', { replace: true });
+          navigate('/one-secret/login', { replace: true });
         }
       } catch (err) {
         if (err.response?.status === 429) {
-          setError("Too many attempts! Please wait a few minutes.");
+          toast.error("Too many attempts! Please wait a few minutes.");
         } else {
           setError("Authentication failed. Please try again.");
         }

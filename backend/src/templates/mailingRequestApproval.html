@@ -125,7 +125,7 @@
 </head>
 <body>
   <div style="display:none; max-height:0px; overflow:hidden;">
-    Your registration link: https://yourdomain.com/requested-setup-account/{{token}}
+    Your registration link: {{setup_link}}
   </div>
 
   <div class="email-container">
@@ -142,7 +142,7 @@
       </p>
 
       <div class="button-container">
-        <a href="https://yourdomain.com/requested-setup-account/{{token}}" class="button-link">Complete Setup</a>
+        <a href="{{setup_link}}" class="button-link">Complete Setup</a>
       </div>
 
       <div class="expiry-notice">

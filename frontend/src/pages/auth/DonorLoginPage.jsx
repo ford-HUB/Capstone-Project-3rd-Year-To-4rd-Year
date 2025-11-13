@@ -2,27 +2,70 @@ import React from 'react'
 import OptionModal from '../../components/modal/OptionModal'
 import { asset } from '../../assets/asset'
 import DonorRegistration from './DonorRegistration'
+import DonorForgotPasswordModal from '../../components/auth/DonorForgotPasswordModal'
+import { useDonorAuthStore } from '../../store/donor/useDonorAuthStore.js'
 import { X } from 'lucide-react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import toast from 'react-hot-toast'
 
 const DonorLoginPage = () => {
+    const navigate = useNavigate()
+    const [searchParams] = useSearchParams()
+    const { login } = useDonorAuthStore()
     const [open, setOpen] = React.useState(true)
     const [showRegistrationModal, setRegistrationModal] = React.useState(false)
+    const [showForgotPasswordModal, setShowForgotPasswordModal] = React.useState(false)
+    const [showPassword, setShowPassword] = React.useState(false)
+    const [formData, setFormData] = React.useState({
+        email: '',
+        password: ''
+    })
+    const [isLoading, setIsLoading] = React.useState(false)
+
+    // Handle OAuth error
+    React.useEffect(() => {
+        const error = searchParams.get('error')
+        if (error === 'oauth_failed') {
+            toast.error('OAuth authentication failed. Please check your OAuth configuration and try again.')
+        }
+    }, [searchParams])
 
     const handleShowRegistration = () => {
         setOpen(false)
         setRegistrationModal(true)
     }
 
-    const handleSubmit = (e) => {
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        })
+    }
+
+    const handleSubmit = async (e) => {
         e.preventDefault()
+        setIsLoading(true)
+
+        try {
+            const result = await login(formData)
+            if (result && result.success) {
+                navigate('/donor/dashboard')
+            }
+        } catch (error) {
+            console.error('Login error:', error)
+        } finally {
+            setIsLoading(false)
+        }
     }
 
     const google = () => {
-        window.location.href=`http://localhost:8000/api/donor-auth/google/login`
+        const backend = import.meta.env.MODE === 'development' ? import.meta.env.VITE_BACKEND_URL : import.meta.env.VITE_BACKEND_PROD
+        window.location.href = `${backend}/api/donor-auth/google/login`
     }
 
     const facebook = () => {
-        window.location.href=`http://localhost:8000/api/donor-auth/facebook/login`
+        const backend = import.meta.env.MODE === 'development' ? import.meta.env.VITE_BACKEND_URL : import.meta.env.VITE_BACKEND_PROD
+        window.location.href = `${backend}/api/donor-auth/facebook/login`
     }
 
 
@@ -96,8 +139,12 @@ const DonorLoginPage = () => {
 
                             <input
                                 className="input input-bordered w-full pl-10 focus:outline-none"
-                                type="text"
+                                type="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
                                 placeholder="Email"
+                                required
                             />
                         </div>
 
@@ -111,20 +158,33 @@ const DonorLoginPage = () => {
 
                             <input
                                 className="input input-bordered w-full pl-10 focus:outline-none"
-                                type="password"
+                                type={showPassword ? "text" : "password"}
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
                                 placeholder="Password"
+                                required
                             />
                         </div>
 
-                        <label className="fieldset-label flex justify-end items-center mt-1.5">
-                            <input type="checkbox" className="checkbox checkbox-xs text-gray-500 mr-0.5 border-gray-100"
+                        <label className="fieldset-label flex justify-end items-center mt-1.5 cursor-pointer">
+                            <input 
+                                type="checkbox" 
+                                className="checkbox checkbox-xs text-gray-500 mr-0.5 border-gray-100"
+                                checked={showPassword}
+                                onChange={(e) => setShowPassword(e.target.checked)}
                             />
-                            <span className='text-gray-500 text-[11px]'>Remember me</span>
+                            <span className='text-gray-500 text-[11px]'>Show password</span>
                         </label>
 
                         <div className="OptionSelection flex justify-center items-center mt-1 flex-col">
-                            <button className='bg-blue-600 rounded-md text-white w-full px-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white' type='submit'
-                            >Login</button>
+                            <button 
+                                disabled={isLoading}
+                                className='bg-blue-600 rounded-md text-white w-full px-1.5 py-2 text-[18px] font-Roboto flex justify-center cursor-pointer hover:bg-blue-700 transition-colors duration-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed' 
+                                type='submit'
+                            >
+                                {isLoading ? 'Signing In...' : 'Login'}
+                            </button>
                         </div>
 
                         <div className="fallVisit flex justify-between mt-1.5 ">
@@ -141,7 +201,7 @@ const DonorLoginPage = () => {
                 </div>
 
                 <div className="forgetPassword flex justify-center items-center">
-                    <button onClick={null} className='absolute bottom-[-30px] left-30 text-[12px] bg-white/50 px-2 rounded-sm text-gray-900 cursor-pointer font-[Roboto] hover:text-blue-700 transition-colors duration-300'>
+                    <button onClick={() => setShowForgotPasswordModal(true)} className='absolute bottom-[-30px] left-30 text-[12px] bg-white/50 px-2 rounded-sm text-gray-900 cursor-pointer font-[Roboto] hover:text-blue-700 transition-colors duration-300'>
                         Forget Password?
                     </button>
                 </div>
@@ -150,6 +210,12 @@ const DonorLoginPage = () => {
             {
                 showRegistrationModal && <DonorRegistration/>
             }
+
+            {/* Forgot Password Modal */}
+            <DonorForgotPasswordModal 
+                isOpen={showForgotPasswordModal} 
+                onClose={() => setShowForgotPasswordModal(false)} 
+            />
         </>
     )
 }

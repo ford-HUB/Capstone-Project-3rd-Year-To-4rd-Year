@@ -1,38 +1,39 @@
 import React from 'react'
 import { X } from 'lucide-react'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { asset } from '../../assets/asset.jsx'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { requestApprovalSchema } from '../../forms/StaffSchema.js'
+import { setUpRequestSchema } from '../../forms/managementSchema.js'
 import { useForm } from 'react-hook-form'
-import { useAuthStore } from '../../store/staff/useAuthStore.js'
+import { useAuthStore } from '../../store/management/useAuthStore.js'
 import toast from 'react-hot-toast'
 import { useDepartment } from '../../context/useDepartmentContext'
 
 const SetUpRequestAccount = () => {
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const token = searchParams.get('token')
   const { departmentCourses } = useDepartment()
-  const { requestApproval } = useAuthStore()
+  const { registerAccount, acceptedRole } = useAuthStore()
 
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors, isSubmitting }
   } = useForm({
-    resolver: zodResolver(requestApprovalSchema),
+    resolver: zodResolver(setUpRequestSchema),
     defaultValues: {
       email: '',
       password: '',
       confirmPassword: '',
-      role: '',
       department: ''
     }
   })
 
-  const selectedRole = watch('role')
-
-  const onSubmitForm = async (data) => {
-    const success = await requestApproval(data)
+  const onSubmitForm = async (formData) => {
+    const success = await registerAccount(formData, token)
     if (!success) return
+    navigate('/')
   }
 
   React.useEffect(() => {
@@ -42,6 +43,8 @@ const SetUpRequestAccount = () => {
     if (errors.role) toast.error(errors.role.message)
     if (errors.department) toast.error(errors.department.message)
   }, [errors])
+
+  console.log(acceptedRole)
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 py-8">
@@ -60,73 +63,82 @@ const SetUpRequestAccount = () => {
           </h2>
         </div>
 
-        <form className="space-y-4" onSubmit={handleSubmit(onSubmitForm)}>
-          <div className='grid grid-cols-2 gap-2.5'>
-            <div className='flex flex-col'>
-            <label className="text-sm font-medium text-gray-700">Email Address</label>
+        <form className="space-y-6" onSubmit={handleSubmit(onSubmitForm)}>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Email Address
+            </label>
             <input
               type="email"
               {...register('email')}
               placeholder="your@email.com"
-              className="input w-full border mt-1 px-3 py-2 rounded-md"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder-gray-400"
             />
-            </div>
-
-            <div className='flex flex-col'>
-                <label className="text-sm font-medium text-gray-700">Role</label>
-                <select
-                {...register('role')}
-                className="input border w-full mt-1 px-3 py-2 rounded-md"
-                >
-                <option value="">Select Role</option>
-                <option value="staff">Staff</option>
-                <option value="coordinator">Coordinator</option>
-                </select>
-            </div>
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className='flex flex-col'>
-              <label className="text-sm font-medium text-gray-700">Password</label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Password
+              </label>
               <input
                 type="password"
                 {...register('password')}
-                className="input w-full border rounded-md"
+                placeholder="Enter password"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder-gray-400"
               />
+              {errors.password && (
+                <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+              )}
             </div>
-            <div className='flex flex-col'>
-              <label className="text-sm font-medium text-gray-700">Confirm Password</label>
+            
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Confirm Password {acceptedRole}
+              </label>
               <input
                 type="password"
                 {...register('confirmPassword')}
-                className="input w-full border rounded-md"
+                placeholder="Confirm password"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder-gray-400"
               />
+              {errors.confirmPassword && (
+                <p className="text-red-500 text-sm mt-1">{errors.confirmPassword.message}</p>
+              )}
             </div>
           </div>
 
-          {selectedRole === 'coordinator' && (
-            <div className='flex flex-col'>
-              <label className="text-sm font-medium text-gray-700">Department</label>
+            {(acceptedRole === 'coordinator' || acceptedRole === 'assistant_coordinator') && (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Department
+              </label>
               <select
                 {...register('department')}
-                className="input border w-full mt-1 px-3 py-2 rounded-md"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
               >
-                <option value="">Select Department</option>
+                <option value="" className="text-gray-400">Select Department</option>
                 {Object.keys(departmentCourses).map((dept) => (
                   <option key={dept} value={dept}>
                     {dept}
                   </option>
                 ))}
               </select>
+              {errors.department && (
+                <p className="text-red-500 text-sm mt-1">{errors.department.message}</p>
+              )}
             </div>
           )}
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition"
+            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium"
           >
-            {isSubmitting ? 'Comfirming...' : 'Comfirm'}
+            {isSubmitting ? 'Confirming...' : 'Confirm'}
           </button>
         </form>
       </div>

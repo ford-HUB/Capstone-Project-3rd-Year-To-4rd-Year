@@ -4,14 +4,29 @@ import { generateToken } from "../../utils/generateToken.js";
 
 export const login = async (req, res) => {
     try {
-        const { Accounts } = models
+        const { Accounts, Role } = models
         const { email, password } = req.validatedBody
 
-        const isEmailValid = await Accounts.findOne({ where: { email: email } })
-        if(!isEmailValid) { return res.json({ message: 'Invalid Credentials' }) }
+        const isEmailValid = await Accounts.findOne({ 
+            where: { email: email },
+            include: [
+                { model: Role }
+            ]
+        })
+
+        if(!isEmailValid) { 
+            return res.json({ message: 'Invalid Credentials' }) 
+        }
+    
+        if(['student', 'staff', 'coordinator', 'assistant_coordinator', 'donor'].includes(isEmailValid.Role.name)) {
+            return res.json({ message: 'Invalid Credentials' })
+        }
 
         const isMatch = await bcrypt.compare(password, isEmailValid.password)
-        if(!isMatch) { return res.json({ message: 'Invalid Credentials' }) }
+        if(!isMatch) { 
+            console.log('Password mismatch');
+            return res.json({ message: 'Invalid Credentials' }) 
+        }
 
         await Accounts.update({ is_active: true }, { where: { account_id: isEmailValid.account_id }})
 
@@ -37,11 +52,18 @@ export const check_auth_director = async (req, res) => {
 
 export const logout = async (req, res) => {
     try {
+        const { Accounts } = models;
+        const accountId = req.user.account_id;
+
+        // Clear the JWT cookie
         res.clearCookie('jwt', {
             httpOnly: true,
             sameSite: true,
             secure: process.env.NODE_ENV === 'production'
-        })
+        });
+
+        // Set user as inactive
+        await Accounts.update({ is_active: false }, { where: { account_id: accountId } });
 
         return res.json({ success: true, message: 'logout successfully' })
     } catch (error) {

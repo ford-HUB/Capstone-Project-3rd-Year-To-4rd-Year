@@ -1,22 +1,23 @@
 import React from 'react'
-import VerifyDonorCode from '../../components/modal/VerifyDonorCode.jsx'
 import OptionModal from '../../components/modal/OptionModal'
 import { asset } from '../../assets/asset'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { signupSchema } from '../../forms/DonorSchema.js'
 import toast from 'react-hot-toast'
-import { useAuthStore } from '../../store/donor/useAuthStore.js'
+import { useDonorAuthStore } from '../../store/donor/useDonorAuthStore.js'
 import { X } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 const DonorRegistration = () => {
     const [open, setOpen] = React.useState(true)
-    const [openVerifyModal, setVerifyModal] = React.useState(() => { return localStorage.getItem('verifyDonorModalOpen') === 'true' })
-    const { signup } = useAuthStore()
+    const { signup } = useDonorAuthStore()
+    const navigate = useNavigate()
 
     const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
         resolver: zodResolver(signupSchema),
         defaultValues: {
+            fullname: '',
             email: '',
             password: '',
             termsAndCondtion: false
@@ -24,40 +25,25 @@ const DonorRegistration = () => {
     })
 
     const onSubmitForm = async (formData) => {
-
-        console.log(formData)
         const success = await signup({
+            fullname: formData.fullname,
             email: formData.email,
             password: formData.password,
             confirmPassword: formData.confirmPassword
         })
         if(!success) return
-        localStorage.setItem('verifyDonorModalOpen', 'true')
-        setVerifyModal(true)
+        
+        // Close modal and redirect to verification page
         setOpen(false)
+        navigate('/verification_code')
     }
 
-     const [verification, setVerification] = React.useState(false)
-    
-      const handleVerification = () => {
-        localStorage.removeItem('verifyDonorModalOpen')
-        setVerification(true)
-        setVerifyModal(false)
-      }
-    
-      React.useEffect(() => {
-        return () => {
-          localStorage.removeItem('verifyDonorModalOpen');
-        };
-      }, []);
-    
-      const [isMounted, setIsMounted] = React.useState(false);
-    
-      React.useEffect(() => {
-        setIsMounted(true);
-      }, [])
 
 
+
+    React.useEffect(() => {
+        errors.fullname && toast.error(errors.fullname.message)
+    }, [errors.fullname])
 
     React.useEffect(() => {
         errors.email && toast.error(errors.email.message)
@@ -73,11 +59,7 @@ const DonorRegistration = () => {
 
 
     return (
-        <>
-            {
-                isMounted && openVerifyModal && <VerifyDonorCode onVerificationComplete={handleVerification}/>
-            }
-            <OptionModal open={open} setOpen={open}>
+        <OptionModal open={open} setOpen={open}>
                 <a href='/' className='absolute right-5 top-4'>
                 <X className='text-gray-500 cursor-pointer' size={14}/>
                 </a>
@@ -103,6 +85,23 @@ const DonorRegistration = () => {
 
                 <div className="formContainer flex flex-col justify-center items-center mt-6">
                     <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-2">
+                        <div className="relative w-[18rem]">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 16 16" fill="currentColor"
+                                className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-500 z-[100]">
+                                <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM12.735 14c.618 0 1.093-.561.872-1.139a6.002 6.002 0 0 0-11.215 0c-.22.578.254 1.139.872 1.139h9.47Z" />
+                            </svg>
+
+                            <input
+                                className="input input-bordered w-full pl-10 focus:outline-none"
+                                id='fullname'
+                                type="text"
+                                {...register('fullname')  }
+                                placeholder="Full Name"
+                            />
+                        </div>
+
                         <div className="relative w-[18rem]">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -173,7 +172,6 @@ const DonorRegistration = () => {
                     </form>
                 </div>
             </OptionModal>
-        </>
     )
 }
 

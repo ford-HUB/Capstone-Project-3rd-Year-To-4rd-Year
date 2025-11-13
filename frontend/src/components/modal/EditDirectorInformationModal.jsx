@@ -3,17 +3,20 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { createDirectorInfoSchema } from '../../forms/DirectorSchema.js';
 import { CircleX } from 'lucide-react';
+import SignatureUpload from '../common/SignatureUpload.jsx';
+import { useProfileStore } from '../../store/director/useProfileStore.js';
 
 const EditDirectorInformationModal = ({ open, setOpen, mode, currentInfo = [], onComplete }) => {
     const isEdit = mode === 'edit'
+    const [selectedSignature, setSelectedSignature] = React.useState(null);
+    const [signaturePreview, setSignaturePreview] = React.useState(null);
+    const [isUploadingSignature, setIsUploadingSignature] = React.useState(false);
+
+    const { updateSignature } = useProfileStore();
 
     const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm({
         resolver: zodResolver(createDirectorInfoSchema),
         defaultValues: {
-            facebook: '',
-            insta: '',
-            linkedin: '',
-            X: '',
             firstname: '',
             lastname: '',
             email_address: '',
@@ -27,10 +30,6 @@ const EditDirectorInformationModal = ({ open, setOpen, mode, currentInfo = [], o
     React.useEffect(() => {
         if(open) {
             reset({
-                facebook: isEdit ? currentInfo.facebook : '',
-                insta: isEdit ? currentInfo.insta : '',
-                linkedin: isEdit ? currentInfo.linkedin : '',
-                X: isEdit ? currentInfo.X : '',
                 firstname: isEdit ? currentInfo.firstname : '',
                 lastname: isEdit ? currentInfo.lastname : '',
                 email_address: isEdit ? currentInfo.email_address : '',
@@ -38,8 +37,49 @@ const EditDirectorInformationModal = ({ open, setOpen, mode, currentInfo = [], o
                 role_bio: isEdit ? currentInfo.role_bio : '',
                 school: isEdit ? currentInfo.school : ''
             })
+            
+            // Set signature preview if editing and signature exists
+            if (isEdit && currentInfo.signature_img) {
+                setSignaturePreview(currentInfo.signature_img);
+                // Don't set selectedSignature to null here - we want to show the existing signature
+            } else {
+                setSignaturePreview(null);
+                setSelectedSignature(null);
+            }
         }
     }, [open, currentInfo, isEdit, reset])
+
+    const handleSignatureSelect = (file) => {
+        setSelectedSignature(file);
+        const reader = new FileReader();
+        reader.onload = (e) => setSignaturePreview(e.target.result);
+        reader.readAsDataURL(file);
+    };
+
+    const handleSignatureRemove = () => {
+        setSelectedSignature(null);
+        setSignaturePreview(null);
+    };
+
+    const handleFormSubmit = async (formData) => {
+        // First handle the main form data
+        await onComplete(formData);
+        
+        // Then handle signature upload if a new signature is selected
+        if (selectedSignature) {
+            setIsUploadingSignature(true);
+            try {
+                const signatureFormData = new FormData();
+                signatureFormData.append('signature', selectedSignature);
+                
+                await updateSignature(signatureFormData);
+            } catch (error) {
+                console.error('Signature upload failed:', error);
+            } finally {
+                setIsUploadingSignature(false);
+            }
+        }
+    };
 
     if(!open) return null;
     return (
@@ -59,58 +99,7 @@ const EditDirectorInformationModal = ({ open, setOpen, mode, currentInfo = [], o
                 </header>
 
                 <main className='overflow-y-auto pr-1'>
-                    <form onSubmit={handleSubmit(onComplete)}>
-                        <div className="subHeader1">
-                        <h2 className='text-xl mt-7 font-semibold text-gray-700'>Social Links</h2>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-6 mt-5">
-                            <div className='flex flex-col space-y-1.5'>
-                                <label htmlFor="facebook">
-                                    Facebook
-                                </label>
-                                <input
-                                {...register('facebook') }
-                                className='input w-full'
-                                type="text"
-                                name="facebook"/>
-                                {errors.facebook && <span className='text-sm text-red-600'>{errors.facebook.message}</span>  }
-                            </div>
-                            <div className='flex flex-col space-y-1.5'>
-                                <label htmlFor="linkedin">
-                                    LinkedIn
-                                </label>
-                                <input
-                                {...register('linkedin')  }
-                                className='input w-full'
-                                type="text"
-                                name="linkedin"/>
-                                {errors.linkedin && <span className='text-sm text-red-600'>{errors.linkedin.message}</span>}
-                            </div>
-                            <div className='flex flex-col space-y-1.5'>
-                                <label htmlFor="insta">
-                                    Instagram
-                                </label>
-                                <input
-                                {...register('insta')  }
-                                className='input w-full'
-                                type="text"
-                                name="insta"/>
-                                {errors.insta && <span className='text-sm text-red-600'>{errors.insta.message}</span>}
-                            </div>
-                            <div className='flex flex-col space-y-1.5'>
-                                <label htmlFor="X">
-                                    X
-                                </label>
-                                <input
-                                {...register('X')  }
-                                className='input w-full'
-                                type="text"
-                                name="X"/>
-                                {errors.X && <span className='text-sm text-red-600'>{errors.X.message}</span>}
-                            </div>
-                        </div>
-
+                    <form onSubmit={handleSubmit(handleFormSubmit)}>
                         <div className="subHeader2">
                             <h2 className='text-xl mt-7 font-semibold text-gray-700'>Personal Information</h2>
                         </div>
@@ -187,11 +176,28 @@ const EditDirectorInformationModal = ({ open, setOpen, mode, currentInfo = [], o
                             </div>
                         </div>
 
+                        <div className="subHeader3">
+                            <h2 className='text-xl mt-7 font-semibold text-gray-700'>Signature</h2>
+                        </div>
+
+                        <div className="mt-5">
+                            <SignatureUpload
+                                onFileSelect={handleSignatureSelect}
+                                selectedFile={selectedSignature}
+                                onRemoveFile={handleSignatureRemove}
+                                preview={signaturePreview}
+                                disabled={isSubmitting}
+                                existingSignature={isEdit && currentInfo.signature_img ? currentInfo.signature_img : null}
+                            />
+                        </div>
+
                         <div className="action flex justify-end items-center my-4 space-x-2.5">
                             <button onClick={() => setOpen(false)}
                             className='btn text-gray-700 bg-gray-100 rounded-xl'>Close</button>
-                            <button type='submit' disabled={isSubmitting}
-                            className='btn bg-blue-700 text-white rounded-xl'>{isSubmitting ? 'Saving Changes...' : 'Save Changes'}</button>
+                            <button type='submit' disabled={isSubmitting || isUploadingSignature}
+                            className='btn bg-blue-700 text-white rounded-xl'>
+                                {isSubmitting || isUploadingSignature ? 'Saving Changes...' : 'Save Changes'}
+                            </button>
                         </div>
                     </form>
                 </main>

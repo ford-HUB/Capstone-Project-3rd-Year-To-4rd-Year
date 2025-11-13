@@ -1,0 +1,215 @@
+import { db } from "../../config/db.js";
+import models from "../../models/index.js";
+import { sendMail } from "../../services/mailService.js";
+import { generateUniqueCode } from "../../utils/generateUniqueCode.js";
+import { runMatchingAI } from "../../services/matchingService.js";
+import bcrypt from 'bcrypt'
+
+export const currentUserProfile = async (req, res) => {
+    try {
+        const accountId = req.user.account_id
+        const { Volunteer, Student, Department, Course, YearLevel, StrandCourse } = models
+
+        const studentData = await Student.findOne({ where: { account_id: accountId } })
+
+        if (!studentData) { return res.json({ message: 'Student profile not found' }) }
+
+        const volunteerData = await Volunteer.findAll({
+            where: { student_id: studentData.student_id },
+            include: [
+                { model: Student,
+                    include: [
+                        { model: Department },
+                        { model: Course },
+                        { model: StrandCourse },
+                        { model: YearLevel }
+                    ]
+                }
+            ]
+        })
+
+        return res.json({ success: true, profileData: volunteerData })
+
+    } catch (error) {
+        res.json({ success: false, message: 'Internal Server Error' })
+        console.log('fetch current user profile failed', error.message)
+    }
+}
+
+export const updateUserProfile = async (req, res) => {
+    const t = await db.transaction()
+    try {
+        const { firstname, lastname, gender, middle_initial, phone_number, current_address, course, department, year_level, disability, disability_specification, is_subscribed } = req.validatedBody
+        const accountId = req.user.account_id
+
+        const { Student, Volunteer, Course, Department, YearLevel, StrandCourse } = models
+        const studentData = await Student.findOne({ where: { account_id: accountId } })
+
+        if(!studentData) { return res.json({ message: 'Student profile not found' }) }
+
+        // Handle course updates based on department type
+        let courseUpdate = null
+        if (department === 'Senior High Department') {
+            // Update strand course
+            courseUpdate = await StrandCourse.update(
+                { name: course }, 
+                { where: { strand_course_id: studentData.strand_course_id } }, 
+                { transaction: t }
+            )
+        } else {
+            // Update regular course
+            courseUpdate = await Course.update(
+                { course_name: course }, 
+                { where: { course_id: studentData.course_id } }, 
+                { transaction: t }
+            )
+        }
+
+        const [departmentUpdate] = await Department.findOrCreate({ 
+            where: { department_id: studentData.department_id }, 
+            defaults: { department_name: department }, 
+            transaction: t
+        })
+        
+        const ylUpdate = await YearLevel.update(
+            { year_level: year_level }, 
+            { where: { yl_id: studentData.yl_id } }, 
+            { transaction: t }
+        )
+
+        const updateStudentInfo = await studentData.update({
+            firstname,
+            lastname,
+            gender,
+            middle_initial,
+            phone_number,
+            current_address,
+            disability,
+            disability_specification,
+        }, { transaction: t })
+
+        const updateSubscription = await Volunteer.update({
+            is_subscribed,
+            is_beneficiary: req.validatedBody.is_beneficiary || false
+        }, { where: { student_id: studentData.student_id }, transaction: t })
+
+        if(!updateStudentInfo || !updateSubscription || !courseUpdate || !departmentUpdate || !ylUpdate) {
+            await t.rollback()
+            return res.json({ message: 'Failed to update profile' })
+        }
+
+        await t.commit()
+        return res.json({ success: true, message: 'Profile updated successfully' })
+
+    } catch (error) {
+        await t.rollback()
+        res.json({ success: true, message: 'Internal Server Error' })
+        console.log('update profile controller failed: ', error.message)
+    }
+}
+
+export const updateEmailAccount = async (req, res) => {
+    try {
+        const { newEmail, confirmEmail } = req.validatedBody
+        const { account_id, email } = req.user
+
+        const { Accounts, VerificationCodes } = models
+
+        const confirmedEmail = newEmail || confirmEmail
+        const isExist = await Accounts.findOne({ where: { email: confirmedEmail } })
+
+        if(isExist) { return res.json({ message: 'This email is already associated with another account' }) }
+
+        const emailValid = await Accounts.findOne({ where: { email } })
+
+        if(!emailValid) { return res.json({ message: 'your account is not found' }) }
+        
+        const FIVE_MINUTES = new Date(Date.now() + 5 * 60 * 1000) 
+
+        const uniqueCode = await generateUniqueCode()
+        const newVerficationCode = await VerificationCodes.update(
+            {
+                code: uniqueCode,
+                expires_at: FIVE_MINUTES,
+                used: false
+            },
+            { where: { account_id: account_id } }
+        )
+
+        await sendMail(confirmedEmail, 'Verify Your Account', 'Verify Your Account Fallback', 'mailingTemplate.html', { email: process.env.AUTH_MAILER, code: uniqueCode, company_name: 'uclmcares' })
+
+        await emailValid.update({ email: confirmedEmail })
+
+        // const newEmailUpdated = await Accounts.update({ email: confirmedEmail }, { where: { account_id: account_id } })
+
+        // if(!newEmailUpdated) { return res.json({ message: 'new email not successfully created' }) }
+
+        if(!newVerficationCode) { return res.json({ message: 'verification code failed to process' }) }
+
+        return res.json({ success: true, message: "New OTP sent to your email", otp_expiration: FIVE_MINUTES })
+
+    } catch (error) {
+        res.json({ success: false, message: 'Internal Server Error' })
+        console.log('update email account failed: ', error)
+    }
+}
+
+export const undoEmailChanges = async (req, res) => {
+    try {
+        const { account_id } = req.user
+
+        const { Accounts, AccountUpdateLog } = models
+
+        const accountValid = await Accounts.findByPk(account_id)
+        if(!accountValid) { return res.json({ message: 'account not found' }) }
+
+        const yourAccountLogStatus = await AccountUpdateLog.findOne({ where: { account_id: accountValid.account_id, status: 'pending' } })
+
+        if(!yourAccountLogStatus) { return res.json({ message: 'we cannot find any last pending of your action.' }) }
+
+        await accountValid.update({ email: yourAccountLogStatus.old_email })        
+
+        return res.json({ success: true, message: '' })
+
+    } catch (error) {
+        res.json({ success: false, message: 'Internal Server Error' })
+        console.log('undo email changes')
+    }
+}
+
+
+export const changeParticipantPassword = async (req, res) => {
+    const t = await db.transaction()
+    try {
+        const { currentPassword, newPassword } = req.validatedBody
+        const { Accounts } = models
+
+        const accountId = req.user.account_id
+
+        const account = await Accounts.findOne({ where: { account_id: accountId }, transaction: t })
+        if(!account) {
+            await t.rollback()
+            return res.status(404).json({ success: false, message: 'Account not found' })
+        }
+
+        const isCurrentPasswordValid = await bcrypt.compare(currentPassword, account.password)
+        if(!isCurrentPasswordValid) {
+            await t.rollback()
+            return res.status(400).json({ success: false, message: 'Current password is incorrect' })
+        }
+
+        const salt = await bcrypt.genSalt(10)
+        const hashedNewPassword = await bcrypt.hash(newPassword, salt)
+
+        await account.update({ password: hashedNewPassword }, { transaction: t })
+        await t.commit()
+
+        return res.json({ success: true, message: 'Password changed successfully' })
+
+    } catch (error) {
+        await t.rollback()
+        console.log('change participant password failed: ', error.message)
+        return res.status(500).json({ success: false, message: 'Internal Server Error' })
+    }
+}
+

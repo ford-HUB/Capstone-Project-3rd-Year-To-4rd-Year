@@ -16,13 +16,29 @@ export const approveUser = async (id) => {
     }
 }
 
-
-export const deleteUser = async (id) => {
-    const response = await apiInstance.delete(`/api/director-manage/delete-request/${id}`)
+export const rejectUser = async (id, reason) => {
+    const response = await apiInstance.put(`/api/director-manage/reject-request/${id}`, { reason })
     return {
         success: response.data.success,
         message: response.data.message
     }
 }
+
+export const getRejectedRequests = async () => {
+    const response = await apiInstance.get('/api/director-manage/list-rejected-requests')
+    return {
+        success: response.data.success,
+        requests: response.data.list
+    }
+}
+
+export const acceptRejectedRequest = async (id) => {
+    const response = await apiInstance.put(`/api/director-manage/accept-rejected-request/${id}`)
+    return {
+        success: response.data.success,
+        message: response.data.message
+    }
+}
+
 
 

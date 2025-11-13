@@ -2,6 +2,7 @@ import models from "../../models/index.js"
 import bcrypt from 'bcrypt'
 import { db } from "../../config/db.js"
 import { generateToken } from "../../utils/generateToken.js"
+import { createNotification } from "../../services/notificationService.js"
 
 
 export const setUpAccount = async (req, res) => {
@@ -98,6 +99,9 @@ export const login = async (req, res) => { // The login function is no longer us
         const isMatch = await bcrypt.compare(password, isValid.password)
         if (!isMatch) { return res.json({ message: 'Invalid Credentials' }) }
 
+        // Set user as active
+        await Accounts.update({ is_active: true }, { where: { account_id: isValid.account_id } })
+
         await generateToken(isValid.account_id, res)
 
         res.json({ success: true, message: 'Login Successfully' })
@@ -110,11 +114,18 @@ export const login = async (req, res) => { // The login function is no longer us
 
 export const logout = async (req, res) => {
     try {
+        const { Accounts } = models;
+        const accountId = req.user.account_id;
+
+        // Clear the JWT cookie
         res.clearCookie('jwt', {
             httpOnly: true,
             sameSite: true,
             secure: process.env.NODE_ENV === 'production'
-        })
+        });
+
+        // Set user as inactive
+        await Accounts.update({ is_active: false }, { where: { account_id: accountId } });
 
         return res.json({ success: true, message: 'logout successfully' })
     } catch (error) {
@@ -128,7 +139,7 @@ export const requestApproval = async (req, res) => {
     try {
         const { fullname, email, requested_role, reason } = req.validatedBody
 
-        const { RequestApproval } = models
+        const { RequestApproval, Notification } = models
 
         const [newRequest, created] = await RequestApproval.findOrCreate({
             where: { email: email },
@@ -143,7 +154,28 @@ export const requestApproval = async (req, res) => {
 
         if (!created) { return res.json({ message: 'email is already requesting' }) }
 
-        if(newRequest) { return res.json({ success: true, message: 'Request submitted successfully' }) }
+        // Helper function to format role names for display
+        const formatRoleName = (role) => {
+            const roleMap = {
+                'staff': 'Staff',
+                'coordinator': 'Coordinator',
+                'assistant_coordinator': 'Assistant Coordinator'
+            };
+            return roleMap[role] || role;
+        };
+
+        const newNotification = await createNotification({
+            type: 'event_approval',
+            header: 'New Request Approval',
+            message: `${fullname} has requested for ${formatRoleName(requested_role)} role`,
+            recipient_role: 'director',
+            sender_type: 'system'
+        })
+
+        if (!newNotification) { return res.json({ message: 'Failed to create notification' }) }
+        if(newRequest) {
+            return res.json({ success: true, message: 'Request submitted successfully' })
+        }
     } catch (error) {
         res.json({ messsage: 'Internal Server Error' })
         console.log('staff request approval controller failed: ', error.message)
@@ -153,17 +185,17 @@ export const requestApproval = async (req, res) => {
 
 export const checkAuthenticationToken = async (req, res) => {
     try {
-        const authenticatedToken = req.params.token
-        const { ApprovalToken, RequestApproval } = models
+        const { token } = req.query
+        const { ApprovalToken, RequestApproval, Role } = models
 
-        const payload = await ApprovalToken.findOne({ where: { token: authenticatedToken } })
+        const payload = await ApprovalToken.findOne({ where: { token: token } })
         if (!payload) { return res.json({ message: 'token not provided' }) }
-        const emailUser = await RequestApproval.findOne({ where: { ra_id: payload.ra_id } })
+        const requestedUser = await RequestApproval.findByPk(payload.ra_id)
         if (new Date() > payload.expires_at) { return res.json({ message: 'token is already expired' }) }
-        return res.json({ success: true, email: emailUser, expiredToken: payload.expires_at, yourToken: payload.token })
+        return res.json({ success: true, role: requestedUser.requested_role, expiredToken: payload.expires_at, yourToken: payload.token })
     } catch (error) {
         res.json({ message: 'Internal Server Error' })
-        console.log('Set Approval Request Failed: ', error.message)
+        console.log('check authentication token Failed: ', error.message)
     }
 }
 

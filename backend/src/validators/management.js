@@ -60,7 +60,7 @@ export const requestApprovalSchema = Joi.object({
     .required(),
 
   requested_role: Joi.string()
-    .valid('staff', 'coordinator')
+    .valid('staff', 'coordinator', 'assistant_coordinator')
     .required(),
 
   reason: Joi.string()

@@ -1,10 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../store/staff/useAuthStore.js';
+import { useAuthStore } from '../store/management/useAuthStore.js';
 
 const ProtectedStaff = ({ children, roles = [] }) => {
     const navigate = useNavigate();
-    const { authenticatedStaff, checkAuth } = useAuthStore();
+    const { authenticatedManagement, checkAuth } = useAuthStore();
     const [authChecked, setAuthChecked] = React.useState(false);
 
     React.useEffect(() => {
@@ -26,12 +26,12 @@ const ProtectedStaff = ({ children, roles = [] }) => {
         if (!authChecked) return;
 
         const allowedRoles = Array.isArray(roles) ? roles : [roles];
-        const userRole = authenticatedStaff?.Role?.name;
+        const userRole = authenticatedManagement?.Role?.name;
 
         if (!userRole || !allowedRoles.includes(userRole)) {
             navigate('/', { replace: true }); // need pani diri unauthorize redirect route
         }
-    }, [authChecked, authenticatedStaff, roles, navigate]);
+    }, [authChecked, authenticatedManagement, roles, navigate]);
 
     if (!authChecked) {
         return null

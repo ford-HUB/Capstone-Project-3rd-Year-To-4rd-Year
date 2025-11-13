@@ -8,7 +8,7 @@ const { Donor, Accounts, Role } = models
 export const facebookStrategy = new metaStrategy({
     clientID: process.env.FACEBOOK_APP_ID,
     clientSecret: process.env.FACEBOOK_APP_SECRET,
-    callbackURL: 'http://localhost:8000/api/donor-auth/facebook/callback',
+    callbackURL: `${process.env.NODE_ENV === 'development' ? process.env.BACKEND_URL : process.env.BACKEND_URL_PROD}/api/donor-auth/facebook/callback`,
     profileFields: ['id', 'displayName', 'photos', 'email']
 }, async(accessToken, refreshToken, profile, done) => {
     try {
@@ -23,7 +23,7 @@ export const facebookStrategy = new metaStrategy({
 
             await Role.create({
                 account_id: newAccount.account_id,
-                name: 'Donor',
+                name: 'donor',
                 description: 'This role allowed to donate into the event'
             })
 
@@ -36,15 +36,25 @@ export const facebookStrategy = new metaStrategy({
                 is_verified: profile.emails?.[0].verified
             })
 
-            const user = await Accounts.findByPk(newAccount.account_id)
+            const user = await Accounts.findByPk(newAccount.account_id, {
+                include: [{
+                    model: Role,
+                    attributes: ['name']
+                }]
+            })
             return done(null, user)
         }  
 
-        const user = await Accounts.findByPk(facebookAccount.account_id)
+        const user = await Accounts.findByPk(facebookAccount.account_id, {
+            include: [{
+                model: Role,
+                attributes: ['name']
+            }]
+        })
         return done(null, user)
 
     } catch (error) {
-        console.log('facebook strategy failed:', error.message)
-        done(null, null)
+        console.error('Facebook OAuth strategy failed:', error.message)
+        done(error, null)
     }
 })

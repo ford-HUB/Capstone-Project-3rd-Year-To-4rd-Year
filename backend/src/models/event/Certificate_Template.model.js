@@ -19,40 +19,19 @@ Certificate_Template.init({
         }
     },
 
+    name: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+
+    type: {
+        type: DataTypes.ENUM('recognation', 'appreciation'),
+        defaultValue: 'appreciation'
+    },
+
     html_raw_template: {
         type: DataTypes.TEXT,
         allowNull: false
-    },
-
-    left_logo: {
-        type: DataTypes.STRING,
-        allowNull: true
-    },
-
-    center_logo: {
-        type: DataTypes.STRING,
-        allowNull: true
-    },
-
-    right_logo: {
-        type: DataTypes.STRING,
-        allowNull: true
-    },
-
-    signature_img: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-
-    badge_img: {
-        type: DataTypes.STRING,
-        allowNull: true
-    },
-
-    default_cert_title: {
-        type: DataTypes.STRING,
-        defaultValue: 'Certificate of Completion',
-        allowNull: true
     }
 
 }, {

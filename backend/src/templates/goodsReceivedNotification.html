@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goods Received - UCLM CARES</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #10b981;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #10b981;
+            margin-bottom: 10px;
+        }
+        .status-badge {
+            background-color: #10b981;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+            margin: 10px 0;
+        }
+        .donation-info {
+            background-color: #f0fdf4;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #10b981;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 5px 0;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #374151;
+        }
+        .info-value {
+            color: #6b7280;
+        }
+        .message {
+            background-color: #d1fae5;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #10b981;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .cta-button {
+            background-color: #10b981;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            display: inline-block;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">UCLM CARES</div>
+            <h1>Goods Donation Received</h1>
+            <div class="status-badge">RECEIVED</div>
+        </div>
+
+        <p>Dear {{donorName}},</p>
+
+        <p>Thank you for your generous donation! We are pleased to inform you that your goods donation for <strong>"{{eventTitle}}"</strong> has been successfully received.</p>
+
+        <div class="donation-info">
+            <h3>Donation Details</h3>
+            <div class="info-row">
+                <span class="info-label">Donation ID:</span>
+                <span class="info-value">#{{donationId}}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Donation Type:</span>
+                <span class="info-value">{{donationType}}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Event:</span>
+                <span class="info-value">{{eventTitle}}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Received At:</span>
+                <span class="info-value">{{remark}}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Status:</span>
+                <span class="info-value"><strong>RECEIVED</strong></span>
+            </div>
+        </div>
+
+        <div class="message">
+            <h3>📦 What's Next?</h3>
+            <p>Your donated goods are now safely in our possession and will be prepared for distribution to the beneficiaries. We will keep you updated on the progress of your donation.</p>
+        </div>
+
+        <p>Your kindness and generosity make a real difference in our community. Thank you for supporting our cause!</p>
+
+        <div class="footer">
+            <p>Best regards,<br>
+            <strong>UCLM CARES Team</strong></p>
+            <p>This email was sent on {{currentDate}}</p>
+            <p>If you have any questions, please contact us at support@uclmcares.com</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,5 +1,7 @@
 export const roleRedirection = {
-  'Student': '/participant/home',
-  'Staff': '/staff/dashboard',
-  'Coordinator': '/staff/dashboard'
+  'student': '/participant/dashboard',
+  'beneficiary': '/beneficiary/dashboard',
+  'staff': '/management/dashboard',
+  'coordinator': '/management/dashboard',
+  'assistant_coordinator': '/management/dashboard'
 }

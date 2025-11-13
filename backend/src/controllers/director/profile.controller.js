@@ -4,21 +4,24 @@ import bcrypt from "bcrypt"
 export const getCurrentProfile = async (req, res) => {
   try {
     const accountId = req.user.account_id;
-    const { Director, PaymentInfo } = models;
+    const { Director, LinkedPaymentAccounts } = models;
 
     const Info = await Director.findOne({
+      where: { account_id: accountId }
+    });
+
+    // Get payment methods separately
+    const paymentMethods = await LinkedPaymentAccounts.findAll({
       where: { account_id: accountId },
-      include: {
-        model: PaymentInfo
-      }
+      order: [['createdAt', 'DESC']]
     });
 
     // Check if Director Info doesn't exist
     if (!Info) {
-      return res.json({ success: false, info:null, message: 'Must manually add your personal information'});
+      return res.json({ success: true, directorInfo: null, paymentInfo: paymentMethods });
     }
     
-    return res.json({ success: true, directorInfo: Info, paymentInfo: Info.PaymentInfo || null });
+    return res.json({ success: true, directorInfo: Info, paymentInfo: paymentMethods });
 
   } catch (error) {
     res.json({ success: false, message: 'Internal Server Error' });
@@ -29,25 +32,16 @@ export const getCurrentProfile = async (req, res) => {
 
 export const createOrUpdateDirectorInformation = async (req, res) => {
     try {
-        const { facebook, insta, linkedin, X, firstname, lastname, email_address, phone_number, role_bio, school } = req.validatedBody
-        const { Director, SocialLinks } = models
+        const { firstname, lastname, email_address, phone_number, role_bio, school } = req.validatedBody
+        const { Director } = models
 
         const accountId = req.user.account_id
         console.log(accountId)
         const isDirectorExist = await Director.findOne({ where: { account_id: accountId } })
 
-        const [newSocialLinks] = await SocialLinks.upsert({
-            social_links_id: isDirectorExist?.social_links_id,
-            facebook: facebook,
-            insta: insta,
-            linkedin: linkedin,
-            X:X
-        })
-
         const [newInfo] = await Director.upsert({
             director_id: isDirectorExist?.director_id,
             account_id: isDirectorExist ? isDirectorExist.account_id : accountId,
-            social_links_id: newSocialLinks?.social_links_id,
             firstname: firstname,
             lastname: lastname,
             email_address: email_address,
@@ -152,5 +146,26 @@ export const updatePassword = async (req, res) => {
   } catch (error) {
     res.json({ success: false, message: 'Internal Server Error' })
     console.log('update password director failed: ', error.message)
+  }
+}
+
+export const updateSignature = async (req, res) => {
+  try {
+    const { Director } = models
+    const signaturePath = req.file.path
+    const accountId = req.user.account_id
+
+    const updateSignature = await Director.update(
+      { signature_img: signaturePath },
+      { where: { account_id: accountId } }
+    )
+
+    if(!updateSignature) { return res.json({ success: false, message: 'signature failed to upload' }) }
+
+    return res.json({ success: true, message: 'signature successfully uploaded' })
+
+  } catch (error) {
+    res.json({ success: false, message: 'Internal Server Error' })
+    console.log('update signature director failed: ', error.message)
   }
 }

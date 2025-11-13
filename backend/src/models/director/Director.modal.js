@@ -18,14 +18,6 @@ Director.init({
         }
     },
 
-    social_links_id: {
-        type: DataTypes.INTEGER,
-        references: {
-            model: 'social_links',
-            key: 'social_links_id'
-        }
-    },
-
     firstname: {
         type: DataTypes.STRING,
         allowNull: false
@@ -80,6 +72,12 @@ Director.init({
     },
 
     profile_image: {
+        type: DataTypes.STRING,
+        defaultValue: '',
+        allowNull: true
+    },
+
+    signature_img: {
         type: DataTypes.STRING,
         defaultValue: '',
         allowNull: true

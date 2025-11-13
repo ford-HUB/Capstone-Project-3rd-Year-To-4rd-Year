@@ -12,6 +12,11 @@ const __dirname = getDirname(__filename)
 
 export const sendMail = async (to, subject, text, templateUsed, variables = {}) => {
     try {
+        console.log(`📧 Attempting to send email to: ${to}`);
+        console.log(`📧 Subject: ${subject}`);
+        console.log(`📧 Template: ${templateUsed}`);
+        console.log(`📧 Variables:`, variables);
+        
         const htmlTemplate = await fs.readFile(path.join(__dirname, '..', 'templates', templateUsed), 'utf-8');
 
         // catch the dynamic value using regex
@@ -19,6 +24,7 @@ export const sendMail = async (to, subject, text, templateUsed, variables = {}) 
             return variables[key.trim()] || '';
         });
 
+        console.log(`📧 Sending email via transporter...`);
         const infomation = await transporter.sendMail({
             from: process.env.AUTH_MAILER,
             to: to,
@@ -27,8 +33,11 @@ export const sendMail = async (to, subject, text, templateUsed, variables = {}) 
             text: text.text || ''
         })
 
-        console.log('Email Sent: ', infomation.response)
+        console.log('✅ Email Sent Successfully: ', infomation.response)
+        return { success: true, messageId: infomation.messageId };
     } catch (error) {
-        console.log('Send Mail Failed: ', error.message)
+        console.log('❌ Send Mail Failed: ', error.message)
+        console.log('❌ Full error:', error);
+        throw error;
     }
 }

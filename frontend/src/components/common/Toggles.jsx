@@ -1,30 +1,26 @@
 import React from 'react'
-import { CheckCircle, Trash2, UserX } from 'lucide-react'
-import { useManageUsersStore } from '../../store/director/useManageUsersStore.js'
+import { CheckCircle, Trash2, UserX, UserCheck, Eye } from 'lucide-react'
 
 const Toggles = ({ open, setOpen, onComplete, modalPosition, selectedUser }) => {
-  const { deleteUser } = useManageUsersStore()
 
-  const handleDelete = async(type) => {
-    switch(type) {
-      case 'whitelist':
-
-        break
-      case 'delete':
-        const success = await deleteUser(selectedUser)
-        if(!success) return
-        onComplete('delete', selectedUser)
-
-        break
-      case 'deactivate':
-        // Handle deactivate action
-        onComplete('deactivate', selectedUser)
-        break
-      default:
-        console.log('there is no match in your type')
+    const handleAction = async(type) => {
+        switch(type) {
+        case 'delete':
+            onComplete({ action: 'delete', selectedUser: selectedUser })
+            break
+        case 'deactivate':
+            onComplete({ action: 'deactivate', selectedUser: selectedUser })
+            break
+        case 'restore':
+            onComplete({ action: 'restore', selectedUser: selectedUser })
+            break
+        case 'view':
+            onComplete({ action: 'view', selectedUser: selectedUser })
+            break
+        default:
+            console.log('there is no match in your type')
+        }
     }
-    setOpen(false)
-  }
 
   if(!open) return null
   
@@ -43,25 +39,37 @@ const Toggles = ({ open, setOpen, onComplete, modalPosition, selectedUser }) => 
         }}
       >
         <button
-          onClick={() => handleDelete('whitelist')}
+          onClick={() => handleAction('view')}
           className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
         >
-          <CheckCircle className="w-4 h-4" />
-          Whitelist
+          <Eye className="w-4 h-4" />
+          View Info
         </button>
+
+        {selectedUser?.status === 'deactivated' ? (
+          <button
+            onClick={() => handleAction('restore')}
+            className="w-full px-4 py-2 text-left text-sm text-green-600 hover:bg-gray-100 flex items-center gap-2"
+          >
+            <UserCheck className="w-4 h-4" />
+            Restore Account
+          </button>
+        ) : (
+          <button
+            onClick={() => handleAction('deactivate')}
+            className="w-full px-4 py-2 text-left text-sm text-orange-600 hover:bg-gray-100 flex items-center gap-2"
+          >
+            <UserX className="w-4 h-4" />
+            Deactivate
+          </button>
+        )}
+
         <button
-          onClick={() => handleDelete('delete')}
+          onClick={() => handleAction('delete')}
           className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
         >
           <Trash2 className="w-4 h-4" />
-          Delete
-        </button>
-        <button
-          onClick={() => handleDelete('deactivate')}
-          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-        >
-          <UserX className="w-4 h-4" />
-          Deactivate
+          Soft Delete
         </button>
       </div>
     </>
