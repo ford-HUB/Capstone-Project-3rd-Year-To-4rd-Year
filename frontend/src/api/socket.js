@@ -4,8 +4,7 @@ let socket;
 
 export const initSocket = () => {
     if (!socket) {
-        const mode = import.meta.env.VITE_SYS_MODE;
-        const backendUrl = mode === ''
+        const backendUrl = import.meta.env.VITE_SYS_MODE === 'development'
             ? import.meta.env.VITE_BACKEND_URL
             : import.meta.env.VITE_BACKEND_PROD;
             
