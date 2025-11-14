@@ -1,221 +1,153 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{title}}</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f8f9fa;
-        }
-        .container {
-            background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 28px;
-            font-weight: 600;
-        }
-        .header p {
-            margin: 10px 0 0 0;
-            opacity: 0.9;
-            font-size: 16px;
-        }
-        .content {
-            padding: 40px 30px;
-        }
-        .greeting {
-            font-size: 18px;
-            margin-bottom: 20px;
-            color: #2c3e50;
-        }
-        .status-card {
-            background-color: #f8f9fa;
-            border-left: 4px solid #28a745;
-            padding: 20px;
-            margin: 25px 0;
-            border-radius: 0 8px 8px 0;
-        }
-        .status-card.declined {
-            border-left-color: #dc3545;
-        }
-        .status-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: #2c3e50;
-        }
-        .status-description {
-            color: #6c757d;
-            margin-bottom: 15px;
-        }
-        .action-section {
-            background-color: #e3f2fd;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 25px 0;
-        }
-        .action-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: #1976d2;
-        }
-        .action-text {
-            color: #424242;
-            white-space: pre-line;
-            line-height: 1.8;
-        }
-        .event-details {
-            background-color: #fff3cd;
-            border: 1px solid #ffeaa7;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 25px 0;
-        }
-        .event-details h3 {
-            margin: 0 0 15px 0;
-            color: #856404;
-            font-size: 16px;
-        }
-        .event-details p {
-            margin: 5px 0;
-            color: #856404;
-        }
-        .footer {
-            background-color: #f8f9fa;
-            padding: 30px;
-            text-align: center;
-            border-top: 1px solid #e9ecef;
-        }
-        .footer p {
-            margin: 5px 0;
-            color: #6c757d;
-            font-size: 14px;
-        }
-        .logo {
-            width: 60px;
-            height: 60px;
-            margin: 0 auto 20px;
-            background-color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: bold;
-            color: #667eea;
-        }
-        .cta-button {
-            display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px 30px;
-            text-decoration: none;
-            border-radius: 25px;
-            font-weight: 600;
-            margin: 20px 0;
-            transition: transform 0.2s;
-        }
-        .cta-button:hover {
-            transform: translateY(-2px);
-        }
-        .reason-box {
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 15px 0;
-        }
-        .reason-box p {
-            margin: 0;
-            color: #721c24;
-            font-style: italic;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{{title}}</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f8f9fa;
+    }
+    .container {
+      background-color: #fff;
+      border-radius: 8px;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 16px;
+      color: #2c3e50;
+    }
+    p {
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    .greeting {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 16px;
+    }
+    .status-card {
+      background-color: #f8f9fa;
+      border-left: 4px solid #28a745;
+      padding: 12px;
+      margin: 16px 0;
+    }
+    .status-card.declined {
+      border-left-color: #dc3545;
+    }
+    .status-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .status-description {
+      font-size: 14px;
+    }
+    .event-details, .reason-box, .action-section {
+      background-color: #e3f2fd;
+      padding: 12px;
+      border-radius: 6px;
+      margin: 16px 0;
+    }
+    .reason-box {
+      background-color: #f8d7da;
+    }
+    .event-details h3, .reason-box p, .action-section .action-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .action-text {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .cta-button {
+      display: inline-block;
+      background-color: #667eea;
+      color: white;
+      padding: 10px 24px;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+      margin: 16px 0;
+    }
+    .footer {
+      font-size: 12px;
+      color: #6c757d;
+      text-align: center;
+      margin-top: 24px;
+    }
+    a {
+      color: #667eea;
+      text-decoration: none;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="logo">UC</div>
-            <h1>{{title}}</h1>
-            <p>UCLM CARES System</p>
-        </div>
-        
-        <div class="content">
-            <div class="greeting">
-                Hello {{beneficiaryName}},
-            </div>
-            
-            <p>{{description}}</p>
-            
-            <div class="status-card {{#if (eq title 'Registration Declined')}}declined{{/if}}">
-                <div class="status-title">{{status_title}}</div>
-                <div class="status-description">{{status_description}}</div>
-            </div>
-            
-            {{#if (eq title 'Registration Approved')}}
-            <div class="event-details">
-                <h3>📅 Event Details</h3>
-                <p><strong>Event:</strong> {{eventName}}</p>
-                <p><strong>Date:</strong> {{eventDate}}</p>
-                <p><strong>Location:</strong> {{eventLocation}}</p>
-            </div>
-            
-            <div class="action-section">
-                <div class="action-title">📋 What's Next?</div>
-                <div class="action-text">
-                    • You will receive a confirmation email closer to the event date
-                    • Please arrive 15 minutes before the scheduled start time
-                    • Bring a valid ID for verification
-                    • If you have any questions, please contact us
-                </div>
-            </div>
-            {{/if}}
-            
-            {{#if (eq title 'Registration Declined')}}
-            <div class="reason-box">
-                <p><strong>Reason:</strong> {{reason}}</p>
-            </div>
-            
-            <div class="action-section">
-                <div class="action-title">💡 What You Can Do</div>
-                <div class="action-text">
-                    • You can apply for other available events
-                    • Contact us if you believe this was an error
-                    • Check our website for future opportunities
-                    • We appreciate your interest in our programs
-                </div>
-            </div>
-            {{/if}}
-            
-            <div class="action-section">
-                <div class="action-title">{{action_title}}</div>
-                <div class="action-text">{{action_text}}</div>
-            </div>
-        </div>
-        
-        <div class="footer">
-            <p><strong>UCLM CARES System</strong></p>
-            <p>University of Cebu - Lapu-Lapu and Mandaue</p>
-            <p>Community Assistance and Resource Enhancement System</p>
-            <p>For support, contact us at {{email}}</p>
-        </div>
+  <div class="container">
+    <h1>{{title}}</h1>
+
+    <div class="greeting">Hello {{beneficiaryName}},</div>
+
+    <p>{{description}}</p>
+
+    <div class="status-card {{#if (eq title 'Registration Declined')}}declined{{/if}}">
+      <div class="status-title">{{status_title}}</div>
+      <div class="status-description">{{status_description}}</div>
     </div>
+
+    {{#if (eq title 'Registration Approved')}}
+    <div class="event-details">
+      <div>📅 Event Details</div>
+      <p><strong>Event:</strong> {{eventName}}</p>
+      <p><strong>Date:</strong> {{eventDate}}</p>
+      <p><strong>Location:</strong> {{eventLocation}}</p>
+    </div>
+
+    <div class="action-section">
+      <div class="action-title">📋 What's Next?</div>
+      <div class="action-text">
+• You will receive a confirmation email closer to the event date
+• Please arrive 15 minutes before the scheduled start time
+• Bring a valid ID for verification
+• If you have any questions, please contact us
+      </div>
+    </div>
+    {{/if}}
+
+    {{#if (eq title 'Registration Declined')}}
+    <div class="reason-box">
+      <p>Reason: {{reason}}</p>
+    </div>
+
+    <div class="action-section">
+      <div class="action-title">💡 What You Can Do</div>
+      <div class="action-text">
+• You can apply for other available events
+• Contact us if you believe this was an error
+• Check our website for future opportunities
+• We appreciate your interest in our programs
+      </div>
+    </div>
+    {{/if}}
+
+    <div class="action-section">
+      <div class="action-title">{{action_title}}</div>
+      <div class="action-text">{{action_text}}</div>
+    </div>
+
+    <div class="footer">
+      <p><strong>UCLM CARES System</strong></p>
+      <p>University of Cebu - Lapu-Lapu and Mandaue</p>
+      <p>Community Assistance and Resource Enhancement System</p>
+      <p>For support, contact us at {{email}}</p>
+    </div>
+  </div>
 </body>
 </html>

@@ -4,220 +4,108 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Account Update - UCLM CARES</title>
-
-  <style type="text/css">
-    body, table, td, p, a, li, blockquote {
-      -webkit-text-size-adjust: 100%;
-      -ms-text-size-adjust: 100%;
-    }
-    table, td {
-      mso-table-lspace: 0pt;
-      mso-table-rspace: 0pt;
-    }
-    img {
-      -ms-interpolation-mode: bicubic;
-      border: 0;
-      height: auto;
-      line-height: 100%;
-      outline: none;
-      text-decoration: none;
-    }
+  <style>
     body {
-      margin: 0 !important;
-      padding: 40px 20px !important;
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
       background-color: #f0f2f5;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      color: #1c1e21;
     }
-
     .email-container {
       max-width: 480px;
       margin: 0 auto;
       background-color: #ffffff;
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-      overflow: hidden;
+      padding: 20px;
+      border-radius: 8px;
     }
-
-    .header {
-      padding: 32px 32px 0;
-      text-align: center;
+    h1 {
+      font-size: 20px;
+      margin-bottom: 16px;
     }
-
-    .logo-container {
-      margin-bottom: 24px;
-    }
-
-    .company-name {
-      font-size: 21px;
-      font-weight: 600;
-      color: #1c1e21;
-      margin: 0;
-    }
-
-    .title {
-      font-size: 24px;
-      font-weight: 600;
-      color: #1c1e21;
-      margin: 0 0 16px;
-      line-height: 1.2;
-    }
-
-    .content {
-      padding: 0 32px 32px;
-    }
-
-    .description {
-      font-size: 16px;
-      color: #65676b;
+    p {
+      font-size: 14px;
       line-height: 1.5;
-      margin: 0 0 24px;
-      text-align: center;
+      margin-bottom: 16px;
     }
-
     .status-card {
       background-color: #f8f9fa;
-      border-radius: 8px;
-      padding: 20px;
-      margin: 24px 0;
       border-left: 4px solid #1877f2;
+      padding: 12px;
+      margin: 16px 0;
     }
-
     .status-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: #1c1e21;
-      margin: 0 0 12px;
+      font-weight: bold;
+      margin-bottom: 8px;
     }
-
     .status-description {
       font-size: 14px;
-      color: #65676b;
-      line-height: 1.5;
-      margin: 0 0 16px;
+      margin-bottom: 8px;
     }
-
     .reason-section {
       background-color: #fff3cd;
       border: 1px solid #ffeaa7;
-      border-radius: 8px;
-      padding: 16px;
-      margin: 16px 0;
+      border-radius: 6px;
+      padding: 10px;
+      margin-top: 8px;
     }
-
     .reason-label {
-      font-size: 14px;
-      font-weight: 600;
-      color: #856404;
-      margin: 0 0 8px;
+      font-weight: bold;
+      margin-bottom: 4px;
     }
-
     .reason-text {
-      font-size: 14px;
-      color: #856404;
-      line-height: 1.5;
-      margin: 0;
       font-style: italic;
+      font-size: 14px;
+      margin: 0;
     }
-
     .action-info {
       background-color: #e8f4fd;
       border: 1px solid #bedcf3;
-      border-radius: 8px;
-      padding: 16px;
-      margin: 24px 0;
+      border-radius: 6px;
+      padding: 12px;
+      margin-top: 16px;
     }
-
     .action-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #1c1e21;
-      margin: 0 0 8px;
+      font-weight: bold;
+      margin-bottom: 4px;
     }
-
-    .action-text {
-      font-size: 14px;
-      color: #65676b;
-      margin: 0;
-      line-height: 1.4;
-    }
-
     .footer {
-      background-color: #f7f8fa;
-      padding: 24px 32px;
-      text-align: center;
-      border-top: 1px solid #e4e6ea;
-    }
-
-    .contact-info {
-      font-size: 14px;
+      font-size: 12px;
       color: #65676b;
-      margin: 0 0 12px;
-      line-height: 1.4;
+      margin-top: 24px;
     }
-
-    .copyright {
-      font-size: 14px;
-      color: #65676b;
-      margin: 0;
-      opacity: 0.7;
-    }
-
-    @media only screen and (max-width: 600px) {
-      body {
-        padding: 20px 16px !important;
-      }
-      .email-container {
-        border-radius: 8px;
-      }
-      .header, .content, .footer {
-        padding-left: 24px !important;
-        padding-right: 24px !important;
-      }
-      .title {
-        font-size: 20px !important;
-      }
+    a {
+      color: #1877f2;
+      text-decoration: none;
     }
   </style>
 </head>
 <body>
   <div class="email-container">
-    <div class="header">
-      <div class="logo-container">
-        <h2 class="company-name">UCLM CARES</h2>
+    <h1>{{title}}</h1>
+
+    <p>{{description}}</p>
+
+    <div class="status-card">
+      <div class="status-title">{{status_title}}</div>
+      <div class="status-description">{{status_description}}</div>
+
+      {{#if reason}}
+      <div class="reason-section">
+        <div class="reason-label">Reason:</div>
+        <div class="reason-text">"{{reason}}"</div>
       </div>
-      <h1 class="title">{{title}}</h1>
+      {{/if}}
     </div>
 
-    <div class="content">
-      <p class="description">
-        {{description}}
-      </p>
-
-      <div class="status-card">
-        <div class="status-title">{{status_title}}</div>
-        <div class="status-description">{{status_description}}</div>
-        
-        {{#if reason}}
-        <div class="reason-section">
-          <div class="reason-label">Reason:</div>
-          <div class="reason-text">"{{reason}}"</div>
-        </div>
-        {{/if}}
-      </div>
-
-      <div class="action-info">
-        <div class="action-title">{{action_title}}</div>
-        <div class="action-text">{{action_text}}</div>
-      </div>
+    <div class="action-info">
+      <div class="action-title">{{action_title}}</div>
+      <div class="action-text">{{action_text}}</div>
     </div>
 
     <div class="footer">
-      <p class="contact-info">
-        Need help? Contact us at <a href="mailto:{{email}}" style="color:#1877f2;text-decoration:none;">{{email}}</a>
-      </p>
-      <p class="copyright">
-        © 2025 UCLM CARES. All rights reserved.
-      </p>
+      Need help? Contact us at <a href="mailto:{{email}}">{{email}}</a><br/>
+      © 2025 UCLM CARES. All rights reserved.
     </div>
   </div>
 </body>
