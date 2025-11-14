@@ -45,7 +45,7 @@ export const sendMail = async (to, subject, text, templateUsed, variables = {}) 
             text: text.text || ''
         })
 
-        console.log('✅ Email Sent Successfully: ', infomation.response)
+        console.log('✅ Email Sent Successfully: ', to)
         return { success: true, messageId: infomation };
     } catch (error) {
         console.log('❌ Send Mail Failed: ', error.message)

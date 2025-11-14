@@ -10,7 +10,7 @@ export const generateToken = async (payload_id, res) => {
         res.cookie('jwt', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'Strict',
+        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax', // cross-site request forgery protection
         maxAge: 7 * 24 * 60 * 60 * 1000
         });
 
