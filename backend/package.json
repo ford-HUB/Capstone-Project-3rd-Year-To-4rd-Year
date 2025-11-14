@@ -47,6 +47,7 @@
     "pg-hstore": "^2.3.4",
     "puppeteer": "^24.16.1",
     "qrcode": "^1.5.4",
+    "resend": "^6.4.2",
     "sequelize": "^6.37.7",
     "socket.io": "^4.8.1",
     "uuid": "^11.1.0",
