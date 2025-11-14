@@ -3,6 +3,7 @@ import dotenv from 'dotenv'
 import http from 'http'
 import { initSocket } from './socket.js'
 import { testConnection, dropTables, updateSchemaChanges } from './config/db.js'
+import fetch from 'node-fetch';
 
 // Import the cron job to start it
 import './cron/realtimeStatus.js'
@@ -18,6 +19,7 @@ import './cron/donationStatusUpdater.js'
 
 // checking policies of supabase
 import { testPolicies } from "./utils/fileUpdateSupabase.js"
+
 
 dotenv.config()
 
