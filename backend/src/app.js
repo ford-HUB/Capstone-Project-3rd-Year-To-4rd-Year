@@ -59,8 +59,6 @@ const app = express()
 
 app.use(cookieParser())
 
-// ✅ REGISTER WEBHOOK ROUTES BEFORE JSON PARSER
-// This is critical for signature verification - webhooks need raw body
 app.use('/api/v1/webhook/payment', webhookPaymentRouter)
 
 app.use(express.json())
