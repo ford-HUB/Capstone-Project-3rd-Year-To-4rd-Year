@@ -20,6 +20,8 @@ import './cron/donationStatusUpdater.js'
 // checking policies of supabase
 import { testPolicies } from "./utils/fileUpdateSupabase.js"
 
+import { simpleTest, debugEmailSetup } from "./config/transporter.js"
+
 
 dotenv.config()
 
@@ -35,4 +37,6 @@ server.listen(PORT, () => {
     testConnection()
     updateSchemaChanges()
     // dropTables()
+    simpleTest()
+    debugEmailSetup()
 })
