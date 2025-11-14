@@ -66,7 +66,7 @@ app.use(express.json())
 app.use(cors({
     origin: process.env.NODE_ENV === 'development'
         ? [process.env.FRONT_END_URL]
-        : [process.env.FRONTEND_URL_PROD, process.env.FRONTEND_URL_SEC_PROD],
+        : [process.env.FRONTEND_URL_PROD, process.env.FRONTEND_URL_SEC_PROD].filter(Boolean),
     credentials: true
 }))
 
