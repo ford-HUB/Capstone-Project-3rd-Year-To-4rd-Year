@@ -4,8 +4,9 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 export const transporter = nodemailer.createTransport({
-    host: 'sandbox.smtp.mailtrap.io',
-    port: 2525,
+    host: 'smtp.titan.email',
+    port: 465,
+    secure: true,
     auth: {
       user: process.env.AUTH_MAILER,
       pass: process.env.PASS_MAILER, 
