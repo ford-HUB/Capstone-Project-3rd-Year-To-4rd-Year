@@ -25,7 +25,7 @@ export const sendMail = async (to, subject, text, templateUsed, variables = {}) 
         });
 
         console.log(`📧 Sending email via transporter...`);
-        const infomation = await transporter.sendMail({
+        const infomation = await transporter.emails.send({
             from: process.env.AUTH_MAILER,
             to: to,
             subject: subject,

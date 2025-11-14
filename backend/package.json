@@ -6,7 +6,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon src/server.js",
     "prod": "node src/server.js",
-    "tunnel" : "lt --port 8000 --print-requests",
+    "tunnel": "lt --port 8000 --print-requests",
     "seed": "node src/seeders/seed.js"
   },
   "keywords": [],
@@ -46,6 +46,7 @@
     "pg-hstore": "^2.3.4",
     "puppeteer": "^24.16.1",
     "qrcode": "^1.5.4",
+    "resend": "^6.4.2",
     "sequelize": "^6.37.7",
     "socket.io": "^4.8.1",
     "uuid": "^11.1.0",
