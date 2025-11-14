@@ -20,7 +20,7 @@ import './cron/donationStatusUpdater.js'
 // checking policies of supabase
 import { testPolicies } from "./utils/fileUpdateSupabase.js"
 
-import { simpleTest, debugEmailSetup } from "./config/transporter.js"
+// import { simpleTest, debugEmailSetup } from "./config/transporter.js"
 
 
 dotenv.config()
