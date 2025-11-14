@@ -6,16 +6,16 @@ import { testConnection, dropTables, updateSchemaChanges } from './config/db.js'
 import fetch from 'node-fetch';
 
 // Import the cron job to start it
-// import './cron/realtimeStatus.js'
-// import './cron/notificationPusher.js'
-// import './cron/certificateGenerator.js'
-// import './cron/totalHourUpdater.js'
-// import './cron/eventMatchingProcessor.js'
-// import './cron/userStatusUpdater.js'
-// import './cron/formPusher.js'
-// import './cron/paymentStatusUpdater.js'
-// import './cron/registrationStatusUpdater.js'
-// import './cron/donationStatusUpdater.js'
+import './cron/realtimeStatus.js'
+import './cron/notificationPusher.js'
+import './cron/certificateGenerator.js'
+import './cron/totalHourUpdater.js'
+import './cron/eventMatchingProcessor.js'
+import './cron/userStatusUpdater.js'
+import './cron/formPusher.js'
+import './cron/paymentStatusUpdater.js'
+import './cron/registrationStatusUpdater.js'
+import './cron/donationStatusUpdater.js'
 
 // checking policies of supabase
 import { testPolicies } from "./utils/fileUpdateSupabase.js"
@@ -37,6 +37,6 @@ server.listen(PORT, () => {
     testConnection()
     updateSchemaChanges()
     // dropTables()
-    simpleTest()
-    debugEmailSetup()
+    // simpleTest()
+    // debugEmailSetup()
 })
