@@ -9,7 +9,7 @@ const { Event, Category, Department } = models;
 const BATCH_CONFIG = {
     EVENTS_PER_CYCLE: 30,        // Process 5 events per cron cycle
     PARTICIPANTS_PER_BATCH: 10, // Process 10 participants per batch within each event
-    CRON_INTERVAL: '*/30 * * * * *' // Every 30 seconds
+    CRON_INTERVAL: '*0 */3 * * * *' // Every 3 mins
 };
 
 // Run every 30 seconds

@@ -5,8 +5,7 @@ import { sendDonationStatusUpdateEmail } from '../services/donationEmailService.
 
 const { Donations, Event, Donor, Accounts } = models;
 
-// Run every 5 minutes to check for events that have started
-cron.schedule('*/30 * * * * *', async () => {
+cron.schedule('0 */5 * * * *', async () => {
     try {
         const now = new Date();
         
