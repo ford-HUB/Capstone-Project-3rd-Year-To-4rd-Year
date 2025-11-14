@@ -11,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = getDirname(__filename);
 
 // Run every 5 minutes to process pending form link notifications
-cron.schedule('*0 */5 * * * *', async () => {
+cron.schedule('0 */5 * * * *', async () => {
     try {
         const { Event, Attendance, FormLink, EventRegistration, Volunteer, Student, Accounts } = models
 

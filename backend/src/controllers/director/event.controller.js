@@ -16,6 +16,15 @@ export const registerEvent = async (req, res) => {
             return res.json({ message: 'Event not found' }) 
         }
 
+        if (new Date(selectedEvent.event_started) <= new Date()) { 
+            await t.rollback()
+            return res.json({ message: 'Event is already started.' }) 
+        }
+        if (new Date(selectedEvent.event_ended) <= new Date()) { 
+            await t.rollback()
+            return res.json({ message: 'Event is already ended.' }) 
+        }
+
         const director = await Director.findOne({ where: { account_id: accountId } })
         if(!director) { 
             await t.rollback()

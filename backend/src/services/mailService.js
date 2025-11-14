@@ -42,7 +42,7 @@ export const sendMail = async (to, subject, text, templateUsed, variables = {}) 
             to: [to],
             subject: subject,
             html: htmlContent,
-            text: text.text || ''
+            text: (typeof text === 'string') ? text : (text?.text || '')
         })
 
         console.log('✅ Email Sent Successfully: ', to)

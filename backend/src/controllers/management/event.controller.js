@@ -7,7 +7,7 @@ export const registerEvent = async (req, res) => {
         const { event_id } = req.params
         const accountId = req.user.account_id
         const roleType = req.user.Role.name
-        const { EventRegistration, Event, Staff, Coordinator } = models
+        const { EventRegistration, Event, Staff, Coordinator, Director } = models
 
         const selectedEvent = await Event.findByPk(event_id)
         if(!selectedEvent) { 
@@ -15,8 +15,14 @@ export const registerEvent = async (req, res) => {
             return res.json({ message: 'event not found' }) 
         }
 
-        if (new Date(selectedEvent.event_started) <= new Date()) { return res.json({ message: 'Event is already started.' }) }
-        if (new Date(selectedEvent.event_ended) <= new Date()) { return res.json({ message: 'Event is already ended.' }) }
+        if (new Date(selectedEvent.event_started) <= new Date()) { 
+            await t.rollback()
+            return res.json({ message: 'Event is already started.' }) 
+        }
+        if (new Date(selectedEvent.event_ended) <= new Date()) { 
+            await t.rollback()
+            return res.json({ message: 'Event is already ended.' }) 
+        }
 
 
         let payload_id
@@ -26,6 +32,10 @@ export const registerEvent = async (req, res) => {
             case 'staff':
                 payload = await Staff.findOne({ where: { account_id: accountId } })
                 payload_id = payload.staff_id
+                break
+            case 'director':
+                payload = await Director.findOne({ where: { account_id: accountId } })
+                payload_id = payload.director_id
                 break
             case 'coordinator':
             case 'assistant_coordinator':
@@ -42,7 +52,7 @@ export const registerEvent = async (req, res) => {
             return res.json({ message: 'please update your profile first' }) 
         }
 
-        const isExist = await EventRegistration.findOne({ where: { event_id: event_id, participant_id: payload_id, participant_type: roleType === 'staff' ? 'staff' : roleType === 'coordinator' ? 'coordinator' : roleType === 'assistant_coordinator' ? 'assistant_coordinator': 'unauthorized' } })
+        const isExist = await EventRegistration.findOne({ where: { event_id: event_id, participant_id: payload_id, participant_type: roleType === 'staff' ? 'staff' : roleType === 'director' ? 'director' : roleType === 'coordinator' ? 'coordinator' : roleType === 'assistant_coordinator' ? 'assistant_coordinator': 'unauthorized' } })
 
         if(isExist) { 
             await t.rollback()
@@ -52,7 +62,7 @@ export const registerEvent = async (req, res) => {
         const conflictingRegistrations = await EventRegistration.findAll({
             where: { 
                 participant_id: payload_id,
-                participant_type: roleType === 'staff' ? 'staff' : roleType === 'coordinator' ? 'coordinator' : roleType === 'assistant_coordinator' ? 'assistant_coordinator': 'unauthorized'
+                participant_type: roleType === 'staff' ? 'staff' : roleType === 'director' ? 'director' : roleType === 'coordinator' ? 'coordinator' : roleType === 'assistant_coordinator' ? 'assistant_coordinator': 'unauthorized'
             },
             include: [{
                 model: Event,
@@ -70,7 +80,7 @@ export const registerEvent = async (req, res) => {
         const newRegister = await EventRegistration.create({
             event_id,
             participant_id: payload_id,
-            participant_type: roleType === 'staff' ? 'staff' : roleType === 'coordinator' ? 'coordinator' : roleType === 'assistant_coordinator' ? 'assistant_coordinator': 'unauthorized',
+            participant_type: roleType === 'staff' ? 'staff' : roleType === 'director' ? 'director' : roleType === 'coordinator' ? 'coordinator' : roleType === 'assistant_coordinator' ? 'assistant_coordinator': 'unauthorized',
             registration_date: new Date(),
             status: 'registered',
             notes: 'not applicable',
@@ -96,7 +106,7 @@ export const unregisterEvent = async (req, res) => {
         const { event_id } = req.params
         const roleType = req.user.Role.name
 
-        const { Staff, Coordinator, EventRegistration, Event } = models
+        const { Staff, Coordinator, Director, EventRegistration, Event } = models
 
         const event = await Event.findByPk(event_id)
         if (!event) { return res.json({ message: 'Event not found' }) }
@@ -107,6 +117,10 @@ export const unregisterEvent = async (req, res) => {
             case 'staff': 
                 const staff = await Staff.findOne({ where: { account_id: req.user.account_id } })
                 participant_id = staff.staff_id
+                break
+            case 'director':
+                const director = await Director.findOne({ where: { account_id: req.user.account_id } })
+                participant_id = director.director_id
                 break
 
             case 'assistant_coordinator':
