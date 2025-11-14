@@ -3,6 +3,7 @@ import path from "node:path"
 import { dirname as getDirname } from "node:path"
 import { fileURLToPath } from "node:url"
 import dotenv from 'dotenv'
+import { transporter } from '../config/transporter.js'
 // import { EmailParams, Recipient, Sender } from 'mailersend'
 // import { mailer } from '../config/transporter.js'
 
