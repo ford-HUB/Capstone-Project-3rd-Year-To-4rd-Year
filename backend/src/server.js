@@ -17,6 +17,7 @@ import './cron/paymentStatusUpdater.js'
 import './cron/registrationStatusUpdater.js'
 import './cron/donationStatusUpdater.js'
 import './cron/upcomingEventEmailer.js'
+import './cron/beneficiaryCountUpdater.js'
 
 // checking policies of supabase
 import { testPolicies } from "./utils/fileUpdateSupabase.js"

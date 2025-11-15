@@ -15,6 +15,29 @@ const OAuthSuccess = () => {
       try {
         setStatus('processing');
         
+        // Read token from URL fragment (if provided), then clear fragment
+        const hash = window.location.hash || '';
+        const tokenMatch = hash.match(/token=([^&]+)/);
+        if (tokenMatch?.[1]) {
+          const token = decodeURIComponent(tokenMatch[1]);
+          try {
+            sessionStorage.setItem('donor_jwt', token);
+          } catch {}
+          // Attach Bearer token for subsequent requests
+          apiInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          // Remove token from URL
+          if (window.history?.replaceState) {
+            const cleanUrl = window.location.pathname + window.location.search;
+            window.history.replaceState(null, '', cleanUrl);
+          }
+        } else {
+          // Use existing session token if present
+          const saved = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('donor_jwt') : null;
+          if (saved) {
+            apiInstance.defaults.headers.common['Authorization'] = `Bearer ${saved}`;
+          }
+        }
+        
         // Wait a moment for the backend to process the OAuth
         await new Promise(resolve => setTimeout(resolve, 1000));
         

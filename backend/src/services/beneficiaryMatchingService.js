@@ -1,5 +1,5 @@
 import models from '../models/index.js';
-import { Op } from 'sequelize';
+import { Op, fn, col } from 'sequelize';
 import { updateBeneficiaryMatchedEvents, notifyEventMatchingProgress } from '../socket.js';
 import { matchBeneficiaryLocationEvents } from '../controllers/ai/match.controller.js';
 import { db } from '../config/db.js';
@@ -374,6 +374,29 @@ export const getBeneficiaryLocationEvents = async (beneficiary_id) => {
             const almostNearYouEvents = allEvents.filter(e => filteredAlmostNearYouIds.includes(e.event_id));
             const recommendationEvents = allEvents.filter(e => filteredRecommendationIds.includes(e.event_id));
 
+            // Attach beneficiary registered counts to events (cached branch)
+            const allForCount = [...nearYouEvents, ...almostNearYouEvents, ...recommendationEvents];
+            if (allForCount.length > 0) {
+                const eventIdsForCount = allForCount.map(e => e.event_id);
+                const counts = await models.EventRegistration.findAll({
+                    attributes: [
+                        'event_id',
+                        [fn('COUNT', col('event_id')), 'count']
+                    ],
+                    where: {
+                        event_id: { [Op.in]: eventIdsForCount },
+                        participant_type: 'beneficiary',
+                        status: { [Op.in]: ['pending', 'registered'] }
+                    },
+                    group: ['event_id'],
+                    raw: true
+                });
+                const idToCount = new Map(counts.map(c => [c.event_id, parseInt(c.count, 10)]));
+                for (const e of allForCount) {
+                    e.setDataValue('beneficiary_registered_count', idToCount.get(e.event_id) || 0);
+                }
+            }
+
             return {
                 success: true,
                 nearYou: nearYouEvents,
@@ -386,6 +409,33 @@ export const getBeneficiaryLocationEvents = async (beneficiary_id) => {
         const result = await runBeneficiaryMatchingAI(beneficiary_id);
         
         if (result && typeof result === 'object') {
+            // Attach beneficiary registered counts to events (fresh branch)
+            const allForCount = [
+                ...(result.nearYou || []),
+                ...(result.almostNearYou || []),
+                ...(result.recommendations || [])
+            ];
+            if (allForCount.length > 0) {
+                const eventIdsForCount = allForCount.map(e => e.event_id);
+                const counts = await models.EventRegistration.findAll({
+                    attributes: [
+                        'event_id',
+                        [fn('COUNT', col('event_id')), 'count']
+                    ],
+                    where: {
+                        event_id: { [Op.in]: eventIdsForCount },
+                        participant_type: 'beneficiary',
+                        status: { [Op.in]: ['pending', 'registered'] }
+                    },
+                    group: ['event_id'],
+                    raw: true
+                });
+                const idToCount = new Map(counts.map(c => [c.event_id, parseInt(c.count, 10)]));
+                for (const e of allForCount) {
+                    e.setDataValue('beneficiary_registered_count', idToCount.get(e.event_id) || 0);
+                }
+            }
+
             return {
                 success: true,
                 nearYou: result.nearYou,

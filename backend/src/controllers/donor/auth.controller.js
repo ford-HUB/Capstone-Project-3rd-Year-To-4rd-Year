@@ -475,8 +475,8 @@ export const oauthSuccess = async (req, res) => {
             return res.redirect(`${FRONTEND_URL}/donor/login?error=oauth_failed&reason=bad_role`);
         }
         
-        await generateToken(req.user.account_id, res);
-        return res.redirect(`${FRONTEND_URL}/donor/oauth-success`);
+        const token = await generateToken(req.user.account_id, res);
+        return res.redirect(`${FRONTEND_URL}/donor/oauth-success#token=${encodeURIComponent(token)}`);
     } catch (error) {
         console.error('OAuth success handler failed:', error.message);
         return res.redirect(`${FRONTEND_URL}/donor/login?error=oauth_failed&reason=exception`);
