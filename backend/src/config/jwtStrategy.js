@@ -36,6 +36,12 @@ export const jwtStrategy = new Strategy(options, async (jwt_payload, done) => {
             return done(null, false) 
         }
 
+        console.log('jwtStrategy user found:', {
+            account_id: user.account_id,
+            email: user.email,
+            hasRole: !!user.Role,
+            roleName: user.Role?.name
+        })
         return done(null, user)
         
     } catch (error) {
