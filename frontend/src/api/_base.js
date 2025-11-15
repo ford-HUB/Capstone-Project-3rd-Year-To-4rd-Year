@@ -12,6 +12,25 @@ apiInstance.interceptors.request.use((config) => {
     try {
         const url = config.url || '';
         
+        // Skip interceptor entirely for attendance and other non-donor endpoints
+        // These endpoints use cookie-based authentication and should not be touched
+        if (url.includes('/api/attendance/') ||
+            url.includes('/api/user-auth/') ||
+            url.includes('/api/profile/') ||
+            url.includes('/api/participate/') ||
+            url.includes('/api/event/') ||
+            url.includes('/api/certificate/') ||
+            url.includes('/api/document/') ||
+            url.includes('/api/notification/') ||
+            url.includes('/api/management-auth/') ||
+            url.includes('/api/management-profile/') ||
+            url.includes('/api/director-auth/') ||
+            url.includes('/api/director-') ||
+            url.includes('/api/beneficiary')) {
+            // Return config immediately without any modifications
+            return config;
+        }
+        
         // STRICT: Only process donor endpoints
         // Donor endpoints include:
         // - /api/donor-auth/ (donor authentication)
@@ -38,8 +57,7 @@ apiInstance.interceptors.request.use((config) => {
                 config.headers.Authorization = `Bearer ${token}`;
             }
         }
-        // For all non-donor endpoints, return config as-is without any modifications
-        // This ensures cookie-based authentication works naturally for other roles
+        // For all other endpoints, return config as-is without any modifications
         
     } catch (error) {
         // If interceptor fails, return config as-is to not break the request
@@ -49,15 +67,17 @@ apiInstance.interceptors.request.use((config) => {
     return Promise.reject(error);
 });
 
-// Response interceptor to handle 401 errors
+// Response interceptor - only log 401 for donor endpoints
 apiInstance.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 401) {
+        const url = error.config?.url || '';
+        // Only log 401 errors for donor endpoints, skip for others
+        if (error.response?.status === 401 && 
+            (url.includes('/api/donor-auth/') || url.includes('/api/donor/'))) {
             console.error('[API Interceptor] 401 Unauthorized:', {
                 url: error.config?.url,
                 hasAuthHeader: !!error.config?.headers?.Authorization,
-                authHeader: error.config?.headers?.Authorization?.substring(0, 30) + '...',
                 responseData: error.response?.data
             });
         }
