@@ -509,16 +509,19 @@ export const oauthSuccess = async (req, res) => {
         // Also try clearing with just path (most permissive)
         res.clearCookie('jwt', { path: '/' });
         
+        // Save account_id before destroying session
+        const accountId = req.user.account_id;
+        
         // Generate JWT token for localStorage
         let token;
         try {
-            token = jwt.sign({ id: req.user.account_id }, process.env.JWT_SECRET_KEY, { expiresIn: '7d' });
-            console.log('OAuth success: JWT token generated for account_id:', req.user.account_id);
+            token = jwt.sign({ id: accountId }, process.env.JWT_SECRET_KEY, { expiresIn: '7d' });
+            console.log('OAuth success: JWT token generated for account_id:', accountId);
         } catch (tokenError) {
             console.error('Failed to generate token during OAuth:', {
                 error: tokenError.message,
                 stack: tokenError.stack,
-                account_id: req.user.account_id
+                account_id: accountId
             });
             return res.redirect(`${FRONTEND_URL}/donor/login?error=oauth_failed&reason=token_generation_failed`);
         }
@@ -540,7 +543,7 @@ export const oauthSuccess = async (req, res) => {
                     path: '/'
                 });
                 
-                console.log('OAuth success: Redirecting to frontend with token', { account_id: req.user.account_id });
+                console.log('OAuth success: Redirecting to frontend with token', { account_id: accountId });
                 // Redirect to frontend OAuth success page with token in URL hash (more secure than query param)
                 return res.redirect(`${FRONTEND_URL}/donor/oauth-success#token=${encodeURIComponent(token)}`);
             });
