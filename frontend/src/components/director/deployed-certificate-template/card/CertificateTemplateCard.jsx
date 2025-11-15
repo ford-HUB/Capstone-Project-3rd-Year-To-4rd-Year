@@ -9,7 +9,7 @@ import { Eye, Download, MoreVertical, Loader } from 'lucide-react';
 import CertificatePreview from '../ui/CertificatePreview.jsx';
 import DropdownMenu from '../dropdown/DropdownMenu.jsx';
 import Button from '../ui/Button.jsx';
-import TemplateMetadata from '../ui/TemplateMetadata.jsx';
+import TemplateMetadata from '../ui/TemplateMetadata';
 import ErrorMessage from '../error/ErrorMessage.jsx';
 import PreviewCertificateTemplateModal from '../../../modal/v2/deployed-certificate-template/PreviewCertificateTemplateModal.jsx';
 
