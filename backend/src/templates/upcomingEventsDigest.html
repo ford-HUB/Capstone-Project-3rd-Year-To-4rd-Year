@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Upcoming Events Digest</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f8fafc;font-family:Arial, Helvetica, sans-serif;">
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color:#f8fafc;padding:24px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="background-color:#ffffff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+          <tr>
+            <td style="padding:20px 24px;background-color:#0f172a;color:#ffffff;">
+              <h1 style="margin:0;font-size:20px;line-height:1.4;">UCLM Cares — Upcoming Events Tomorrow</h1>
+              <div style="font-size:12px;opacity:0.9;margin-top:4px;">{{ currentDate }}</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:24px;">
+              <p style="margin:0 0 12px 0;color:#0f172a;font-size:14px;line-height:1.6;">
+                You’re receiving this email because you subscribed to updates from UCLM Cares. Below is a list of events starting tomorrow:
+              </p>
+              <ul style="padding-left:18px;margin:12px 0 0 0;color:#0f172a;font-size:14px;line-height:1.6;">
+                {{ eventsList }}
+              </ul>
+              <p style="margin:16px 0 0 0;color:#334155;font-size:12px;line-height:1.6;">
+                For more details or to manage your preferences, please visit your UCLM Cares account.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 24px;background-color:#f1f5f9;color:#334155;font-size:12px;">
+              You can unsubscribe anytime from your profile settings.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+
+

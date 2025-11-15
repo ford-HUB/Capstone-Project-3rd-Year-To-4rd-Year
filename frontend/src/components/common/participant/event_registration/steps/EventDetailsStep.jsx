@@ -114,48 +114,6 @@ const EventDetailsStep = ({ userProfile, userEmail, formValues}) => (
             </div>
         </div>
 
-        {/* Preferences & Agreements */}
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-            <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <Mail className="w-5 h-5 mr-2 text-purple-600" />
-                    Preferences & Agreements
-                </h3>
-                
-                <div className="space-y-4">            
-
-                    <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                        <CheckboxField
-                            name="terms"
-                            className="text-gray-700">
-                            <div className="ml-2">
-                                <span className="font-medium">
-                                    I agree to the{' '}
-                                    <button className="text-blue-600 hover:text-blue-800 hover:underline font-medium">
-                                        Terms and Conditions
-                                    </button>{' '}
-                                    and{' '}
-                                    <button className="text-blue-600 hover:text-blue-800 hover:underline font-medium">
-                                        Privacy Policy
-                                    </button>{' '}
-                                    <span className="text-red-500">*</span>
-                                </span>
-                                <p className="text-sm text-gray-600 mt-1">
-                                    Required to complete your registration
-                                </p>
-                            </div>
-                        </CheckboxField>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {/* Help Section */}
-        <div className="text-center py-4">
-            <p className="text-sm text-gray-500">
-                Need help? <button className="text-blue-600 hover:text-blue-800 font-medium">Contact our support team</button>
-            </p>
-        </div>
     </div>
 );
 

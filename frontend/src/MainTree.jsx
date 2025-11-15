@@ -89,6 +89,9 @@ import EventDonations from './pages/common/EventDonations.jsx'
 import InternalDonationTracking from './pages/common/InternalDonationTracking.jsx'
 import DirectorStatistics from './pages/common/DirectorStatistics.jsx'
 import OverviewPage from './pages/common/OverviewPage.jsx'
+import Privacy from './pages/common/Privacy.jsx'
+import Terms from './pages/common/Terms.jsx'
+import DataDeletion from './pages/common/DataDeletion.jsx'
 
 
 const MainTree = [
@@ -99,6 +102,18 @@ const MainTree = [
                 <GuestHome />
             </LoginWrapper>,
         navbar: 'guest'
+    },
+    {
+        path: '/privacy',
+        element: <Privacy />
+    },
+    {
+        path: '/terms',
+        element: <Terms />
+    },
+    {
+        path: '/data-deletion',
+        element: <DataDeletion />
     },
     {
         path: '/home/guest/:id',

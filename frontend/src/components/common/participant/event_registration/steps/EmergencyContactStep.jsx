@@ -128,12 +128,7 @@ const EmergencyContactStep = ({ register, userProfile, errors, focusRef }) => (
             </div>
         </div>
 
-        {/* Help Section */}
-        <div className="text-center py-4">
-            <p className="text-sm text-gray-500">
-                Questions about this information? <button className="text-blue-600 hover:text-blue-800 font-medium">Contact our support team</button>
-            </p>
-        </div>
+        
     </div>
 );
 

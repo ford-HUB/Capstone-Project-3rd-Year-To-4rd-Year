@@ -113,12 +113,7 @@ const PersonalInfoStep = ({ userProfile, userEmail }) => (
                 </div>
             </div>
         </div>
-
-        <div className="text-center py-4">
-            <p className="text-sm text-gray-500">
-                Having trouble with registration? <button className="text-blue-600 hover:text-blue-800 font-medium">Get help from our support team</button>
-            </p>
-        </div>
+ 
     </div>
 );
 
