@@ -9,10 +9,10 @@ const { Event, Category, Department } = models;
 const BATCH_CONFIG = {
     EVENTS_PER_CYCLE: 30,        // Process 5 events per cron cycle
     PARTICIPANTS_PER_BATCH: 10, // Process 10 participants per batch within each event
-    CRON_INTERVAL: '*0 */3 * * * *' // Every 3 mins
+    CRON_INTERVAL: '0 */3 * * * *' // Every 3 mins
 };
 
-// Run every 30 seconds
+// Run every 3 minutes
 cron.schedule(BATCH_CONFIG.CRON_INTERVAL, async () => {
     const batchId = `BATCH_${Date.now()}`;
     const startTime = new Date();
