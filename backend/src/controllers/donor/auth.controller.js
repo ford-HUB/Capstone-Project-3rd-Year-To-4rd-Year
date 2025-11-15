@@ -189,6 +189,18 @@ export const reSendCode = async (req, res) => {
 
 export const checkAuth = async (req, res) => {
     try {
+        console.log('checkAuth called:', {
+            hasUser: !!req.user,
+            userId: req.user?.account_id,
+            email: req.user?.email,
+            role: req.user?.Role?.name
+        });
+        
+        if (!req.user) {
+            console.error('checkAuth: No user found - authentication failed');
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
+        }
+        
         res.json({success: true, message: 'user authenticated', user: req.user})
     } catch (error) {
         console.error('Check Auth controller failed :', error.message)

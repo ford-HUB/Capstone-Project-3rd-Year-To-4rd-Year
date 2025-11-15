@@ -22,11 +22,15 @@ const OAuthSuccess = () => {
         if (tokenMatch && tokenMatch[1]) {
           const token = decodeURIComponent(tokenMatch[1]);
           
+          console.log('OAuth: Token extracted from URL, storing in localStorage');
+          
           // Store token in localStorage
           localStorage.setItem('donor_jwt', token);
           
           // Set token in axios defaults for immediate use
           apiInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          
+          console.log('OAuth: Token stored and Authorization header set');
           
           // Remove token from URL for security
           if (window.history?.replaceState) {
@@ -34,8 +38,13 @@ const OAuthSuccess = () => {
             window.history.replaceState(null, '', cleanUrl);
           }
           
+          // Small delay to ensure token is properly set
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
           // Verify authentication by calling checkAuth
+          console.log('OAuth: Calling handleOAuthSuccess to verify authentication');
           const isAuthenticated = await handleOAuthSuccess();
+          console.log('OAuth: Authentication result:', isAuthenticated);
           
           if (isAuthenticated) {
             setStatus('success');

@@ -8,13 +8,24 @@ const options = {
     jwtFromRequest: ExtractJwt.fromExtractors([
     ExtractJwt.fromAuthHeaderAsBearerToken(),
     (req) => {
-        return req?.cookies?.jwt
+        const cookieToken = req?.cookies?.jwt;
+        // Log for debugging
+        if (req?.path === '/api/donor-auth/checkAuth') {
+            console.log('JWT extractor check:', {
+                hasAuthHeader: !!req?.headers?.authorization,
+                authHeader: req?.headers?.authorization?.substring(0, 20) + '...',
+                hasCookie: !!cookieToken,
+                path: req.path
+            });
+        }
+        return cookieToken;
 }]), 
     secretOrKey: process.env.JWT_SECRET_KEY
 }
 
 export const jwtStrategy = new Strategy(options, async (jwt_payload, done) => {
     try {
+        console.log('JWT strategy invoked:', { payloadId: jwt_payload?.id });
         const { Accounts, Role } = models;
         const user = await Accounts.findOne({ 
             where: { account_id: jwt_payload.id },
@@ -24,9 +35,11 @@ export const jwtStrategy = new Strategy(options, async (jwt_payload, done) => {
             }],attributes: { exclude: ['password'] }  })
         
         if(!user) { 
+            console.log('JWT strategy: User not found for account_id:', jwt_payload?.id);
             return done(null, false) 
         }
 
+        console.log('JWT strategy: User found:', { account_id: user.account_id, email: user.email, role: user.Role?.name });
         return done(null, user)
         
     } catch (error) {

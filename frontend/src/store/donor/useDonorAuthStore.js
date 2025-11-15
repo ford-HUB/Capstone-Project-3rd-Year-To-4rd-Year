@@ -128,9 +128,12 @@ export const useDonorAuthStore = create((set) => ({
     // OAuth success handler
     handleOAuthSuccess: async () => {
         try {
+            console.log('handleOAuthSuccess: Checking token in localStorage:', !!localStorage.getItem('donor_jwt'));
             const response = await currentUser()
+            console.log('handleOAuthSuccess: currentUser response:', { success: response.success, hasUser: !!response.user });
             
             if(!response.success) { 
+                console.error('handleOAuthSuccess: Authentication failed - response.success is false');
                 set({ authenticatedUser: null })
                 toast.error('OAuth authentication failed. Please try again.')
                 return false 
@@ -140,7 +143,11 @@ export const useDonorAuthStore = create((set) => ({
             toast.success('Successfully authenticated with OAuth!')
             return true
         } catch (error) {
-            console.error('OAuth success handling failed:', error.message)
+            console.error('OAuth success handling failed:', {
+                message: error.message,
+                response: error.response?.data,
+                status: error.response?.status
+            });
             set({ authenticatedUser: null })
             toast.error('OAuth authentication failed. Please try again.')
             return false
