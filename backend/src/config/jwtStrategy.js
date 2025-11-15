@@ -29,6 +29,16 @@ const options = {
         },
         (req) => {
             const cookieToken = req?.cookies?.jwt;
+            // Log for attendance endpoints to debug 401 errors
+            if (req?.path?.includes('/api/attendance/')) {
+                console.log('[JWT Extractor] Cookie check for attendance:', {
+                    path: req.path,
+                    hasCookies: !!req.cookies,
+                    jwtCookie: !!cookieToken,
+                    cookieKeys: req.cookies ? Object.keys(req.cookies) : [],
+                    cookiePreview: cookieToken ? `${cookieToken.substring(0, 20)}...` : 'none'
+                });
+            }
             if (req?.path === '/api/donor-auth/checkAuth') {
                 console.log('JWT extractor (cookie) check:', {
                     hasCookie: !!cookieToken
@@ -51,25 +61,36 @@ const options = {
 
 export const jwtStrategy = new Strategy(options, async (jwt_payload, done) => {
     try {
-        console.log('JWT strategy invoked:', { payloadId: jwt_payload?.id });
+        if (!jwt_payload || !jwt_payload.id) {
+            console.error('[JWT Strategy] Invalid payload - no id found');
+            return done(null, false);
+        }
+        
+        console.log('[JWT Strategy] Strategy invoked:', { payloadId: jwt_payload.id });
         const { Accounts, Role } = models;
         const user = await Accounts.findOne({ 
             where: { account_id: jwt_payload.id },
             include: [{
                 model: Role,
                 attributes: ['name']
-            }],attributes: { exclude: ['password'] }  })
+            }],
+            attributes: { exclude: ['password'] }
+        })
         
         if(!user) { 
-            console.log('JWT strategy: User not found for account_id:', jwt_payload?.id);
+            console.error('[JWT Strategy] User not found for account_id:', jwt_payload.id);
             return done(null, false) 
         }
 
-        console.log('JWT strategy: User found:', { account_id: user.account_id, email: user.email, role: user.Role?.name });
+        console.log('[JWT Strategy] User authenticated:', { 
+            account_id: user.account_id, 
+            email: user.email, 
+            role: user.Role?.name 
+        });
         return done(null, user)
         
     } catch (error) {
-        console.error('jwt strategy failed: ', error.message)
+        console.error('[JWT Strategy] Strategy failed:', error.message);
         return done(null, false)
     }
 })

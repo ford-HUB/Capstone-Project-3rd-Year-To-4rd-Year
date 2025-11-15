@@ -12,10 +12,17 @@ apiInstance.interceptors.request.use((config) => {
     try {
         const url = config.url || '';
         
-        // Skip interceptor entirely for attendance and other non-donor endpoints
+        // CRITICAL: Skip interceptor entirely for attendance endpoints
+        // Attendance URLs: /api/attendance/scanQr/attendance?...
+        // This check MUST come first to prevent any processing
+        if (url.includes('/api/attendance/')) {
+            // Return immediately - interceptor does NOT process attendance requests
+            return config;
+        }
+        
+        // Skip interceptor for other non-donor endpoints
         // These endpoints use cookie-based authentication and should not be touched
-        if (url.includes('/api/attendance/') ||
-            url.includes('/api/user-auth/') ||
+        if (url.includes('/api/user-auth/') ||
             url.includes('/api/profile/') ||
             url.includes('/api/participate/') ||
             url.includes('/api/event/') ||

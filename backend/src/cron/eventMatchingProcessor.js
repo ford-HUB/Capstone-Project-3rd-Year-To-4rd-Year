@@ -8,7 +8,7 @@ import { logSystemHealth } from '../utils/performanceMonitor.js';
 const { Event, MatchedEvent } = models;
 
 // Run every 2 minutes to process pending event matching (volunteers only)
-cron.schedule('0 */2 * * * *', async () => {
+cron.schedule('* * * * *', async () => {
     try {
         const now = new Date();
         const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
