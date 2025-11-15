@@ -154,8 +154,13 @@ const LoginPage = () => {
 
         // Set authenticated user state before redirecting
         // This ensures ProtectedStudent component has the user data
+        // Wait a bit for the cookie to be set by the browser
         try {
-            await checkAuth();
+            await new Promise(resolve => setTimeout(resolve, 500)); // Wait for cookie to be set
+            const authResult = await checkAuth();
+            if (!authResult) {
+                console.warn('checkAuth failed after login, but continuing with redirect');
+            }
         } catch (error) {
             console.error('Failed to set authenticated user:', error);
             // Continue with redirect even if checkAuth fails

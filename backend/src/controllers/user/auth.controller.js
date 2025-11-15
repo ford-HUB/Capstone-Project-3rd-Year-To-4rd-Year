@@ -604,10 +604,20 @@ export const reSendCode = async (req, res) => {
 
 export const checkAuth = async (req, res) => {
     try {
+        if (!req.user) {
+            console.error('checkAuth: No user found in request');
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
+        }
+        
+        console.log('checkAuth: User authenticated:', {
+            account_id: req.user.account_id,
+            email: req.user.email,
+            role: req.user.Role?.name
+        });
+        
         res.json({success: true, message: 'user authenticated', user: req.user})
     } catch (error) {
-        await t.rollback()
-        res.status(500).json({ message: 'Internal Server Error' })
+        res.status(500).json({ success: false, message: 'Internal Server Error' })
         console.error('Check Auth controller failed :', error.message)
     }
 }

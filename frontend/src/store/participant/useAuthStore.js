@@ -85,7 +85,11 @@ export const useAuthStore = create((set) => ({
     checkAuth: async () => {
         try {
             const response = await currentUser()
-            if(!response.success) { return console.log('Unauthorized Access') }
+            if(!response.success) { 
+                console.log('Unauthorized Access')
+                set({ authenticatedUser: null })
+                return false
+            }
             set({ authenticatedUser: response.user })
             console.log(response.user)
             

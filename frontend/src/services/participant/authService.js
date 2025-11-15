@@ -36,10 +36,19 @@ export const logoutUser = async () => {
 }
 
 export const currentUser = async () => {
-    const response = await apiInstance.get('/api/user-auth/checkAuth')
-    return {
-        success: response.data.success,
-        user: response.data.user
+    try {
+        const response = await apiInstance.get('/api/user-auth/checkAuth')
+        return {
+            success: response.data.success,
+            user: response.data.user
+        }
+    } catch (error) {
+        console.error('currentUser API error:', error.response?.data || error.message);
+        return {
+            success: false,
+            user: null,
+            message: error.response?.data?.message || 'Failed to authenticate'
+        }
     }
 }
 
