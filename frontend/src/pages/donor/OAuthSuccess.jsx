@@ -28,9 +28,16 @@ const OAuthSuccess = () => {
           localStorage.setItem('donor_jwt', token);
           
           // Set token in axios defaults for immediate use
+          if (!apiInstance.defaults.headers.common) {
+            apiInstance.defaults.headers.common = {};
+          }
           apiInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           
-          console.log('OAuth: Token stored and Authorization header set');
+          console.log('OAuth: Token stored and Authorization header set', {
+            tokenLength: token.length,
+            tokenPreview: token.substring(0, 30) + '...',
+            headerSet: !!apiInstance.defaults.headers.common['Authorization']
+          });
           
           // Remove token from URL for security
           if (window.history?.replaceState) {

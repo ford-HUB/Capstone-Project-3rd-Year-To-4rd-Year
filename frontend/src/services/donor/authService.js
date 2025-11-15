@@ -29,13 +29,31 @@ export const logoutUser = async () => {
 
 export const currentUser = async () => {
     try {
+        // Ensure token is in headers before making request
+        const token = localStorage.getItem('donor_jwt');
+        const config = token ? {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        } : {};
+        
+        console.log('[currentUser] Making request with config:', {
+            hasToken: !!token,
+            hasAuthHeader: !!config.headers?.Authorization
+        });
+        
         // Token is automatically added by axios interceptor from localStorage
-        const response = await apiInstance.get('/api/donor-auth/checkAuth')
+        const response = await apiInstance.get('/api/donor-auth/checkAuth', config)
         return {
             success: response.data.success,
             user: response.data.user
         }
     } catch (error) {
+        console.error('[currentUser] Request failed:', {
+            status: error.response?.status,
+            message: error.message,
+            hasToken: !!localStorage.getItem('donor_jwt')
+        });
         return { success: false, user: null }
     }
 }
