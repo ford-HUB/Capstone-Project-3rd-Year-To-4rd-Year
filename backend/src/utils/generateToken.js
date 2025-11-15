@@ -30,6 +30,15 @@ export const generateToken = async (payload_id, res) => {
         }
 
         res.cookie('jwt', token, cookieOptions);
+        
+        console.log('generateToken: Cookie set', {
+            account_id: payload_id,
+            hasDomain: !!cookieOptions.domain,
+            domain: cookieOptions.domain,
+            secure: cookieOptions.secure,
+            sameSite: cookieOptions.sameSite,
+            path: cookieOptions.path
+        });
 
         return token;
     } catch (error) {

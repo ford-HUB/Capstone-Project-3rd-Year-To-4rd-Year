@@ -477,9 +477,36 @@ export const oauthSuccess = async (req, res) => {
         const { Accounts } = models;
         await Accounts.update({ is_active: true }, { where: { account_id: req.user.account_id } });
         
+        // Clear any existing JWT cookie first (try multiple combinations to catch all cases)
+        const isProd = process.env.NODE_ENV === 'production';
+        
+        // Clear with domain (if configured)
+        if (isProd && process.env.COOKIE_DOMAIN) {
+            res.clearCookie('jwt', {
+                domain: process.env.COOKIE_DOMAIN,
+                path: '/',
+                secure: true,
+                httpOnly: true,
+                sameSite: 'None'
+            });
+        }
+        
+        // Clear without domain (fallback)
+        res.clearCookie('jwt', {
+            path: '/',
+            secure: isProd,
+            httpOnly: true,
+            sameSite: isProd ? 'None' : 'Lax'
+        });
+        
+        // Also try clearing with just path (most permissive)
+        res.clearCookie('jwt', { path: '/' });
+        
         // Generate JWT token and set in httpOnly cookie
         try {
+            console.log('OAuth success: Generating JWT for account_id:', req.user.account_id);
             await generateToken(req.user.account_id, res);
+            console.log('OAuth success: JWT token generated and cookie set');
         } catch (tokenError) {
             console.error('Failed to generate token during OAuth:', tokenError);
             return res.redirect(`${FRONTEND_URL}/donor/login?error=oauth_failed&reason=token_generation_failed`);
