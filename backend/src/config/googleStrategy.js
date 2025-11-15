@@ -48,14 +48,32 @@ export const googleStrategy = new GoogleStrategy({
                         }]
                     });
                     
-                    // Verify donor role
-                    if (!user || !user.Role || user.Role.name !== 'donor') {
-                        console.error('Google OAuth: Existing account does not have donor role', {
-                            account_id: user?.account_id,
-                            email: user?.email,
-                            role: user?.Role?.name
+                    // If no role exists, create donor role (since we have a Donor record)
+                    if (!user.Role) {
+                        await Role.create({
+                            account_id: existingAccount.account_id,
+                            name: 'donor',
+                            description: 'This role allowed to donate into the event'
                         });
-                        return done(new Error(`Account does not have donor role. Current role: ${user?.Role?.name || 'none'}`), null);
+                        
+                        // Reload user with role
+                        const userWithRole = await Accounts.findByPk(existingAccount.account_id, {
+                            include: [{
+                                model: Role,
+                                attributes: ['name']
+                            }]
+                        });
+                        return done(null, userWithRole);
+                    }
+                    
+                    // Verify donor role
+                    if (user.Role.name !== 'donor') {
+                        console.error('Google OAuth: Existing account does not have donor role', {
+                            account_id: user.account_id,
+                            email: user.email,
+                            role: user.Role.name
+                        });
+                        return done(new Error(`Account does not have donor role. Current role: ${user.Role.name}`), null);
                     }
                     
                     return done(null, user);

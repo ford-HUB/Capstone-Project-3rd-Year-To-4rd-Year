@@ -15,39 +15,80 @@ const OAuthSuccess = () => {
       try {
         setStatus('processing');
         
-        // Clear any URL fragments (token should be in httpOnly cookie, not URL)
-        if (window.history?.replaceState && window.location.hash) {
-          const cleanUrl = window.location.pathname + window.location.search;
-          window.history.replaceState(null, '', cleanUrl);
-        }
+        // Extract token from URL hash
+        const hash = window.location.hash || '';
+        const tokenMatch = hash.match(/token=([^&]+)/);
         
-        // Remove any Authorization header - rely on httpOnly cookie only
-        delete apiInstance.defaults.headers.common['Authorization'];
-        
-        // Wait a moment for the backend to process the OAuth and set cookie
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Handle OAuth success - this will verify the JWT cookie
-        const isAuthenticated = await handleOAuthSuccess();
-        
-        if (isAuthenticated) {
-          setStatus('success');
-          // Redirect to dashboard after successful OAuth
-          setTimeout(() => {
-            navigate('/donor/dashboard');
-          }, 2000);
+        if (tokenMatch && tokenMatch[1]) {
+          const token = decodeURIComponent(tokenMatch[1]);
+          
+          // Store token in localStorage
+          localStorage.setItem('donor_jwt', token);
+          
+          // Set token in axios defaults for immediate use
+          apiInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          
+          // Remove token from URL for security
+          if (window.history?.replaceState) {
+            const cleanUrl = window.location.pathname + window.location.search;
+            window.history.replaceState(null, '', cleanUrl);
+          }
+          
+          // Verify authentication by calling checkAuth
+          const isAuthenticated = await handleOAuthSuccess();
+          
+          if (isAuthenticated) {
+            setStatus('success');
+            // Redirect to dashboard after successful OAuth
+            setTimeout(() => {
+              navigate('/donor/dashboard');
+            }, 2000);
+          } else {
+            setStatus('error');
+            setError('OAuth authentication failed. Please try again.');
+            // Clear token if auth failed
+            localStorage.removeItem('donor_jwt');
+            delete apiInstance.defaults.headers.common['Authorization'];
+            // If not authenticated, redirect to login after delay
+            setTimeout(() => {
+              navigate('/donor/login');
+            }, 3000);
+          }
         } else {
-          setStatus('error');
-          setError('OAuth authentication failed. Please try again.');
-          // If not authenticated, redirect to login after delay
-          setTimeout(() => {
-            navigate('/donor/login');
-          }, 3000);
+          // No token in URL - check if we have one in localStorage
+          const savedToken = localStorage.getItem('donor_jwt');
+          if (savedToken) {
+            apiInstance.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`;
+            const isAuthenticated = await handleOAuthSuccess();
+            
+            if (isAuthenticated) {
+              setStatus('success');
+              setTimeout(() => {
+                navigate('/donor/dashboard');
+              }, 2000);
+            } else {
+              setStatus('error');
+              setError('OAuth authentication failed. Please try again.');
+              localStorage.removeItem('donor_jwt');
+              delete apiInstance.defaults.headers.common['Authorization'];
+              setTimeout(() => {
+                navigate('/donor/login');
+              }, 3000);
+            }
+          } else {
+            setStatus('error');
+            setError('No authentication token found. Please try logging in again.');
+            setTimeout(() => {
+              navigate('/donor/login');
+            }, 3000);
+          }
         }
       } catch (error) {
         console.error('OAuth success handling failed:', error);
         setStatus('error');
         setError(error.message || 'Authentication failed. Please try again.');
+        localStorage.removeItem('donor_jwt');
+        delete apiInstance.defaults.headers.common['Authorization'];
         setTimeout(() => {
           navigate('/donor/login');
         }, 3000);

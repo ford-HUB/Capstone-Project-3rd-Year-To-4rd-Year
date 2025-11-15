@@ -4,6 +4,7 @@ import { generateUniqueCode } from "../../utils/generateUniqueCode.js"
 import { generateToken } from "../../utils/generateToken.js"
 import { sendMail } from "../../services/mailService.js"
 import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
 
 const FRONTEND_URL = process.env.NODE_ENV === 'development'
     ? process.env.FRONT_END_URL
@@ -508,9 +509,10 @@ export const oauthSuccess = async (req, res) => {
         // Also try clearing with just path (most permissive)
         res.clearCookie('jwt', { path: '/' });
         
-        // Generate JWT token and set in httpOnly cookie
+        // Generate JWT token for localStorage
+        let token;
         try {
-            await generateToken(req.user.account_id, res);
+            token = jwt.sign({ id: req.user.account_id }, process.env.JWT_SECRET_KEY, { expiresIn: '7d' });
             console.log('OAuth success: JWT token generated for account_id:', req.user.account_id);
         } catch (tokenError) {
             console.error('Failed to generate token during OAuth:', {
@@ -538,9 +540,9 @@ export const oauthSuccess = async (req, res) => {
                     path: '/'
                 });
                 
-                console.log('OAuth success: Redirecting to frontend', { account_id: req.user.account_id });
-                // Redirect to frontend OAuth success page (token is in httpOnly cookie)
-                return res.redirect(`${FRONTEND_URL}/donor/oauth-success`);
+                console.log('OAuth success: Redirecting to frontend with token', { account_id: req.user.account_id });
+                // Redirect to frontend OAuth success page with token in URL hash (more secure than query param)
+                return res.redirect(`${FRONTEND_URL}/donor/oauth-success#token=${encodeURIComponent(token)}`);
             });
         });
     } catch (error) {
