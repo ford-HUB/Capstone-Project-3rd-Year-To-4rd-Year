@@ -10,9 +10,13 @@ export const ScanQrAttendance = async (decodedLink) => {
         }
     } catch (error) {
         console.error('Error scanning QR attendance:', error);
+        // Extract error message from backend response if available
+        const errorMessage = error.response?.data?.message || 
+                            error.message || 
+                            'Failed to scan QR code';
         return {
             success: false,
-            message: 'Failed to scan QR code',
+            message: errorMessage,
             eventDetails: null
         }
     }

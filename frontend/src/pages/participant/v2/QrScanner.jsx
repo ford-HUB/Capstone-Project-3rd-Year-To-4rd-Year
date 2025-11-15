@@ -54,19 +54,29 @@ const QRScanner = () => {
                     setScannedData(decodedText);
                     stopScanning();
                     if (decodedText.startsWith('/api/attendance/scanQr/attendance?')) { // validating the api endpoint
-                       const response = await scanQrTrigger(decodedText)
-                       if(!response.success) return toast.error(response.message)
-                       toast.custom((t) => (
-                        <CustomToast t={t} message={response.message} userData={currentProfileInfo} eventDetails={response.eventDetails} />
-                       ))
+                       try {
+                           const response = await scanQrTrigger(decodedText)
+                           if(!response || !response.success) {
+                               const errorMsg = response?.message || 'Failed to scan QR code. Please try again.'
+                               return toast.error(errorMsg)
+                           }
+                           toast.custom((t) => (
+                            <CustomToast t={t} message={response.message} userData={currentProfileInfo} eventDetails={response.eventDetails} />
+                           ))
 
-                        setTimeout(() => {
-                            if(response.eventDetails.status === 'Completed' && authenticatedUser.Role.name === 'student' || response.eventDetails.status === 'Completed' && authenticatedUser.Role.name === 'beneficiary')
-                            {
-                                // Show certificate requirements reminder modal after attendance timeout
-                                setShowCertificateReminderModal({ open: true, eventData: response.eventDetails })
-                            }
-                        }, 8000)
+                            setTimeout(() => {
+                                if(response.eventDetails && response.eventDetails.status === 'Completed' && (authenticatedUser.Role.name === 'student' || authenticatedUser.Role.name === 'beneficiary'))
+                                {
+                                    // Show certificate requirements reminder modal after attendance timeout
+                                    setShowCertificateReminderModal({ open: true, eventData: response.eventDetails })
+                                }
+                            }, 8000)
+                       } catch (error) {
+                           console.error('Error processing QR scan:', error)
+                           toast.error('Failed to process QR code. Please try again.')
+                       }
+                    } else {
+                        toast.error('Invalid QR code format. Please scan a valid attendance QR code.')
                     }
                 },
                 () => {}

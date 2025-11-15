@@ -120,8 +120,11 @@ export const ScanQRAttendance = async (req, res) => {
         return res.json({ success: true, message: `Success Record ${AttentType}`, eventDetails: attendace.Event })
 
     } catch (error) {
-        res.json({ success: false, message: 'Internal Server Error' })
-        console.log('Scan QR Code Attendance failed: ', error.message)
+        console.error('Scan QR Code Attendance failed: ', error.message)
+        console.error('Error stack: ', error.stack)
+        // Return more specific error message if available, otherwise generic message
+        const errorMessage = error.message || 'Internal Server Error'
+        return res.json({ success: false, message: errorMessage })
     }
 }
 

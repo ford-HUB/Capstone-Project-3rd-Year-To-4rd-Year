@@ -10,12 +10,17 @@ export const useScanQRAttendanceStore = create((set) => ({
         try {
             const response = await ScanQrAttendance(decodedLink)
             return {
-                success: response.success,
-                message: response.message,
-                eventDetails: response.eventDetails
+                success: response?.success || false,
+                message: response?.message || 'Failed to scan QR code',
+                eventDetails: response?.eventDetails || null
             }
         } catch (error) {
-            console.log('scan qr trigger failed: ', error.message)
+            console.error('scan qr trigger failed: ', error.message)
+            return {
+                success: false,
+                message: error?.message || 'Failed to scan QR code. Please try again.',
+                eventDetails: null
+            }
         }
     },
 
