@@ -56,19 +56,7 @@ const QRScanner = () => {
                     stopScanning();
                     if (decodedText.startsWith('/api/attendance/scanQr/attendance?')) { // validating the api endpoint
                        try {
-                           // Verify authentication before scanning
-                           const isAuthenticated = await checkAuth()
-                           if (!isAuthenticated) {
-                               toast.error('Your session has expired. Please log in again.')
-                               setTimeout(() => {
-                                   navigate('/login')
-                               }, 2000)
-                               return
-                           }
-                           
-                           // Small delay to ensure auth state is updated
-                           await new Promise(resolve => setTimeout(resolve, 100))
-                           
+gii                           // Directly scan QR - don't call checkAuth as it may interfere
                            const response = await scanQrTrigger(decodedText)
                            if(!response || !response.success) {
                                const errorMsg = response?.message || 'Failed to scan QR code. Please try again.'
