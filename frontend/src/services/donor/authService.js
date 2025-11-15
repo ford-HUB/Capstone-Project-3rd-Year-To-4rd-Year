@@ -34,6 +34,9 @@ export const currentUser = async () => {
         const config = token ? {
             headers: {
                 Authorization: `Bearer ${token}`
+            },
+            params: {
+                token
             }
         } : {};
         

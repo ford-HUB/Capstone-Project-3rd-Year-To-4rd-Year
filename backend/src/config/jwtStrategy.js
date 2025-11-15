@@ -6,20 +6,38 @@ dotenv.config()
 
 const options = {
     jwtFromRequest: ExtractJwt.fromExtractors([
-    ExtractJwt.fromAuthHeaderAsBearerToken(),
-    (req) => {
-        const cookieToken = req?.cookies?.jwt;
-        // Log for debugging
-        if (req?.path === '/api/donor-auth/checkAuth') {
-            console.log('JWT extractor check:', {
-                hasAuthHeader: !!req?.headers?.authorization,
-                authHeader: req?.headers?.authorization?.substring(0, 20) + '...',
-                hasCookie: !!cookieToken,
-                path: req.path
-            });
+        (req) => {
+            const authHeaderExtractor = ExtractJwt.fromAuthHeaderAsBearerToken();
+            const token = authHeaderExtractor(req);
+            if (req?.path === '/api/donor-auth/checkAuth') {
+                console.log('JWT extractor (auth header) check:', {
+                    hasAuthHeader: !!token,
+                    headerPreview: token ? `${token.substring(0, 20)}...` : null
+                });
+            }
+            return token;
+        },
+        (req) => {
+            const cookieToken = req?.cookies?.jwt;
+            if (req?.path === '/api/donor-auth/checkAuth') {
+                console.log('JWT extractor (cookie) check:', {
+                    hasCookie: !!cookieToken
+                });
+            }
+            return cookieToken;
+        },
+        ExtractJwt.fromUrlQueryParameter('token'),
+        (req) => {
+            const bodyToken = req?.body?.token;
+            if (req?.path === '/api/donor-auth/checkAuth') {
+                console.log('JWT extractor (body/query) check:', {
+                    hasQueryToken: !!req?.query?.token,
+                    hasBodyToken: !!bodyToken
+                });
+            }
+            return bodyToken;
         }
-        return cookieToken;
-}]), 
+    ]),
     secretOrKey: process.env.JWT_SECRET_KEY
 }
 
