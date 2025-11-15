@@ -57,6 +57,9 @@ dotenv.config()
 
 const app = express()
 
+// Trust proxy for secure cookies behind reverse proxies (e.g., Nginx)
+app.set('trust proxy', 1)
+
 app.use(cookieParser())
 
 app.use('/api/v1/webhook/payment', webhookPaymentRouter)
@@ -74,7 +77,11 @@ app.use(session({
     secret: process.env.JWT_SECRET_KEY,
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: process.env.NODE_ENV !=='development'}
+    proxy: true,
+    cookie: { 
+        secure: process.env.NODE_ENV !=='development',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+    }
 }))
 
 app.use(passport.initialize())
