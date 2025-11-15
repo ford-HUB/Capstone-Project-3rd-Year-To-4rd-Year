@@ -118,4 +118,4 @@ cron.schedule('0 */5 * * * *', async () => {
     } catch (error) {
         console.error('Form mailer pusher Cron Error:', error.message);
     }
-});
+}, { timezone: 'UTC' });

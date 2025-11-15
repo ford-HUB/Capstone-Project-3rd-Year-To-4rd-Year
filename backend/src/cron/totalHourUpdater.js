@@ -39,4 +39,4 @@ cron.schedule('*/30 * * * * *', async () => {
     } catch (error) {
         console.error('Cron job error:', error.message);
     }
-});
+}, { timezone: 'UTC' });

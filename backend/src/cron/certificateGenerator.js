@@ -114,4 +114,4 @@ cron.schedule(BATCH_CONFIG.CRON_INTERVAL, async () => {
         console.error(`💥 [${batchId}] CRITICAL BATCH ERROR after ${totalProcessingTime}ms:`, error.message);
         console.error(`🔍 [${batchId}] Error stack:`, error.stack);
     }
-});
+}, { timezone: 'UTC' });

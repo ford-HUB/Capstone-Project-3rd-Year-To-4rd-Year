@@ -94,5 +94,5 @@ cron.schedule('*/5 * * * *', async () => {
     } catch (error) {
         console.error('Registration Status Updater Cron Error:', error.message);
     }
-});
+}, { timezone: 'UTC' });
 

@@ -90,7 +90,7 @@ cron.schedule('0 */5 * * * *', async () => {
     } catch (error) {
         console.error('Donation Status Update Cron Error:', error.message);
     }
-});
+}, { timezone: 'UTC' });
 
 // Run every 5 minutes to check for events that have finished
 cron.schedule('*/30 * * * * *', async () => {
@@ -187,6 +187,6 @@ cron.schedule('*/30 * * * * *', async () => {
     } catch (error) {
         console.error('Donation Completion Cron Error:', error.message);
     }
-});
+}, { timezone: 'UTC' });
 
 console.log('Donation Status Update Cron Jobs initialized');

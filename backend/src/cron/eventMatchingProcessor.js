@@ -44,7 +44,7 @@ cron.schedule('0 */2 * * * *', async () => {
     } catch (error) {
         console.error('Event Matching Processor Cron Error:', error.message);
     }
-});
+}, { timezone: 'UTC' });
 
 // Run every hour to log system health
 cron.schedule('0 * * * *', async () => {
@@ -53,7 +53,7 @@ cron.schedule('0 * * * *', async () => {
     } catch (error) {
         console.error('System Health Monitor Error:', error.message);
     }
-});
+}, { timezone: 'UTC' });
 
 // Run every hour to refresh stale matches
 cron.schedule('0 * * * *', async () => {
@@ -89,7 +89,7 @@ cron.schedule('0 * * * *', async () => {
     } catch (error) {
         console.error('Stale Match Refresher Cron Error:', error.message);
     }
-});
+}, { timezone: 'UTC' });
 
 // Run every hour to refresh stale beneficiary matches
 cron.schedule('15 * * * *', async () => {
@@ -124,4 +124,4 @@ cron.schedule('15 * * * *', async () => {
 	} catch (error) {
 		console.error('Beneficiary Stale Refresher Cron Error:', error.message);
 	}
-});
+}, { timezone: 'UTC' });

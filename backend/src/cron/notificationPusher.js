@@ -41,4 +41,4 @@ cron.schedule('*/5 * * * *', async () => {
     } catch (error) {
         console.error('Event Reminder Cron Error:', error.message);
     }
-});
+}, { timezone: 'UTC' });

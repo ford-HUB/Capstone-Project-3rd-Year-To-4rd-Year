@@ -58,7 +58,7 @@ cron.schedule('*/30 * * * * *', async () => {
     } catch (error) {
         console.error('Event Status Updater Error:', error.message);
     }
-});
+}, { timezone: 'UTC' });
 
 cron.schedule('*/30 * * * * *', async () => {
     try {
@@ -96,4 +96,4 @@ cron.schedule('*/30 * * * * *', async () => {
     } catch (error) {
         console.error('Participant Count Updater Error:', error.message);
     }
-});
+}, { timezone: 'UTC' });

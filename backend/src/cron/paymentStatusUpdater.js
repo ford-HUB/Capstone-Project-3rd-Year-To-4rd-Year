@@ -65,4 +65,4 @@ cron.schedule('*/10 * * * *', async () => {
         console.error('[Payment Status Updater] Error updating payment status:', error.message);
         console.error('[Payment Status Updater] Full error:', error);
     }
-});
+}, { timezone: 'UTC' });
