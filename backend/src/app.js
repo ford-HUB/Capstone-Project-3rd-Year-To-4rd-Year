@@ -70,8 +70,22 @@ app.use(cors({
     origin: process.env.NODE_ENV === 'development'
         ? [process.env.FRONT_END_URL]
         : [process.env.FRONTEND_URL_PROD, process.env.FRONTEND_URL_SEC_PROD].filter(Boolean),
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }))
+
+// Debug header visibility for auth check route
+app.use((req, res, next) => {
+    if (req.path === '/api/donor-auth/checkAuth') {
+        console.log('checkAuth request headers', {
+            hasAuthHeader: !!req.headers?.authorization,
+            hasJwtCookie: !!req.cookies?.jwt,
+            origin: req.headers?.origin
+        })
+    }
+    next()
+})
 
 app.use(session({
     secret: process.env.JWT_SECRET_KEY,
