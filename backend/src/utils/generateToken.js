@@ -7,12 +7,21 @@ export const generateToken = async (payload_id, res) => {
     try {
         const token = jwt.sign({ id: payload_id }, process.env.JWT_SECRET_KEY, { expiresIn: '7d' } )
 
-        res.cookie('jwt', token, {
+        const isProd = process.env.NODE_ENV === 'production'
+        const cookieOptions = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax', // cross-site request forgery protection
-        maxAge: 7 * 24 * 60 * 60 * 1000
-        });
+        secure: isProd,
+        sameSite: isProd ? 'None' : 'Lax', // cross-site request forgery protection
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/'
+        }
+
+        // If using shared parent domain across FE/BE, set COOKIE_DOMAIN
+        if (isProd && process.env.COOKIE_DOMAIN) {
+            cookieOptions.domain = process.env.COOKIE_DOMAIN
+        }
+
+        res.cookie('jwt', token, cookieOptions);
 
         return token
 

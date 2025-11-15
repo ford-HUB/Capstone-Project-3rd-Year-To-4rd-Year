@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDonorAuthStore } from '../../store/donor/useDonorAuthStore.js';
 import { Heart, CheckCircle, AlertCircle } from 'lucide-react';
+import { apiInstance } from '../../api/_base.js';
 
 const OAuthSuccess = () => {
   const navigate = useNavigate();
