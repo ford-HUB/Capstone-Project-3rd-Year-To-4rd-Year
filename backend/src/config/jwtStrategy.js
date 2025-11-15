@@ -6,27 +6,7 @@ dotenv.config()
 
 const options = {
     jwtFromRequest: ExtractJwt.fromExtractors([
-        (req) => {
-            const queryToken = req?.query?.token;
-            if (req?.path === '/api/donor-auth/checkAuth') {
-                console.log('JWT extractor (query) check:', {
-                    hasQueryToken: !!queryToken,
-                    preview: queryToken ? `${queryToken.substring(0, 20)}...` : null
-                });
-            }
-            return queryToken;
-        },
-        (req) => {
-            const authHeaderExtractor = ExtractJwt.fromAuthHeaderAsBearerToken();
-            const token = authHeaderExtractor(req);
-            if (req?.path === '/api/donor-auth/checkAuth') {
-                console.log('JWT extractor (auth header) check:', {
-                    hasAuthHeader: !!token,
-                    headerPreview: token ? `${token.substring(0, 20)}...` : null
-                });
-            }
-            return token;
-        },
+        // Priority 1: Check cookies first (primary auth method for non-donor users)
         (req) => {
             const cookieToken = req?.cookies?.jwt;
             // Log for attendance endpoints to debug 401 errors
@@ -46,6 +26,41 @@ const options = {
             }
             return cookieToken;
         },
+        // Priority 2: Check Authorization header (for donor endpoints)
+        (req) => {
+            const authHeaderExtractor = ExtractJwt.fromAuthHeaderAsBearerToken();
+            const token = authHeaderExtractor(req);
+            if (req?.path === '/api/donor-auth/checkAuth') {
+                console.log('JWT extractor (auth header) check:', {
+                    hasAuthHeader: !!token,
+                    headerPreview: token ? `${token.substring(0, 20)}...` : null
+                });
+            }
+            return token;
+        },
+        // Priority 3: Check query token (skip for attendance endpoints - they have QR tokens in query)
+        (req) => {
+            // Skip query token extraction for attendance endpoints
+            // They use 'token' query param for QR codes, not JWT tokens
+            if (req?.path?.includes('/api/attendance/')) {
+                return null;
+            }
+            
+            const queryToken = req?.query?.token;
+            // Basic validation: JWT tokens are typically longer and contain dots
+            // QR tokens are short alphanumeric strings (e.g., "D6EI8CA")
+            if (queryToken && queryToken.length > 20 && queryToken.includes('.')) {
+                if (req?.path === '/api/donor-auth/checkAuth') {
+                    console.log('JWT extractor (query) check:', {
+                        hasQueryToken: !!queryToken,
+                        preview: queryToken ? `${queryToken.substring(0, 20)}...` : null
+                    });
+                }
+                return queryToken;
+            }
+            return null;
+        },
+        // Priority 4: Check body token
         (req) => {
             const bodyToken = req?.body?.token;
             if (req?.path === '/api/donor-auth/checkAuth') {
