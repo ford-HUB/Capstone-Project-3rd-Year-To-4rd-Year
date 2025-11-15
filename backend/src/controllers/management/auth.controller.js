@@ -2,6 +2,7 @@ import models from "../../models/index.js"
 import bcrypt from 'bcrypt'
 import { db } from "../../config/db.js"
 import { generateToken } from "../../utils/generateToken.js"
+import { clearJwtCookie } from "../../utils/clearJwtCookie.js"
 import { createNotification } from "../../services/notificationService.js"
 
 
@@ -118,11 +119,7 @@ export const logout = async (req, res) => {
         const accountId = req.user.account_id;
 
         // Clear the JWT cookie
-        res.clearCookie('jwt', {
-            httpOnly: true,
-            sameSite: true,
-            secure: process.env.NODE_ENV === 'production'
-        });
+        clearJwtCookie(res);
 
         // Set user as inactive
         await Accounts.update({ is_active: false }, { where: { account_id: accountId } });

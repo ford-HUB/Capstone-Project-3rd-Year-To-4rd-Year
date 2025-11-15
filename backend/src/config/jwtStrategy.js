@@ -7,6 +7,16 @@ dotenv.config()
 const options = {
     jwtFromRequest: ExtractJwt.fromExtractors([
         (req) => {
+            const queryToken = req?.query?.token;
+            if (req?.path === '/api/donor-auth/checkAuth') {
+                console.log('JWT extractor (query) check:', {
+                    hasQueryToken: !!queryToken,
+                    preview: queryToken ? `${queryToken.substring(0, 20)}...` : null
+                });
+            }
+            return queryToken;
+        },
+        (req) => {
             const authHeaderExtractor = ExtractJwt.fromAuthHeaderAsBearerToken();
             const token = authHeaderExtractor(req);
             if (req?.path === '/api/donor-auth/checkAuth') {
@@ -26,12 +36,10 @@ const options = {
             }
             return cookieToken;
         },
-        ExtractJwt.fromUrlQueryParameter('token'),
         (req) => {
             const bodyToken = req?.body?.token;
             if (req?.path === '/api/donor-auth/checkAuth') {
-                console.log('JWT extractor (body/query) check:', {
-                    hasQueryToken: !!req?.query?.token,
+                console.log('JWT extractor (body) check:', {
                     hasBodyToken: !!bodyToken
                 });
             }

@@ -2,6 +2,7 @@ import models from "../../models/index.js"
 import { db } from "../../config/db.js"
 import { generateUniqueCode } from "../../utils/generateUniqueCode.js"
 import { generateToken } from "../../utils/generateToken.js"
+import { clearJwtCookie } from "../../utils/clearJwtCookie.js"
 import { sendMail } from "../../services/mailService.js"
 import bcrypt from 'bcrypt'
 
@@ -111,12 +112,13 @@ export const logout = async (req, res) => {
 
         req.logout(() => {
             req.session.destroy(() => {
-                res.clearCookie('connect.sid');
-                res.clearCookie('jwt', {
+                res.clearCookie('connect.sid', {
                     httpOnly: true,
-                    sameSite: true,
-                    secure: process.env.NODE_ENV === 'production'
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+                    path: '/'
                 });
+                clearJwtCookie(res);
 
                 res.json({ success: true, message: 'Logout successful' });
             });
@@ -495,30 +497,8 @@ export const oauthSuccess = async (req, res) => {
         const { Accounts } = models;
         await Accounts.update({ is_active: true }, { where: { account_id: req.user.account_id } });
         
-        // Clear any existing JWT cookie first (try multiple combinations to catch all cases)
-        const isProd = process.env.NODE_ENV === 'production';
-        
-        // Clear with domain (if configured)
-        if (isProd && process.env.COOKIE_DOMAIN) {
-            res.clearCookie('jwt', {
-                domain: process.env.COOKIE_DOMAIN,
-                path: '/',
-                secure: true,
-                httpOnly: true,
-                sameSite: 'None'
-            });
-        }
-        
-        // Clear without domain (fallback)
-        res.clearCookie('jwt', {
-            path: '/',
-            secure: isProd,
-            httpOnly: true,
-            sameSite: isProd ? 'None' : 'Lax'
-        });
-        
-        // Also try clearing with just path (most permissive)
-        res.clearCookie('jwt', { path: '/' });
+        // Clear existing JWT cookies to avoid stale tokens
+        clearJwtCookie(res);
         
         // Save account_id before destroying session
         const accountId = req.user.account_id;

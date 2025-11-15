@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt'
 import { sendMail } from "../../services/mailService.js";
 import { generateUniqueCode } from "../../utils/generateUniqueCode.js";
 import { generateToken } from "../../utils/generateToken.js";
+import { clearJwtCookie } from "../../utils/clearJwtCookie.js";
 import { Op } from "sequelize";
 import { emitUserActivityUpdate } from "../../socket.js";
 
@@ -518,11 +519,7 @@ export const logout = async (req, res) => {
         const accountId = req.user.account_id;
 
         // Clear the JWT cookie
-        res.clearCookie('jwt', {
-            httpOnly: true,
-            sameSite: true,
-            secure: process.env.NODE_ENV === 'production'
-        });
+        clearJwtCookie(res);
 
         // Set user as inactive
         await Accounts.update({ is_active: false }, { where: { account_id: accountId } });
