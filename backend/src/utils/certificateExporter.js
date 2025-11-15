@@ -26,7 +26,35 @@ async function waitForAssets(page) {
 export const exportToPng = async ({ htmlCertificate, fileName }) => {
     const browser = await puppeteer.launch({
         headless: 'new',
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-gpu',
+            '--disable-software-rasterizer',
+            '--disable-extensions',
+            '--disable-background-networking',
+            '--disable-background-timer-throttling',
+            '--disable-backgrounding-occluded-windows',
+            '--disable-breakpad',
+            '--disable-client-side-phishing-detection',
+            '--disable-component-update',
+            '--disable-default-apps',
+            '--disable-features=TranslateUI',
+            '--disable-hang-monitor',
+            '--disable-ipc-flooding-protection',
+            '--disable-popup-blocking',
+            '--disable-prompt-on-repost',
+            '--disable-renderer-backgrounding',
+            '--disable-sync',
+            '--disable-translate',
+            '--metrics-recording-only',
+            '--no-first-run',
+            '--safebrowsing-disable-auto-update',
+            '--enable-automation',
+            '--password-store=basic',
+            '--use-mock-keychain',
+        ],
     });
 
     const page = await browser.newPage();
@@ -67,7 +95,38 @@ export const exportToPng = async ({ htmlCertificate, fileName }) => {
  * Export certificate as PDF (no container ID needed)
  */
 export const exportToPdf = async ({ htmlCertificate, fileName }) => {
-    const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const browser = await puppeteer.launch({
+        headless: 'new',
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-gpu',
+            '--disable-software-rasterizer',
+            '--disable-extensions',
+            '--disable-background-networking',
+            '--disable-background-timer-throttling',
+            '--disable-backgrounding-occluded-windows',
+            '--disable-breakpad',
+            '--disable-client-side-phishing-detection',
+            '--disable-component-update',
+            '--disable-default-apps',
+            '--disable-features=TranslateUI',
+            '--disable-hang-monitor',
+            '--disable-ipc-flooding-protection',
+            '--disable-popup-blocking',
+            '--disable-prompt-on-repost',
+            '--disable-renderer-backgrounding',
+            '--disable-sync',
+            '--disable-translate',
+            '--metrics-recording-only',
+            '--no-first-run',
+            '--safebrowsing-disable-auto-update',
+            '--enable-automation',
+            '--password-store=basic',
+            '--use-mock-keychain',
+        ],
+    });
     const page = await browser.newPage();
     await page.setContent(htmlCertificate, { waitUntil: 'networkidle0' });
     await waitForAssets(page);
