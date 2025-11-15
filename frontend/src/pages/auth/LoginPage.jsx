@@ -20,7 +20,7 @@ const LoginPage = () => {
     const [open, setOpen] = React.useState(true)
     const [token, setToken] = React.useState()
 
-    const { login } = useAuthStore()
+    const { login, checkAuth } = useAuthStore()
     const { login: beneficiaryLogin } = useBeneficiaryAuthStore()
 
     // form state
@@ -150,6 +150,16 @@ const LoginPage = () => {
         
         if (!checkSuccess.success) {
             return;
+        }
+
+        // Set authenticated user state before redirecting
+        // This ensures ProtectedStudent component has the user data
+        try {
+            await checkAuth();
+        } catch (error) {
+            console.error('Failed to set authenticated user:', error);
+            // Continue with redirect even if checkAuth fails
+            // The ProtectedStudent component will call checkAuth again
         }
 
         const redirectPath = roleRedirection[checkSuccess.role] || '/'
