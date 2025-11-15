@@ -4,7 +4,6 @@ import { generateUniqueCode } from "../../utils/generateUniqueCode.js"
 import { generateToken } from "../../utils/generateToken.js"
 import { sendMail } from "../../services/mailService.js"
 import bcrypt from 'bcrypt'
-import jwt from 'jsonwebtoken'
 
 const FRONTEND_URL = process.env.NODE_ENV === 'development'
     ? process.env.FRONT_END_URL
@@ -524,11 +523,11 @@ export const oauthSuccess = async (req, res) => {
         // Save account_id before destroying session
         const accountId = req.user.account_id;
         
-        // Generate JWT token for localStorage
+        // Generate JWT token (sets httpOnly cookie and returns token for client storage)
         let token;
         try {
-            token = jwt.sign({ id: accountId }, process.env.JWT_SECRET_KEY, { expiresIn: '7d' });
-            console.log('OAuth success: JWT token generated for account_id:', accountId);
+            token = await generateToken(accountId, res);
+            console.log('OAuth success: JWT token generated and cookie set for account_id:', accountId);
         } catch (tokenError) {
             console.error('Failed to generate token during OAuth:', {
                 error: tokenError.message,
