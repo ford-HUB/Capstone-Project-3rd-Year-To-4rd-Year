@@ -6,11 +6,13 @@ export const apiInstance = axios.create({
 })
 
 // Interceptor to add JWT token from localStorage ONLY for donor requests
-// DO NOT modify requests for: student, volunteer, beneficiary, management, director
-// These roles use httpOnly cookies for authentication, not Authorization headers
+// All other roles (student, volunteer, beneficiary, management, director) use httpOnly cookies
+// and should NOT be modified by this interceptor
 apiInstance.interceptors.request.use((config) => {
     try {
-        // STRICT: Only process donor endpoints - ignore all other endpoints completely
+        const url = config.url || '';
+        
+        // STRICT: Only process donor endpoints
         // Donor endpoints include:
         // - /api/donor-auth/ (donor authentication)
         // - /api/donor/ (donor profile)
@@ -18,46 +20,15 @@ apiInstance.interceptors.request.use((config) => {
         // - /api/donation/my/history (donor's donation history)
         // - /api/donation/submit-goods (donor submitting goods)
         // - /api/v1/payment/donate-now (donor payment)
-        // Note: Some /api/donation/ endpoints are for director/staff (they use cookies)
-        const isDonorEndpoint = config.url?.includes('/api/donor-auth/') || 
-                                config.url?.includes('/api/donor/') ||
-                                (config.url?.includes('/api/donation/') && 
-                                 (config.url?.includes('/my') || 
-                                  config.url?.includes('/submit-goods'))) ||
-                                config.url?.includes('/api/v1/payment/donate-now');
+        const isDonorEndpoint = url.includes('/api/donor-auth/') || 
+                                url.includes('/api/donor/') ||
+                                (url.includes('/api/donation/') && 
+                                 (url.includes('/my') || 
+                                  url.includes('/submit-goods'))) ||
+                                url.includes('/api/v1/payment/donate-now');
         
-        // For non-donor endpoints (student/volunteer/beneficiary/management/director):
-        // - Do NOT add Authorization header
-        // - Do NOT modify headers at all
-        // - Let them use cookies naturally
-        // - Override any global defaults that might interfere
-        if (!isDonorEndpoint) {
-            // Ensure headers object exists
-            if (!config.headers) {
-                config.headers = {};
-            }
-            
-            // CRITICAL: Remove Authorization header if it exists (from global defaults or config)
-            // This prevents OAuthSuccess from interfering with cookie-based auth for volunteers/students
-            if (config.headers.Authorization) {
-                delete config.headers.Authorization;
-            }
-            
-            // Also check if global defaults have Authorization and ensure it's not applied
-            // Note: We can't delete from defaults here, but we ensure it's not in the request
-            if (apiInstance.defaults.headers?.common?.Authorization) {
-                // Explicitly set Authorization to undefined to override any defaults
-                config.headers.Authorization = undefined;
-                delete config.headers.Authorization;
-            }
-            
-            // Return early - don't process non-donor endpoints
-            return config;
-        }
-        
-        // ONLY process donor endpoints from here
+        // ONLY process donor endpoints - all other requests pass through unchanged
         if (isDonorEndpoint) {
-            // Ensure headers object exists
             if (!config.headers) {
                 config.headers = {};
             }
@@ -67,8 +38,11 @@ apiInstance.interceptors.request.use((config) => {
                 config.headers.Authorization = `Bearer ${token}`;
             }
         }
+        // For all non-donor endpoints, return config as-is without any modifications
+        // This ensures cookie-based authentication works naturally for other roles
+        
     } catch (error) {
-        console.error('[API Interceptor] Error in request interceptor:', error);
+        // If interceptor fails, return config as-is to not break the request
     }
     return config;
 }, (error) => {
