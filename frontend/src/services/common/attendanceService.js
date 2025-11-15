@@ -5,8 +5,10 @@ export const ScanQrAttendance = async (decodedLink) => {
         // Ensure the decodedLink is a valid path (starts with /)
         const url = decodedLink.startsWith('/') ? decodedLink : `/${decodedLink}`;
         
-        // apiInstance already has withCredentials: true set globally
-        const response = await apiInstance.get(url)
+        // Explicitly ensure withCredentials is set to send cookies
+        const response = await apiInstance.get(url, {
+            withCredentials: true
+        })
         return {
             success: response.data.success,
             message: response.data.message,

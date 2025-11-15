@@ -66,16 +66,23 @@ const QRScanner = () => {
                                return
                            }
                            
+                           // Small delay to ensure auth state is updated
+                           await new Promise(resolve => setTimeout(resolve, 100))
+                           
                            const response = await scanQrTrigger(decodedText)
                            if(!response || !response.success) {
                                const errorMsg = response?.message || 'Failed to scan QR code. Please try again.'
                                
-                               // Handle authentication required
-                               if (response?.requiresAuth || errorMsg.includes('session') || errorMsg.includes('expired') || errorMsg.includes('Unauthorized')) {
+                               // Handle authentication required - check for 401 or auth-related errors
+                               if (response?.requiresAuth || 
+                                   errorMsg.toLowerCase().includes('session') || 
+                                   errorMsg.toLowerCase().includes('expired') || 
+                                   errorMsg.toLowerCase().includes('unauthorized') ||
+                                   errorMsg.toLowerCase().includes('401')) {
                                    toast.error('Your session has expired. Please log in again.', {
                                        duration: 5000
                                    })
-                                   // Redirect to login after a delay
+                                   // Redirect to login - checkAuth will clear auth state
                                    setTimeout(() => {
                                        navigate('/login')
                                    }, 2000)
