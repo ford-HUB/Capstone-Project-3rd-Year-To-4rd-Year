@@ -28,10 +28,22 @@ export const logoutUser = async () => {
 }
 
 export const currentUser = async () => {
-    const response = await apiInstance.get('/api/donor-auth/checkAuth')
-    return {
-        success: response.data.success,
-        user: response.data.user
+    try {
+        const token = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('donor_jwt') : null
+        try {
+            console.log('[currentUser] baseURL:', apiInstance.defaults.baseURL, 'hasToken:', !!token)
+        } catch {}
+        const config = token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+        const response = await apiInstance.get('/api/donor-auth/checkAuth', config)
+        return {
+            success: response.data.success,
+            user: response.data.user
+        }
+    } catch (error) {
+        try {
+            console.log('[currentUser] request failed:', error?.message || error)
+        } catch {}
+        return { success: false, user: null }
     }
 }
 
