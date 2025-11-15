@@ -457,18 +457,28 @@ export const resetPassword = async (req, res) => {
 
 export const oauthSuccess = async (req, res) => {
     try {
+        // Minimal diagnostics to identify production failure points
+        console.log('OAuth success handler entered', {
+            hasUser: !!req.user,
+            role: req.user?.Role?.name,
+            sessionId: req.sessionID,
+            isAuthenticated: typeof req.isAuthenticated === 'function' ? req.isAuthenticated() : undefined,
+            forwardedProto: req.headers['x-forwarded-proto'],
+            host: req.headers['host']
+        })
+
         if (!req.user) {
-            return res.redirect(`${FRONTEND_URL}/donor/login?error=oauth_failed`);
+            return res.redirect(`${FRONTEND_URL}/donor/login?error=oauth_failed&reason=no_user`);
         }
         
         if (!req.user.Role || req.user.Role.name !== 'donor') {
-            return res.redirect(`${FRONTEND_URL}/donor/login?error=oauth_failed`);
+            return res.redirect(`${FRONTEND_URL}/donor/login?error=oauth_failed&reason=bad_role`);
         }
         
         await generateToken(req.user.account_id, res);
         return res.redirect(`${FRONTEND_URL}/donor/oauth-success`);
     } catch (error) {
         console.error('OAuth success handler failed:', error.message);
-        return res.redirect(`${FRONTEND_URL}/donor/login?error=oauth_failed`);
+        return res.redirect(`${FRONTEND_URL}/donor/login?error=oauth_failed&reason=exception`);
     }
 }
