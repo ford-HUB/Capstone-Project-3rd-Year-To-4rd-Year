@@ -38,7 +38,7 @@ export const sendMail = async (to, subject, text, templateUsed, variables = {}) 
         console.log(`📧 Sending email via transporter...`);
         // const info = await mailer.email.send(params)
         const infomation = await transporter.sendMail({
-            from: 'no-reply@uclmcares.online',
+            from: `"UCLM CARES" <${process.env.AUTH_MAILER}>`,
             to: to,
             subject: subject,
             html: htmlContent,
@@ -46,7 +46,7 @@ export const sendMail = async (to, subject, text, templateUsed, variables = {}) 
         })
         console.log('✅ Email Sent Successfully: ', infomation)
         return { success: true, messageId: infomation };
-        
+
     } catch (error) {
         console.log('❌ Send Mail Failed: ', error.message)
         throw error;
