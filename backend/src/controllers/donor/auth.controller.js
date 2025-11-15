@@ -188,11 +188,6 @@ export const reSendCode = async (req, res) => {
 
 export const checkAuth = async (req, res) => {
     try {
-        console.log('checkAuth controller:', {
-            hasUser: !!req.user,
-            userId: req.user?.account_id,
-            userRole: req.user?.Role?.name
-        })
         res.json({success: true, message: 'user authenticated', user: req.user})
     } catch (error) {
         console.error('Check Auth controller failed :', error.message)
@@ -462,6 +457,13 @@ export const resetPassword = async (req, res) => {
 
 export const oauthSuccess = async (req, res) => {
     try {
+        console.log('OAuth success handler called', {
+            hasUser: !!req.user,
+            userId: req.user?.account_id,
+            email: req.user?.email,
+            role: req.user?.Role?.name
+        });
+        
         // Validate user exists and has correct role
         if (!req.user) {
             console.error('OAuth success: No user in session');
@@ -469,7 +471,11 @@ export const oauthSuccess = async (req, res) => {
         }
         
         if (!req.user.Role || req.user.Role.name !== 'donor') {
-            console.error('OAuth success: Invalid role', { role: req.user.Role?.name });
+            console.error('OAuth success: Invalid role', { 
+                account_id: req.user.account_id,
+                email: req.user.email,
+                role: req.user.Role?.name 
+            });
             return res.redirect(`${FRONTEND_URL}/donor/login?error=oauth_failed&reason=bad_role`);
         }
         
@@ -504,11 +510,14 @@ export const oauthSuccess = async (req, res) => {
         
         // Generate JWT token and set in httpOnly cookie
         try {
-            console.log('OAuth success: Generating JWT for account_id:', req.user.account_id);
             await generateToken(req.user.account_id, res);
-            console.log('OAuth success: JWT token generated and cookie set');
+            console.log('OAuth success: JWT token generated for account_id:', req.user.account_id);
         } catch (tokenError) {
-            console.error('Failed to generate token during OAuth:', tokenError);
+            console.error('Failed to generate token during OAuth:', {
+                error: tokenError.message,
+                stack: tokenError.stack,
+                account_id: req.user.account_id
+            });
             return res.redirect(`${FRONTEND_URL}/donor/login?error=oauth_failed&reason=token_generation_failed`);
         }
         
@@ -529,12 +538,18 @@ export const oauthSuccess = async (req, res) => {
                     path: '/'
                 });
                 
+                console.log('OAuth success: Redirecting to frontend', { account_id: req.user.account_id });
                 // Redirect to frontend OAuth success page (token is in httpOnly cookie)
                 return res.redirect(`${FRONTEND_URL}/donor/oauth-success`);
             });
         });
     } catch (error) {
-        console.error('OAuth success handler failed:', error.message, error.stack);
+        console.error('OAuth success handler failed:', {
+            message: error.message,
+            stack: error.stack,
+            hasUser: !!req.user,
+            userId: req.user?.account_id
+        });
         return res.redirect(`${FRONTEND_URL}/donor/login?error=oauth_failed&reason=exception`);
     }
 }

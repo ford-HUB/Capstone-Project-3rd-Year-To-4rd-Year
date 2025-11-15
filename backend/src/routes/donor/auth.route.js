@@ -8,6 +8,7 @@ import { validateRequest } from "../../middleware/validateRequest.middleware.js"
 import { loginGoogle, googleCallback, facebookLogin, facebookCallback } from "../../middleware/authentication.js"
 import { guard } from "../../middleware/guard.js"
 import { googleGuard } from "../../middleware/googleGuard.js"
+import { oauthSessionGuard } from "../../middleware/oauthSessionGuard.js"
 
 // @ Controllers
 import { signup, login, logout, VerifyCode, reSendCode, checkAuth, checkEmailForPasswordReset, forgotPassword, resetPassword, oauthSuccess } from "../../controllers/donor/auth.controller.js"
@@ -35,7 +36,7 @@ authDonorRouter.get('/facebook/login', facebookLogin)
 authDonorRouter.get('/facebook/callback', facebookCallback)
 
 // OAuth success handler - generates JWT token after OAuth
-authDonorRouter.get('/oauth-success', oauthSuccess)
+authDonorRouter.get('/oauth-success', oauthSessionGuard, oauthSuccess)
 
 
 authDonorRouter.get('/protected', googleGuard('donor'), (req, res) => {

@@ -12,38 +12,108 @@ export const googleStrategy = new GoogleStrategy({
   },
   async (accessToken, refreshToken, profile, done) => {
     try {
-        console.log('Google OAuth strategy:', { profileId: profile.id, email: profile.emails?.[0]?.value })
-        const googleAccount = await Donor.findOne({ where: { provider_id: profile.id } })
+        const email = profile.emails?.[0]?.value;
+        if (!email) {
+            return done(new Error('Email is required for Google OAuth'), null);
+        }
 
-        if(!googleAccount)
-        {
-            const newAccount = await Accounts.create({
-                email: profile.emails?.[0].value,
-                password: 'google oauth' 
-            })
+        // First, check if Donor account exists with this provider_id
+        let googleAccount = await Donor.findOne({ where: { provider_id: profile.id } })
 
-            await Role.create({
-                account_id: newAccount.account_id,
-                name: 'donor',
-                description: 'This role allowed to donate into the event'
-            })
+        if(!googleAccount) {
+            // Check if email already exists in Accounts
+            const existingAccount = await Accounts.findOne({ where: { email: email } });
+            
+            if (existingAccount) {
+                // Check if this account already has a Donor record
+                const existingDonor = await Donor.findOne({ where: { account_id: existingAccount.account_id } });
+                
+                if (existingDonor) {
+                    // Account exists with Donor record but different provider_id
+                    // Update the provider_id to link this OAuth account
+                    await Donor.update(
+                        { 
+                            provider_id: profile.id,
+                            auth_provider: 'Google',
+                            profile_image: profile.photos?.[0]?.value,
+                            is_verified: profile.emails?.[0]?.verified
+                        },
+                        { where: { account_id: existingAccount.account_id } }
+                    );
+                    
+                    const user = await Accounts.findByPk(existingAccount.account_id, {
+                        include: [{
+                            model: Role,
+                            attributes: ['name']
+                        }]
+                    });
+                    
+                    // Verify donor role
+                    if (!user || !user.Role || user.Role.name !== 'donor') {
+                        console.error('Google OAuth: Existing account does not have donor role', {
+                            account_id: user?.account_id,
+                            email: user?.email,
+                            role: user?.Role?.name
+                        });
+                        return done(new Error(`Account does not have donor role. Current role: ${user?.Role?.name || 'none'}`), null);
+                    }
+                    
+                    return done(null, user);
+                } else {
+                    // Account exists but no Donor record - check role
+                    const accountWithRole = await Accounts.findByPk(existingAccount.account_id, {
+                        include: [{
+                            model: Role,
+                            attributes: ['name']
+                        }]
+                    });
+                    
+                    if (accountWithRole?.Role?.name === 'donor') {
+                        // Create Donor record for existing account
+                        await Donor.create({
+                            account_id: existingAccount.account_id,
+                            fullname: profile.displayName,
+                            provider_id: profile.id,
+                            auth_provider: 'Google',
+                            profile_image: profile.photos?.[0]?.value,
+                            is_verified: profile.emails?.[0]?.verified
+                        });
+                        
+                        return done(null, accountWithRole);
+                    } else {
+                        return done(new Error(`Email already registered with role: ${accountWithRole?.Role?.name || 'none'}. Please use a different email or login with your existing account.`), null);
+                    }
+                }
+            } else {
+                // New account - create everything
+                const newAccount = await Accounts.create({
+                    email: email,
+                    password: 'google oauth' 
+                });
 
-            await Donor.create({
-                account_id: newAccount.account_id,
-                fullname: profile.displayName,
-                provider_id: profile.id,
-                auth_provider: 'Google',
-                profile_image: profile.photos?.[0].value,
-                is_verified: profile.emails?.[0].verified
-            })
+                await Role.create({
+                    account_id: newAccount.account_id,
+                    name: 'donor',
+                    description: 'This role allowed to donate into the event'
+                });
 
-            const user = await Accounts.findByPk(newAccount.account_id, {
-                include: [{
-                    model: Role,
-                    attributes: ['name']
-                }]
-            })
-            return done(null, user)
+                await Donor.create({
+                    account_id: newAccount.account_id,
+                    fullname: profile.displayName,
+                    provider_id: profile.id,
+                    auth_provider: 'Google',
+                    profile_image: profile.photos?.[0]?.value,
+                    is_verified: profile.emails?.[0]?.verified
+                });
+
+                const user = await Accounts.findByPk(newAccount.account_id, {
+                    include: [{
+                        model: Role,
+                        attributes: ['name']
+                    }]
+                });
+                return done(null, user);
+            }
         }  
 
         const user = await Accounts.findByPk(googleAccount.account_id, {
@@ -53,25 +123,16 @@ export const googleStrategy = new GoogleStrategy({
             }]
         })
         
-        console.log('Google OAuth: Found existing account', {
-            account_id: user?.account_id,
-            email: user?.email,
-            role: user?.Role?.name,
-            donor_account_id: googleAccount.account_id
-        })
-        
         // Verify the account has donor role
         if (!user || !user.Role || user.Role.name !== 'donor') {
-            console.error('Google OAuth: Account found but role is not donor - REJECTING', {
+            console.error('Google OAuth: Account found but role is not donor', {
                 account_id: user?.account_id,
                 email: user?.email,
-                role: user?.Role?.name,
-                expectedRole: 'donor'
+                role: user?.Role?.name
             })
             return done(new Error(`Account does not have donor role. Current role: ${user?.Role?.name || 'none'}`), null)
         }
         
-        console.log('Google OAuth: Account verified with donor role', { account_id: user.account_id })
         return done(null, user)
 
     } catch (error) {

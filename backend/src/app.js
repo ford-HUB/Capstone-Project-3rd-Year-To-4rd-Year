@@ -75,18 +75,6 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }))
 
-// Debug header visibility for auth check route
-app.use((req, res, next) => {
-    if (req.path === '/api/donor-auth/checkAuth') {
-        console.log('checkAuth request headers', {
-            hasAuthHeader: !!req.headers?.authorization,
-            hasJwtCookie: !!req.cookies?.jwt,
-            origin: req.headers?.origin
-        })
-    }
-    next()
-})
-
 app.use(session({
     secret: process.env.JWT_SECRET_KEY,
     resave: false,
