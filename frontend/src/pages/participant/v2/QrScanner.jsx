@@ -56,7 +56,7 @@ const QRScanner = () => {
                     stopScanning();
                     if (decodedText.startsWith('/api/attendance/scanQr/attendance?')) { // validating the api endpoint
                        try {
-gii                           // Directly scan QR - don't call checkAuth as it may interfere
+                           // Directly scan QR - don't call checkAuth as it may interfer
                            const response = await scanQrTrigger(decodedText)
                            if(!response || !response.success) {
                                const errorMsg = response?.message || 'Failed to scan QR code. Please try again.'
