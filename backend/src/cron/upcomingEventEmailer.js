@@ -3,7 +3,7 @@ import { Op } from 'sequelize';
 import models from '../models/index.js';
 import { sendMail } from '../services/mailService.js';
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
+import utc from 'dayjs/plugin/utc.js';
 
 const { Event, Volunteer, Student, Accounts } = models;
 
