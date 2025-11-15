@@ -21,29 +21,38 @@ export const ScanQRAttendance = async (req, res) => {
         switch(req.user.Role.name) {
             case 'student':
                 const student = await Student.findOne({ where: { account_id: accountId } })
+                if(!student) { return res.json({ success: false, message: 'Student record not found' }) }
                 participant = await Volunteer.findOne({ where: { student_id: student.student_id } })
+                if(!participant) { return res.json({ success: false, message: 'Volunteer record not found. Please complete your volunteer profile first.' }) }
                 participant_id = participant.volunteer_id
                 break
             case 'beneficiary':
                 participant = await Beneficiary.findOne({ where: { account_id: accountId } })
+                if(!participant) { return res.json({ success: false, message: 'Beneficiary record not found' }) }
                 participant_id = participant.beneficiary_id
                 break
             case 'director':
                 participant = await Director.findOne({ where: { account_id: accountId } })
+                if(!participant) { return res.json({ success: false, message: 'Director record not found' }) }
                 participant_id = participant.director_id
                 break
             case 'staff':
                 participant = await Staff.findOne({ where: { account_id: accountId } })
+                if(!participant) { return res.json({ success: false, message: 'Staff record not found' }) }
                 participant_id = participant.staff_id
                 break
             case 'coordinator':
             case 'assistant_coordinator':
                 participant = await Coordinator.findOne({ where: { account_id: accountId } })
+                if(!participant) { return res.json({ success: false, message: 'Coordinator record not found' }) }
                 participant_id = participant.coordinator_id
                 break
             default:
-                console.log('role type is out of our scope')
-                break
+                return res.json({ success: false, message: 'Invalid user role for attendance scanning' })
+        }
+
+        if(!participant_id) {
+            return res.json({ success: false, message: 'Participant ID not found. Please contact support.' })
         }
 
         const now = new Date()
