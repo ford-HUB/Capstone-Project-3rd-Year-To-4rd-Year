@@ -53,15 +53,25 @@ export const googleStrategy = new GoogleStrategy({
             }]
         })
         
+        console.log('Google OAuth: Found existing account', {
+            account_id: user?.account_id,
+            email: user?.email,
+            role: user?.Role?.name,
+            donor_account_id: googleAccount.account_id
+        })
+        
         // Verify the account has donor role
         if (!user || !user.Role || user.Role.name !== 'donor') {
-            console.error('Google OAuth: Account found but role is not donor', {
+            console.error('Google OAuth: Account found but role is not donor - REJECTING', {
                 account_id: user?.account_id,
-                role: user?.Role?.name
+                email: user?.email,
+                role: user?.Role?.name,
+                expectedRole: 'donor'
             })
-            return done(new Error('Account does not have donor role'), null)
+            return done(new Error(`Account does not have donor role. Current role: ${user?.Role?.name || 'none'}`), null)
         }
         
+        console.log('Google OAuth: Account verified with donor role', { account_id: user.account_id })
         return done(null, user)
 
     } catch (error) {
