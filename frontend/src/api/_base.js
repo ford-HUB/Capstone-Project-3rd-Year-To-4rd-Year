@@ -32,15 +32,25 @@ apiInstance.interceptors.request.use((config) => {
         // - Let them use cookies naturally
         // - Override any global defaults that might interfere
         if (!isDonorEndpoint) {
-            // Only remove Authorization if it exists from global defaults
-            // This prevents OAuthSuccess from interfering with other roles
-            if (config.headers?.Authorization || apiInstance.defaults.headers?.common?.Authorization) {
-                if (!config.headers) {
-                    config.headers = {};
-                }
-                // Remove Authorization header to prevent conflicts with cookie auth
+            // Ensure headers object exists
+            if (!config.headers) {
+                config.headers = {};
+            }
+            
+            // CRITICAL: Remove Authorization header if it exists (from global defaults or config)
+            // This prevents OAuthSuccess from interfering with cookie-based auth for volunteers/students
+            if (config.headers.Authorization) {
                 delete config.headers.Authorization;
             }
+            
+            // Also check if global defaults have Authorization and ensure it's not applied
+            // Note: We can't delete from defaults here, but we ensure it's not in the request
+            if (apiInstance.defaults.headers?.common?.Authorization) {
+                // Explicitly set Authorization to undefined to override any defaults
+                config.headers.Authorization = undefined;
+                delete config.headers.Authorization;
+            }
+            
             // Return early - don't process non-donor endpoints
             return config;
         }

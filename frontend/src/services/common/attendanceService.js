@@ -2,14 +2,27 @@ import { apiInstance } from "../../api/_base.js";
 
 export const ScanQrAttendance = async (decodedLink) => {
     try {
-        const response = await apiInstance.get(decodedLink)
+        // Ensure the decodedLink is a valid path (starts with /)
+        const url = decodedLink.startsWith('/') ? decodedLink : `/${decodedLink}`;
+        
+        // apiInstance already has withCredentials: true set globally
+        const response = await apiInstance.get(url)
         return {
             success: response.data.success,
             message: response.data.message,
             eventDetails: response.data.eventDetails
         }
     } catch (error) {
-        console.error('Error scanning QR attendance:', error);
+        // Handle 401 Unauthorized - user needs to re-authenticate
+        if (error.response?.status === 401) {
+            return {
+                success: false,
+                message: 'Your session has expired. Please log in again.',
+                eventDetails: null,
+                requiresAuth: true
+            }
+        }
+        
         // Extract error message from backend response if available
         const errorMessage = error.response?.data?.message || 
                             error.message || 

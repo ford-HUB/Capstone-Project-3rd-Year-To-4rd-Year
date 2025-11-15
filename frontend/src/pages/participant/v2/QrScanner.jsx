@@ -14,12 +14,13 @@ import '../../../styles/videoSize.css';
 
 
 const QRScanner = () => {
+    const navigate = useNavigate();
     const [isScanning, setIsScanning] = useState(false);
     const [scannedData, setScannedData] = useState('');
     const [error, setError] = useState('');
     const [cameraMode, setCameraMode] = useState('environment');
 
-    const { authenticatedUser } = useAuthStore()
+    const { authenticatedUser, checkAuth } = useAuthStore()
 
     const scannerRef = useRef(null);
     const containerId = 'qr-scanner-container';
@@ -55,9 +56,32 @@ const QRScanner = () => {
                     stopScanning();
                     if (decodedText.startsWith('/api/attendance/scanQr/attendance?')) { // validating the api endpoint
                        try {
+                           // Verify authentication before scanning
+                           const isAuthenticated = await checkAuth()
+                           if (!isAuthenticated) {
+                               toast.error('Your session has expired. Please log in again.')
+                               setTimeout(() => {
+                                   navigate('/login')
+                               }, 2000)
+                               return
+                           }
+                           
                            const response = await scanQrTrigger(decodedText)
                            if(!response || !response.success) {
                                const errorMsg = response?.message || 'Failed to scan QR code. Please try again.'
+                               
+                               // Handle authentication required
+                               if (response?.requiresAuth || errorMsg.includes('session') || errorMsg.includes('expired') || errorMsg.includes('Unauthorized')) {
+                                   toast.error('Your session has expired. Please log in again.', {
+                                       duration: 5000
+                                   })
+                                   // Redirect to login after a delay
+                                   setTimeout(() => {
+                                       navigate('/login')
+                                   }, 2000)
+                                   return
+                               }
+                               
                                return toast.error(errorMsg)
                            }
                            toast.custom((t) => (
@@ -65,7 +89,7 @@ const QRScanner = () => {
                            ))
 
                             setTimeout(() => {
-                                if(response.eventDetails && response.eventDetails.status === 'Completed' && (authenticatedUser.Role.name === 'student' || authenticatedUser.Role.name === 'beneficiary'))
+                                if(response.eventDetails && response.eventDetails.status === 'Completed' && authenticatedUser?.Role?.name === 'student' || response.eventDetails.status === 'Completed' && authenticatedUser?.Role?.name === 'beneficiary')
                                 {
                                     // Show certificate requirements reminder modal after attendance timeout
                                     setShowCertificateReminderModal({ open: true, eventData: response.eventDetails })
@@ -73,6 +97,13 @@ const QRScanner = () => {
                             }, 8000)
                        } catch (error) {
                            console.error('Error processing QR scan:', error)
+                           if (error.response?.status === 401 || error.message?.includes('401')) {
+                               toast.error('Your session has expired. Please log in again.')
+                               setTimeout(() => {
+                                   navigate('/login')
+                               }, 2000)
+                               return
+                           }
                            toast.error('Failed to process QR code. Please try again.')
                        }
                     } else {
