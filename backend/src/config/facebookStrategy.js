@@ -12,6 +12,7 @@ export const facebookStrategy = new metaStrategy({
     profileFields: ['id', 'displayName', 'photos', 'email']
 }, async(accessToken, refreshToken, profile, done) => {
     try {
+        console.log('Facebook OAuth strategy:', { profileId: profile.id, email: profile.emails?.[0]?.value })
         const facebookAccount = await Donor.findOne({ where: { provider_id: profile.id } })
 
         if(!facebookAccount)
@@ -51,6 +52,16 @@ export const facebookStrategy = new metaStrategy({
                 attributes: ['name']
             }]
         })
+        
+        // Verify the account has donor role
+        if (!user || !user.Role || user.Role.name !== 'donor') {
+            console.error('Facebook OAuth: Account found but role is not donor', {
+                account_id: user?.account_id,
+                role: user?.Role?.name
+            })
+            return done(new Error('Account does not have donor role'), null)
+        }
+        
         return done(null, user)
 
     } catch (error) {

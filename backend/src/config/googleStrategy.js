@@ -12,6 +12,7 @@ export const googleStrategy = new GoogleStrategy({
   },
   async (accessToken, refreshToken, profile, done) => {
     try {
+        console.log('Google OAuth strategy:', { profileId: profile.id, email: profile.emails?.[0]?.value })
         const googleAccount = await Donor.findOne({ where: { provider_id: profile.id } })
 
         if(!googleAccount)
@@ -51,6 +52,16 @@ export const googleStrategy = new GoogleStrategy({
                 attributes: ['name']
             }]
         })
+        
+        // Verify the account has donor role
+        if (!user || !user.Role || user.Role.name !== 'donor') {
+            console.error('Google OAuth: Account found but role is not donor', {
+                account_id: user?.account_id,
+                role: user?.Role?.name
+            })
+            return done(new Error('Account does not have donor role'), null)
+        }
+        
         return done(null, user)
 
     } catch (error) {
