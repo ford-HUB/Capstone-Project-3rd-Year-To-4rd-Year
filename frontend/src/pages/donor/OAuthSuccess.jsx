@@ -38,11 +38,24 @@ const OAuthSuccess = () => {
             window.history.replaceState(null, '', cleanUrl);
           }
           
+          // Verify token is stored
+          const storedToken = localStorage.getItem('donor_jwt');
+          if (!storedToken || storedToken !== token) {
+            console.error('OAuth: Token not properly stored in localStorage');
+            setStatus('error');
+            setError('Failed to store authentication token. Please try again.');
+            setTimeout(() => {
+              navigate('/donor/login');
+            }, 3000);
+            return;
+          }
+          
           // Small delay to ensure token is properly set
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise(resolve => setTimeout(resolve, 200));
           
           // Verify authentication by calling checkAuth
           console.log('OAuth: Calling handleOAuthSuccess to verify authentication');
+          console.log('OAuth: Token in localStorage before API call:', !!localStorage.getItem('donor_jwt'));
           const isAuthenticated = await handleOAuthSuccess();
           console.log('OAuth: Authentication result:', isAuthenticated);
           
