@@ -11,8 +11,20 @@ export const apiInstance = axios.create({
 apiInstance.interceptors.request.use((config) => {
     try {
         // STRICT: Only process donor endpoints - ignore all other endpoints completely
+        // Donor endpoints include:
+        // - /api/donor-auth/ (donor authentication)
+        // - /api/donor/ (donor profile)
+        // - /api/donation/my (donor's donations)
+        // - /api/donation/my/history (donor's donation history)
+        // - /api/donation/submit-goods (donor submitting goods)
+        // - /api/v1/payment/donate-now (donor payment)
+        // Note: Some /api/donation/ endpoints are for director/staff (they use cookies)
         const isDonorEndpoint = config.url?.includes('/api/donor-auth/') || 
-                                config.url?.includes('/api/donor/');
+                                config.url?.includes('/api/donor/') ||
+                                (config.url?.includes('/api/donation/') && 
+                                 (config.url?.includes('/my') || 
+                                  config.url?.includes('/submit-goods'))) ||
+                                config.url?.includes('/api/v1/payment/donate-now');
         
         // For non-donor endpoints (student/volunteer/beneficiary/management/director):
         // - Do NOT add Authorization header
