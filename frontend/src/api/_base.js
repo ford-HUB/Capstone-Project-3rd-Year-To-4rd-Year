@@ -6,14 +6,34 @@ export const apiInstance = axios.create({
 })
 
 // Interceptor to add JWT token from localStorage ONLY for donor requests
-// Volunteers/students use httpOnly cookies, so we don't add Authorization header for them
+// DO NOT modify requests for: student, volunteer, beneficiary, management, director
+// These roles use httpOnly cookies for authentication, not Authorization headers
 apiInstance.interceptors.request.use((config) => {
     try {
-        // Only add Authorization header for donor endpoints
-        // Volunteer/student endpoints use cookies, not Authorization headers
+        // STRICT: Only process donor endpoints - ignore all other endpoints completely
         const isDonorEndpoint = config.url?.includes('/api/donor-auth/') || 
                                 config.url?.includes('/api/donor/');
         
+        // For non-donor endpoints (student/volunteer/beneficiary/management/director):
+        // - Do NOT add Authorization header
+        // - Do NOT modify headers at all
+        // - Let them use cookies naturally
+        // - Override any global defaults that might interfere
+        if (!isDonorEndpoint) {
+            // Only remove Authorization if it exists from global defaults
+            // This prevents OAuthSuccess from interfering with other roles
+            if (config.headers?.Authorization || apiInstance.defaults.headers?.common?.Authorization) {
+                if (!config.headers) {
+                    config.headers = {};
+                }
+                // Remove Authorization header to prevent conflicts with cookie auth
+                delete config.headers.Authorization;
+            }
+            // Return early - don't process non-donor endpoints
+            return config;
+        }
+        
+        // ONLY process donor endpoints from here
         if (isDonorEndpoint) {
             // Ensure headers object exists
             if (!config.headers) {
@@ -23,27 +43,6 @@ apiInstance.interceptors.request.use((config) => {
             const token = localStorage.getItem('donor_jwt');
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
-                // Debug log for checkAuth requests
-                if (config.url?.includes('checkAuth')) {
-                    console.log('[API Interceptor] Adding Authorization header for donor:', {
-                        hasToken: !!token,
-                        tokenLength: token.length,
-                        tokenPreview: token.substring(0, 20) + '...',
-                        url: config.url,
-                        headerSet: !!config.headers.Authorization
-                    });
-                }
-            } else {
-                if (config.url?.includes('checkAuth')) {
-                    console.warn('[API Interceptor] No donor token found in localStorage for donor checkAuth request');
-                }
-            }
-        } else {
-            // For non-donor endpoints (volunteer/student), ensure we don't add Authorization header
-            // They use cookies instead
-            if (config.headers?.Authorization && !isDonorEndpoint) {
-                // Remove Authorization header if it was set for non-donor endpoints
-                delete config.headers.Authorization;
             }
         }
     } catch (error) {
