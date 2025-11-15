@@ -15,33 +15,19 @@ const OAuthSuccess = () => {
       try {
         setStatus('processing');
         
-        // Read token from URL fragment (if provided), then clear fragment
-        const hash = window.location.hash || '';
-        const tokenMatch = hash.match(/token=([^&]+)/);
-        if (tokenMatch?.[1]) {
-          const token = decodeURIComponent(tokenMatch[1]);
-          try {
-            sessionStorage.setItem('donor_jwt', token);
-          } catch {}
-          // Attach Bearer token for subsequent requests
-          apiInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          // Remove token from URL
-          if (window.history?.replaceState) {
-            const cleanUrl = window.location.pathname + window.location.search;
-            window.history.replaceState(null, '', cleanUrl);
-          }
-        } else {
-          // Use existing session token if present
-          const saved = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('donor_jwt') : null;
-          if (saved) {
-            apiInstance.defaults.headers.common['Authorization'] = `Bearer ${saved}`;
-          }
+        // Clear any URL fragments (token should be in httpOnly cookie, not URL)
+        if (window.history?.replaceState && window.location.hash) {
+          const cleanUrl = window.location.pathname + window.location.search;
+          window.history.replaceState(null, '', cleanUrl);
         }
         
-        // Wait a moment for the backend to process the OAuth
+        // Remove any Authorization header - rely on httpOnly cookie only
+        delete apiInstance.defaults.headers.common['Authorization'];
+        
+        // Wait a moment for the backend to process the OAuth and set cookie
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Handle OAuth success
+        // Handle OAuth success - this will verify the JWT cookie
         const isAuthenticated = await handleOAuthSuccess();
         
         if (isAuthenticated) {
@@ -52,7 +38,7 @@ const OAuthSuccess = () => {
           }, 2000);
         } else {
           setStatus('error');
-          setError('OAuth authentication failed');
+          setError('OAuth authentication failed. Please try again.');
           // If not authenticated, redirect to login after delay
           setTimeout(() => {
             navigate('/donor/login');
@@ -61,7 +47,7 @@ const OAuthSuccess = () => {
       } catch (error) {
         console.error('OAuth success handling failed:', error);
         setStatus('error');
-        setError(error.message);
+        setError(error.message || 'Authentication failed. Please try again.');
         setTimeout(() => {
           navigate('/donor/login');
         }, 3000);

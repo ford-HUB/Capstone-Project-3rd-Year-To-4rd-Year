@@ -457,28 +457,52 @@ export const resetPassword = async (req, res) => {
 
 export const oauthSuccess = async (req, res) => {
     try {
-        // Minimal diagnostics to identify production failure points
-        console.log('OAuth success handler entered', {
-            hasUser: !!req.user,
-            role: req.user?.Role?.name,
-            sessionId: req.sessionID,
-            isAuthenticated: typeof req.isAuthenticated === 'function' ? req.isAuthenticated() : undefined,
-            forwardedProto: req.headers['x-forwarded-proto'],
-            host: req.headers['host']
-        })
-
+        // Validate user exists and has correct role
         if (!req.user) {
+            console.error('OAuth success: No user in session');
             return res.redirect(`${FRONTEND_URL}/donor/login?error=oauth_failed&reason=no_user`);
         }
         
         if (!req.user.Role || req.user.Role.name !== 'donor') {
+            console.error('OAuth success: Invalid role', { role: req.user.Role?.name });
             return res.redirect(`${FRONTEND_URL}/donor/login?error=oauth_failed&reason=bad_role`);
         }
         
-        const token = await generateToken(req.user.account_id, res);
-        return res.redirect(`${FRONTEND_URL}/donor/oauth-success#token=${encodeURIComponent(token)}`);
+        // Set user as active
+        const { Accounts } = models;
+        await Accounts.update({ is_active: true }, { where: { account_id: req.user.account_id } });
+        
+        // Generate JWT token and set in httpOnly cookie
+        try {
+            await generateToken(req.user.account_id, res);
+        } catch (tokenError) {
+            console.error('Failed to generate token during OAuth:', tokenError);
+            return res.redirect(`${FRONTEND_URL}/donor/login?error=oauth_failed&reason=token_generation_failed`);
+        }
+        
+        // Destroy session after successful OAuth (we're using JWT now)
+        req.logout((err) => {
+            if (err) {
+                console.error('Error during logout after OAuth:', err);
+            }
+            req.session.destroy((destroyErr) => {
+                if (destroyErr) {
+                    console.error('Error destroying session after OAuth:', destroyErr);
+                }
+                // Clear session cookie
+                res.clearCookie('connect.sid', {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+                    path: '/'
+                });
+                
+                // Redirect to frontend OAuth success page (token is in httpOnly cookie)
+                return res.redirect(`${FRONTEND_URL}/donor/oauth-success`);
+            });
+        });
     } catch (error) {
-        console.error('OAuth success handler failed:', error.message);
+        console.error('OAuth success handler failed:', error.message, error.stack);
         return res.redirect(`${FRONTEND_URL}/donor/login?error=oauth_failed&reason=exception`);
     }
 }

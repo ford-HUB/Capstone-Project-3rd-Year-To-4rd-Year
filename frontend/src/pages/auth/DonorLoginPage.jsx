@@ -25,8 +25,33 @@ const DonorLoginPage = () => {
     // Handle OAuth error
     React.useEffect(() => {
         const error = searchParams.get('error')
+        const reason = searchParams.get('reason')
+        
         if (error === 'oauth_failed') {
-            toast.error('OAuth authentication failed. Please check your OAuth configuration and try again.')
+            let errorMessage = 'OAuth authentication failed. Please try again.'
+            
+            switch (reason) {
+                case 'no_user':
+                    errorMessage = 'OAuth authentication failed: User not found in session.'
+                    break
+                case 'bad_role':
+                    errorMessage = 'OAuth authentication failed: Invalid user role.'
+                    break
+                case 'token_generation_failed':
+                    errorMessage = 'OAuth authentication failed: Could not generate authentication token.'
+                    break
+                case 'exception':
+                    errorMessage = 'OAuth authentication failed: An unexpected error occurred.'
+                    break
+                default:
+                    errorMessage = 'OAuth authentication failed. Please try again.'
+            }
+            
+            toast.error(errorMessage)
+            
+            // Clean up URL parameters
+            const cleanUrl = window.location.pathname
+            window.history.replaceState({}, '', cleanUrl)
         }
     }, [searchParams])
 

@@ -91,10 +91,13 @@ app.use(session({
     secret: process.env.JWT_SECRET_KEY,
     resave: false,
     saveUninitialized: false,
-    proxy: true,
+    proxy: true, // Trust proxy for secure cookies behind reverse proxies
+    name: 'connect.sid', // Session cookie name
     cookie: { 
-        secure: process.env.NODE_ENV !=='development',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+        secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // CSRF protection
+        httpOnly: true, // Prevent XSS attacks
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours (session only used during OAuth flow)
     }
 }))
 

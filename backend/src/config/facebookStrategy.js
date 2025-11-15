@@ -54,7 +54,11 @@ export const facebookStrategy = new metaStrategy({
         return done(null, user)
 
     } catch (error) {
-        console.error('Facebook OAuth strategy failed:', error.message)
-        done(error, null)
+        console.error('Facebook OAuth strategy failed:', {
+            message: error.message,
+            stack: error.stack,
+            profileId: profile?.id
+        });
+        done(error, null);
     }
 })
