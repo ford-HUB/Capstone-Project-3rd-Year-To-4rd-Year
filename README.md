@@ -1,5 +1,5 @@
 # Capstone-Project-3rd-Year-To-4rd-Year
-UCLM CARES - AI Enchanced Volunteer Event Management, Donation Drives, and Financial Reporting System
+UCLM CARES - AI Enhanced Volunteer Event Management, Donation Drives, and Financial Reporting System
 ⚡️ Key Features:
 AI-powered event recommendations and participant matching
 Real-time attendance tracking and activity monitoring
