@@ -547,9 +547,8 @@ export const VerifyCode = async (req, res) => {
         if (!rq_access) { return res.json({ message: 'rq_access parameter is required' })}
 
         // Decrypt rq_access to get the email
-        const decrypted_data = CryptoJS.AES
-            .decrypt(rq_access, process.env.CRYPTO_SECRET_KEY)
-            .toString(CryptoJS.enc.Utf8)
+        const decrypted = CryptoJS.AES.decrypt(rq_access, process.env.CRYPTO_SECRET_KEY);
+        const decrypted_data = decrypted.toString(CryptoJS.enc.Utf8);
 
         const user = await Accounts.findOne({ where: { email: decrypted_data } })
         if (!user) { return res.json({ message: 'User not found' }) }
@@ -587,10 +586,10 @@ export const reSendCode = async (req, res) => {
         }
 
         // Decrypt rq_access to get the email
-        const decrypted_data = CryptoJS.AES
-            .decrypt(rq_access, process.env.CRYPTO_SECRET_KEY)
-            .toString(CryptoJS.enc.Utf8)
-
+        
+        const decrypted = CryptoJS.AES.decrypt(rq_access, process.env.CRYPTO_SECRET_KEY);
+        const decrypted_data = decrypted.toString(CryptoJS.enc.Utf8);
+        
         const user = await Accounts.findOne({ where: { email: decrypted_data } })
         if(!user) { return res.json({ success: false, message: 'User not found' }) }
 
