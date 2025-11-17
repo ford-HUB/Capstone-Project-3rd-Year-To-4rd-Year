@@ -7,7 +7,9 @@ import { generateUniqueCode } from "../../utils/generateUniqueCode.js";
 import { generateToken } from "../../utils/generateToken.js";
 import { clearJwtCookie } from "../../utils/clearJwtCookie.js";
 import { emitUserActivityUpdate } from "../../socket.js";
+import dotenv from 'dotenv';
 
+dotenv.config();
 
 export const signup = async (req, res) => {
     const t = await db.transaction();
