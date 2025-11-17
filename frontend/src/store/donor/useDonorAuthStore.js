@@ -36,9 +36,6 @@ export const useDonorAuthStore = create((set) => ({
             toast.success(response.message);
             await setExpiresAt(response.otp_expiration)
             
-            // Set user role for verification page
-            localStorage.setItem('userRole', 'Donor')
-            
             return true;
             
         } catch (error) {
@@ -59,9 +56,6 @@ export const useDonorAuthStore = create((set) => ({
 
             toast.success(response.message)
             set({ authenticatedUser: null })
-            
-            // Clear user role
-            localStorage.removeItem('userRole')
             
             return true
         } catch (error) {

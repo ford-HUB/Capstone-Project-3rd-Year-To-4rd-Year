@@ -1,8 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useAuthStore } from '../../../store/participant/useAuthStore.js';
-import { useDonorAuthStore } from '../../../store/donor/useDonorAuthStore.js';
-import { useProfileStore } from '../../../store/participant/useProfileStore.js';
 import { useVerificationStore } from '../../../store/participant/useVerificationStore.js';
 import { useVerificationStore as useDonorVerificationStore } from '../../../store/donor/useVerificationStore.js';
 import { FormatTime } from '../../../utils/FormatTime.js';
@@ -13,26 +10,21 @@ const VerificationCode = () => {
     const [ searchParams, setSearchParams] = useSearchParams()
     const encrypt_data = searchParams.get('rq_access')
     
-    // Check if user is donor or participant based on localStorage userRole
-    const isDonor = localStorage.getItem('userRole') === 'Donor';
+    // Determine user type based on which expiration key exists
+    // Check both keys to determine which store to use
+    const participantExpiration = localStorage.getItem('verficationExpireAt');
+    const donorExpiration = localStorage.getItem('DonorVerificationExpireAt');
+    const isDonor = !!donorExpiration;
     
-    // Use appropriate stores based on user type
-    const { checkAuth: checkParticipantAuth, authenticatedUser: participantUser } = useAuthStore();
-    const { checkAuth: checkDonorAuth, authenticatedUser: donorUser } = useDonorAuthStore();
-    const { undoEmailChanges } = useProfileStore()
+    // Use appropriate verification store based on expiration key
+    const participantVerification = useVerificationStore();
+    const donorVerification = useDonorVerificationStore();
+    const { otp_expiration, clearExpiresAt, resendCode, verifyCode } = isDonor ? donorVerification : participantVerification;
     
     const [timeLeft, setTimeLeft] = React.useState(0);
     
-    // Use appropriate verification store
-    const participantVerification = useVerificationStore();
-    const donorVerification = useDonorVerificationStore();
-    
-    const { otp_expiration, clearExpiresAt, resendCode, verifyCode } = isDonor ? donorVerification : participantVerification;
-    const { checkAuth, authenticatedUser } = isDonor ? { checkAuth: checkDonorAuth, authenticatedUser: donorUser } : { checkAuth: checkParticipantAuth, authenticatedUser: participantUser };
-    
     const [showResend, setShowResend] = React.useState(false);
     const [isResendLoading, setResendLoading] = React.useState(false)
-    const [undoLoading, setUndoLoading] = React.useState(false)
 
     const [otp, setOtp] = useState(['', '', '', '', '', '', '']);
     const [error, setError] = useState('');
@@ -67,26 +59,6 @@ const VerificationCode = () => {
             if (intervalId) clearInterval(intervalId);
         };
     }, [otp_expiration, clearExpiresAt]);
-
-    React.useEffect(() => {
-        let isMounted = true
-
-        const runCheck = async () => {
-            try {
-                await checkAuth()
-            } catch (error) {
-                if(isMounted) {
-                    console.error("Fetch error:", error);
-                }
-            }
-            
-        };
-
-        runCheck();
-        return () => {
-            isMounted = false
-        }
-    }, [checkAuth]);
 
     useEffect(() => {
         if (inputRefs.current[0]) {
@@ -156,7 +128,6 @@ const VerificationCode = () => {
         setError('');
 
         setTimeout(async () => {
-            // Pass rq_access for both participants and donors
             const success = await verifyCode(enteredOTP, encrypt_data)
             if(!success) {
                 setError('Invalid verification code. Please try again.');
@@ -174,10 +145,9 @@ const VerificationCode = () => {
     };
 
     const handleResendCode = async () => {
-        // Validate rq_access is present
-        if (!encrypt_data) {
+        if (!encrypt_data) { 
             setError('Verification link is invalid. Please request a new verification email.');
-            return;
+            return
         }
 
         setOtp(['', '', '', '', '', '', '']);
@@ -185,34 +155,14 @@ const VerificationCode = () => {
         setIsSuccess(false);
         setResendLoading(true)
         inputRefs.current[0]?.focus();
-        // Pass rq_access for both participants and donors
         const success = await resendCode(encrypt_data)
         if(!success) return setResendLoading(false)
         setResendLoading(false)
-        console.log('Resending verification code...');
-    };
-
-    const handleChangeEmail = async () => {
-        setUndoLoading(true)
-        const success = await undoEmailChanges()
-        if(!success) return setUndoLoading(false)
-        setUndoLoading(false)
-
-        navigate('/participant/profile')
-
     };
 
     const handleContinue = () => {
-        if(!authenticatedUser) {
-            return navigate('/')
-        }
-
-        // Redirect to appropriate dashboard based on user type
-        if (isDonor) {
-            navigate('/donor/dashboard')
-        } else {
-            navigate('/participant/profile')
-        }
+        // Redirect to login page after verification
+        navigate('/')
     }
 
     if (isSuccess) {
@@ -239,9 +189,9 @@ const VerificationCode = () => {
                     <p className="text-gray-600 mb-8">
                         Your email address has been successfully verified.
                     </p>
-                    <button onClick={() => navigate('/')}
+                    <button onClick={handleContinue}
                     className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-xl transition-colors">
-                        Continue
+                        Continue to Login
                     </button>
                 </div>
             </div>
@@ -310,20 +260,6 @@ const VerificationCode = () => {
                         )
                     }
                 </div>
-
-                {
-                    authenticatedUser && 
-                    <div className="text-center mb-6">
-                        <span className="text-gray-600 text-sm">
-                            Want to Change Your Email Address?{' '}
-                        </span>
-                        <button
-                            onClick={handleChangeEmail}
-                            className="cursor-pointer text-green-500 hover:text-green-600 font-medium text-sm underline transition-colors">
-                            Change Here
-                        </button>
-                    </div>
-                }
 
                 <button
                     onClick={handleVerifyEmail}
