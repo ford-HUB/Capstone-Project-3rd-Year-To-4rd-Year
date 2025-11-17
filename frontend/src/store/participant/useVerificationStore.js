@@ -3,9 +3,18 @@ import toast from "react-hot-toast"
 import { verifyCodeUser, resendOTP } from "../../services/participant/verificationService.js"
 
 const VERIFICATION_EXPIREATION = 'verficationExpireAt'
+const VERIFICATION_USER_DATA = 'verificationUserData'
 
 export const useVerificationStore = create((set, get) => ({
     otp_expiration: localStorage.getItem(VERIFICATION_EXPIREATION) || null,
+    userData: (() => {
+        try {
+            const stored = localStorage.getItem(VERIFICATION_USER_DATA)
+            return stored ? JSON.parse(stored) : null
+        } catch {
+            return null
+        }
+    })(),
 
     setExpiresAt: async (timestamp) => {
         try {
@@ -17,19 +26,42 @@ export const useVerificationStore = create((set, get) => ({
         }
     },
 
+    setUserData: (userData) => {
+        try {
+            localStorage.setItem(VERIFICATION_USER_DATA, JSON.stringify(userData))
+            set({ userData })
+        } catch (error) {
+            console.log('set user data failed:', error.message)
+            set({ userData: null })
+        }
+    },
+
     clearExpiresAt: () => {
         localStorage.removeItem(VERIFICATION_EXPIREATION);
         set({ otp_expiration: null });
     },
 
-    resendCode: async (rq_access) => {
+    clearUserData: () => {
+        localStorage.removeItem(VERIFICATION_USER_DATA);
+        set({ userData: null });
+    },
+
+    clearAll: () => {
+        get().clearExpiresAt()
+        get().clearUserData()
+    },
+
+    resendCode: async () => {
         try {
-            const response = await resendOTP(rq_access)
+            const response = await resendOTP()
             if(!response.success) { 
                 toast.error(response.message) 
                 return false
             }
             await get().setExpiresAt(response.otp_expiration)
+            if (response.user) {
+                get().setUserData(response.user)
+            }
             toast.success(response.message)
             return true
 
@@ -39,14 +71,14 @@ export const useVerificationStore = create((set, get) => ({
         }
     },
 
-    verifyCode: async (otp, rq_access) => {
+    verifyCode: async (otp) => {
         try {
-            const response = await verifyCodeUser(otp, rq_access)
+            const response = await verifyCodeUser(otp)
             if(!response.success) {
                 toast.error(response.message)
                 return false
             }
-            // toast.success(response.message)
+            get().clearAll()
             return true
 
         } catch (error) {
@@ -54,6 +86,5 @@ export const useVerificationStore = create((set, get) => ({
             return false
         }
     }
-
 
 }))

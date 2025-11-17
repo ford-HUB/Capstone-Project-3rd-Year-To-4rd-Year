@@ -38,7 +38,7 @@ export const useAuthStore = create((set) => ({
 
     signup: async (formData) => {
         try {
-            const { setExpiresAt } = useVerificationStore.getState()
+            const { setExpiresAt, setUserData } = useVerificationStore.getState()
             const response = await signupUser(formData)
 
             if (!response.success) {
@@ -48,6 +48,10 @@ export const useAuthStore = create((set) => ({
 
             toast.success(response.message);
             await setExpiresAt(response.otp_expiration)
+            // Save user data to local storage for verification
+            if (response.user) {
+                setUserData(response.user)
+            }
             return true;
             
         } catch (error) {

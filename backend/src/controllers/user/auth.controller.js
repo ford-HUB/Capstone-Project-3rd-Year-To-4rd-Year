@@ -107,7 +107,12 @@ export const signup = async (req, res) => {
             return res.json({ 
                 success: true, 
                 message: 'Beneficiary registration successful! Please verify your email.', 
-                otp_expiration: ONE_MINUTE 
+                otp_expiration: ONE_MINUTE,
+                user: {
+                    account_id: newAccount.account_id,
+                    email: newAccount.email,
+                    is_active: newAccount.is_active
+                }
             });
         }
 
@@ -200,7 +205,12 @@ export const signup = async (req, res) => {
         res.json({ 
             success: true, 
             message: 'Volunteer registration successful! Please verify your email.', 
-            otp_expiration: FIVE_MINUTES 
+            otp_expiration: FIVE_MINUTES,
+            user: {
+                account_id: newAccount.account_id,
+                email: newAccount.email,
+                is_active: newAccount.is_active
+            }
         });
 
     } catch (error) {
@@ -542,80 +552,63 @@ export const logout = async (req, res) => {
 export const VerifyCode = async (req, res) => {
     try {
         const { code } = req.body
-        const { rq_access } = req.query
-
-        console.log('rq_access: ', rq_access) 
-
         const { VerificationCodes, Accounts } = models
 
-        if (!rq_access) { return res.json({ message: 'rq_access parameter is required' })}
-
-        // Decrypt rq_access to get the email
-        let decrypted_data;
-        try {
-            decrypted_data = decrypt(rq_access);
-            
-            // Check if decryption was successful
-            if (!decrypted_data) {
-                return res.json({ message: 'Invalid verification link. Please request a new verification email.' })
-            }
-        } catch (decryptError) {
-            console.error('Decryption error:', decryptError.message);
-            return res.status(500).json({ message: 'Server configuration error: CRYPTO_SECRET_KEY is not set' })
+        // Use authenticated user from JWT token
+        if (!req.user || !req.user.account_id) {
+            return res.status(401).json({ success: false, message: 'Unauthorized. Please log in again.' })
         }
 
-        console.log('decrypted_data: ', decrypted_data)
+        const accountId = req.user.account_id
 
-        const user = await Accounts.findOne({ where: { email: decrypted_data } })
-        if (!user) { return res.json({ message: 'User not found' }) }
+        const isMatch = await VerificationCodes.findOne({ where: { account_id: accountId, code: code } })
+        if(!isMatch) { return res.json({ success: false, message: 'Verification Code Does not Match' }) }
 
-        const isMatch = await VerificationCodes.findOne({ where: { account_id: user.account_id, code: code } })
-        if(!isMatch) { return res.json({ message: 'Verification Code Does not Match' }) }
-
-        if(isMatch.used) { return res.json({ message: 'Verification Code Already Used, Please attempt resend code' }) }
+        if(isMatch.used) { return res.json({ success: false, message: 'Verification Code Already Used, Please attempt resend code' }) }
 
         const now = Date.now()
         const expiresAt = new Date(isMatch.expires_at)
-        if(now > expiresAt) { return res.json({ message: 'Verification Code is Expired' }) }
+        if(now > expiresAt) { return res.json({ success: false, message: 'Verification Code is Expired' }) }
 
         const updateStatus = await VerificationCodes.update({ used: true }, { where: { vc_id: isMatch.vc_id } })
-        if(!updateStatus) { return res.json({ message: 'verification code is not successfully updated the status' }) }
+        if(!updateStatus) { return res.json({ success: false, message: 'verification code is not successfully updated the status' }) }
 
         // Activate the account after successful verification
-        await Accounts.update({ is_active: true }, { where: { account_id: user.account_id } });
+        await Accounts.update({ is_active: true }, { where: { account_id: accountId } });
 
-        return res.json({ success: true, message: 'Verification Code Accepted - Account Activated!',  })
+        // Return user data for local storage
+        const user = await Accounts.findOne({ 
+            where: { account_id: accountId },
+            attributes: { exclude: ['password'] }
+        })
+
+        return res.json({ 
+            success: true, 
+            message: 'Verification Code Accepted - Account Activated!',
+            user: {
+                account_id: user.account_id,
+                email: user.email,
+                is_active: user.is_active
+            }
+        })
 
     } catch (error) {
-        res.status(500).json({ message: 'Internal Server Error' })
+        res.status(500).json({ success: false, message: 'Internal Server Error' })
         console.error('VerifyCode controller failed :', error.message)
     }
 }
 
 export const reSendCode = async (req, res) => {
     try {
-        const { rq_access } = req.query
         const { VerificationCodes, Accounts } = models
 
-        if (!rq_access) {
-            return res.json({ success: false, message: 'rq_access parameter is required' })
+        // Use authenticated user from JWT token
+        if (!req.user || !req.user.account_id) {
+            return res.status(401).json({ success: false, message: 'Unauthorized. Please log in again.' })
         }
 
-        // Decrypt rq_access to get the email
-        let decrypted_data;
-        try {
-            decrypted_data = decrypt(rq_access);
-            
-            // Check if decryption was successful
-            if (!decrypted_data) {
-                return res.json({ success: false, message: 'Invalid verification link. Please request a new verification email.' })
-            }
-        } catch (decryptError) {
-            console.error('Decryption error:', decryptError.message);
-            return res.status(500).json({ success: false, message: 'Server configuration error: CRYPTO_SECRET_KEY is not set' })
-        }
-        
-        const user = await Accounts.findOne({ where: { email: decrypted_data } })
+        const accountId = req.user.account_id
+        const user = await Accounts.findOne({ where: { account_id: accountId } })
         if(!user) { return res.json({ success: false, message: 'User not found' }) }
 
         const uniqueCode = await generateUniqueCode()
@@ -624,20 +617,30 @@ export const reSendCode = async (req, res) => {
         const FIVE_MINUTES = new Date(Date.now() + 5 * 60 * 1000) // this will set expireration to 5 minutes
 
         await VerificationCodes.update({
-            account_id: user.account_id,
+            account_id: accountId,
             code: uniqueCode,
             expires_at: FIVE_MINUTES,
             used: false
         }, { 
             where: {
-                account_id: user.account_id
+                account_id: accountId
             }
         })
 
-        res.json({ success: true, message: "New OTP sent to your email", otp_expiration: FIVE_MINUTES })
+        // Return user data for local storage
+        res.json({ 
+            success: true, 
+            message: "New OTP sent to your email", 
+            otp_expiration: FIVE_MINUTES,
+            user: {
+                account_id: user.account_id,
+                email: user.email,
+                is_active: user.is_active
+            }
+        })
         
     } catch (error) {
-        res.status(500).json({ message: 'Internal Server Error' })
+        res.status(500).json({ success: false, message: 'Internal Server Error' })
         console.error('Resend Code controller failed :', error.message)
     }
 }

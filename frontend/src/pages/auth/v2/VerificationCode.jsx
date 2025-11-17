@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { useVerificationStore } from '../../../store/participant/useVerificationStore.js';
 import { useVerificationStore as useDonorVerificationStore } from '../../../store/donor/useVerificationStore.js';
 import { FormatTime } from '../../../utils/FormatTime.js';
@@ -7,25 +6,17 @@ import { useNavigate } from 'react-router-dom';
 
 const VerificationCode = () => {
     const navigate = useNavigate()
-    const [ searchParams, setSearchParams] = useSearchParams()
-    const encrypt_data = searchParams.get('rq_access')
     
-    // Determine user type based on which expiration key exists
-    // Check both keys to determine which store to use
-    const participantExpiration = localStorage.getItem('verficationExpireAt');
     const donorExpiration = localStorage.getItem('DonorVerificationExpireAt');
     const isDonor = !!donorExpiration;
     
-    // Use appropriate verification store based on expiration key
     const participantVerification = useVerificationStore();
     const donorVerification = useDonorVerificationStore();
-    const { otp_expiration, clearExpiresAt, resendCode, verifyCode } = isDonor ? donorVerification : participantVerification;
+    const { otp_expiration, resendCode, verifyCode, userData, clearAll } = isDonor ? donorVerification : participantVerification;
     
     const [timeLeft, setTimeLeft] = React.useState(0);
-    
     const [showResend, setShowResend] = React.useState(false);
     const [isResendLoading, setResendLoading] = React.useState(false)
-
     const [otp, setOtp] = useState(['', '', '', '', '', '', '']);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -33,9 +24,21 @@ const VerificationCode = () => {
     const inputRefs = useRef([]);
 
     React.useEffect(() => {
-        if (!otp_expiration) return;
+        if (!otp_expiration) {
+            setTimeLeft(0);
+            setShowResend(true);
+            return;
+        }
 
         const expiryTime = new Date(otp_expiration).getTime();
+            
+        if (isNaN(expiryTime)) {
+            setTimeLeft(0);
+            setShowResend(true);
+            return;
+        }
+
+        setShowResend(false);
         let intervalId;
 
         const updateTimer = () => {
@@ -44,7 +47,6 @@ const VerificationCode = () => {
 
             if (diff <= 0) {
                 setTimeLeft(0);
-                clearExpiresAt();
                 setShowResend(true);
                 if (intervalId) clearInterval(intervalId);
             } else {
@@ -52,13 +54,13 @@ const VerificationCode = () => {
             }
         };
 
-        intervalId = setInterval(updateTimer, 1000);
         updateTimer();
+        intervalId = setInterval(updateTimer, 1000);
         
         return () => {
             if (intervalId) clearInterval(intervalId);
         };
-    }, [otp_expiration, clearExpiresAt]);
+    }, [otp_expiration]);
 
     useEffect(() => {
         if (inputRefs.current[0]) {
@@ -67,7 +69,6 @@ const VerificationCode = () => {
     }, []);
 
     const handleInputChange = (index, value) => {
-        // Only allow alphanumeric characters
         const sanitizedValue = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
 
         if (sanitizedValue.length <= 1) {
@@ -76,7 +77,6 @@ const VerificationCode = () => {
             setOtp(newOtp);
             setError('');
 
-            // Auto-focus next input
             if (sanitizedValue && index < 6) {
                 inputRefs.current[index + 1]?.focus();
             }
@@ -85,7 +85,6 @@ const VerificationCode = () => {
 
     const handleKeyDown = (index, e) => {
         if (e.key === 'Backspace' && !otp[index] && index > 0) {
-            // Move to previous input on backspace if current is empty
             inputRefs.current[index - 1]?.focus();
         } else if (e.key === 'ArrowLeft' && index > 0) {
             inputRefs.current[index - 1]?.focus();
@@ -119,8 +118,8 @@ const VerificationCode = () => {
             return;
         }
 
-        if (!encrypt_data) {
-            setError('Verification link is invalid. Please request a new verification email.');
+        if (!userData) {
+            setError('Session expired. Please sign up again.');
             return;
         }
 
@@ -128,10 +127,9 @@ const VerificationCode = () => {
         setError('');
 
         setTimeout(async () => {
-            const success = await verifyCode(enteredOTP, encrypt_data)
+            const success = await verifyCode(enteredOTP)
             if(!success) {
                 setError('Invalid verification code. Please try again.');
-                // Clear inputs on error response
                 setOtp(['', '', '', '', '', '', '']);
                 inputRefs.current[0]?.focus();
                 setIsLoading(false)
@@ -145,23 +143,29 @@ const VerificationCode = () => {
     };
 
     const handleResendCode = async () => {
-        if (!encrypt_data) { 
-            setError('Verification link is invalid. Please request a new verification email.');
-            return
+        if (!userData) {
+            setError('Session expired. Please sign up again.');
+            return;
         }
 
         setOtp(['', '', '', '', '', '', '']);
         setError('');
         setIsSuccess(false);
+        setShowResend(false);
         setResendLoading(true)
         inputRefs.current[0]?.focus();
-        const success = await resendCode(encrypt_data)
-        if(!success) return setResendLoading(false)
+        
+        const success = await resendCode()
+        if(!success) {
+            setResendLoading(false)
+            return
+        }
+        
         setResendLoading(false)
     };
 
     const handleContinue = () => {
-        // Redirect to login page after verification
+        clearAll()
         navigate('/')
     }
 

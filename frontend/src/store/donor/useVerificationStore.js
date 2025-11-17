@@ -46,6 +46,7 @@ export const useVerificationStore = create((set, get) => ({
                 toast.error(response.message || 'code failed to verify')
                 return false
             }
+            get().clearExpiresAt()
             toast.success(response.message)
             return true
 

@@ -17,7 +17,8 @@ export const signupUser = async (formData) => {
         return {
             success: response.data.success,
             message: response.data.message,
-            otp_expiration: response.data.otp_expiration
+            otp_expiration: response.data.otp_expiration,
+            user: response.data.user
         }
     } catch (error) {
         console.error('Signup API error:', error)
