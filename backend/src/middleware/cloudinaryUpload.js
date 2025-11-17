@@ -5,7 +5,7 @@ import cloudinary from '../config/cloudinary.js';
 const storage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => {
-    console.log('📦 Uploading file to Cloudinary:', file.originalname); // Debug log
+    console.log('📦 Uploading file to Cloudinary:', file.originalname);
     return {
       folder: 'uclm-cares',
       allowed_formats: ['jpg', 'jpeg', 'png'],
@@ -30,7 +30,7 @@ export const certUpload = multer({ storage: certStorage })
 const proofStorage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => {
-    console.log('📦 Uploading proof image to Cloudinary:', file.originalname); // Debug log
+    console.log('📦 Uploading proof image to Cloudinary:', file.originalname);
     const eventId = req.params.event_id;
     return {
       folder: `uclm-cares/event-proofs/${eventId}`,

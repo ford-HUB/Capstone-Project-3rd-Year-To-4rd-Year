@@ -22,9 +22,9 @@ export const useVerificationStore = create((set, get) => ({
         set({ otp_expiration: null });
     },
 
-    resendCode: async () => {
+    resendCode: async (rq_access) => {
         try {
-            const response = await resendOTP()
+            const response = await resendOTP(rq_access)
             if(!response.success) { 
                 toast.error(response.message) 
                 return false
@@ -39,9 +39,9 @@ export const useVerificationStore = create((set, get) => ({
         }
     },
 
-    verifyCode: async (otp) => {
+    verifyCode: async (otp, rq_access) => {
         try {
-            const response = await verifyCodeUser(otp)
+            const response = await verifyCodeUser(otp, rq_access)
             if(!response.success) {
                 toast.error(response.message)
                 return false

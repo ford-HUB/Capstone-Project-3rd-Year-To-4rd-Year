@@ -1,12 +1,13 @@
 import models from "../../models/index.js";
 import { db } from "../../config/db.js";
 import bcrypt from 'bcrypt'
+import CryptoJS from "crypto-js";
 import { sendMail } from "../../services/mailService.js";
 import { generateUniqueCode } from "../../utils/generateUniqueCode.js";
 import { generateToken } from "../../utils/generateToken.js";
 import { clearJwtCookie } from "../../utils/clearJwtCookie.js";
-import { Op } from "sequelize";
 import { emitUserActivityUpdate } from "../../socket.js";
+
 
 export const signup = async (req, res) => {
     const t = await db.transaction();
@@ -177,12 +178,12 @@ export const signup = async (req, res) => {
 
         // send verification email & generate token
         const uniqueCode = await generateUniqueCode();
-        const ONE_MINUTE = new Date(Date.now() + 60_000);
+        const FIVE_MINUTES = new Date(Date.now() + 5 * 60_000);
 
         await VerificationCodes.create({
             account_id: newAccount.account_id,
             code: uniqueCode,
-            expires_at: ONE_MINUTE,
+            expires_at: FIVE_MINUTES,
             used: false
         }, { transaction: t });
 
@@ -543,11 +544,26 @@ export const logout = async (req, res) => {
 export const VerifyCode = async (req, res) => {
     try {
         const { code } = req.body
-        const { VerificationCodes } = models
+        const { rq_access } = req.query
+
+        const { VerificationCodes, Accounts } = models
         const accountId = req.user.account_id
 
-        const isMatch = await VerificationCodes.findOne({ where: { account_id: accountId, code: code } })
-        if(!isMatch) { return res.json({ message: 'Verification Code Does not Match' }) }
+        const decrypted_data = CryptoJS.AES
+        .decrypt(rq_access, process.env.CRYPTO_SECRET_KEY)
+        .toString(CryptoJS.enc.Utf8)
+
+        const isMatch = await VerificationCodes.findOne(
+            { where: { account_id: accountId, code: code },
+            include: [
+                { 
+                    model: Accounts,
+                    where: { email: decrypted_data },
+                    required: true
+                }
+            ]
+        })
+        if(!isMatch || !isMatch.Account.email) { return res.json({ message: 'Verification Code Does not Match' }) }
 
         if(isMatch.used) { return res.json({ message: 'Verification Code Already Used, Please attempt resend code' }) }
 
@@ -561,10 +577,9 @@ export const VerifyCode = async (req, res) => {
         if(!updateStatus) { return res.json({ message: 'verification code is not successfully updated the status' }) }
 
         // Activate the account after successful verification
-        const { Accounts } = models;
         await Accounts.update({ is_active: true }, { where: { account_id: accountId } });
 
-        res.json({ success: true, message: 'Verification Code Accepted - Account Activated!',  })
+        return res.json({ success: true, message: 'Verification Code Accepted - Account Activated!',  })
 
     } catch (error) {
         res.status(500).json({ message: 'Internal Server Error' })
@@ -574,10 +589,16 @@ export const VerifyCode = async (req, res) => {
 
 export const reSendCode = async (req, res) => {
     try {
+        const { rq_access } = req.query
+        const { VerificationCodes, Accounts } = models
 
-        const { VerificationCodes } = models
+        const decrypted_data = CryptoJS.AES
+        .decrypt(rq_access, process.env.CRYPTO_SECRET_KEY)
+        .toString(CryptoJS.enc.Utf8)
 
-        const user = req.user
+        const user = await Accounts.findOne({ where: { email: decrypted_data } })
+        if(!user) { return res.json({ success: false, message: 'User not found' }) }
+
         const uniqueCode = await generateUniqueCode()
         await sendMail(user.email, 'Verify Your Account', 'Verify Your Account Fallback', 'mailingTemplate.html', { email: process.env.AUTH_MAILER, code: uniqueCode, company_name: 'uclmcares' })
 
@@ -587,7 +608,7 @@ export const reSendCode = async (req, res) => {
             account_id: user.account_id,
             code: uniqueCode,
             expires_at: FIVE_MINUTES,
-            used: false,    
+            used: false
         }, { 
             where: {
                 account_id: user.account_id

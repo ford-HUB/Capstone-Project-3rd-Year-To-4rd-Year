@@ -61,16 +61,16 @@ export const currentUser = async () => {
     }
 }
 
-export const verifyCode = async (code) => {
-    const response = await apiInstance.post('/api/donor-auth/verify-code', { code })
+export const verifyCode = async (code, rq_access) => {
+    const response = await apiInstance.post(`/api/donor-auth/verify-code?rq_access=${rq_access}`, { code })
     return {
         success: response.data.success,
         message: response.data.message
     }
 }
 
-export const resendCode = async () => {
-    const response = await apiInstance.post('/api/donor-auth/resend-verification-code')
+export const resendCode = async (rq_access) => {
+    const response = await apiInstance.post(`/api/donor-auth/resend-verification-code?rq_access=${rq_access}`)
     return {
         success: response.data.success,
         message: response.data.message,

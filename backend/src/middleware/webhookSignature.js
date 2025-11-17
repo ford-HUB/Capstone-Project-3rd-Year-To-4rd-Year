@@ -5,16 +5,13 @@ dotenv.config()
 export const webhookSignature = async (req, res, next) => {
     const signature = req.headers['paymongo-signature']
     
-    // Get raw body as string - this should be a Buffer from express.raw()
     let rawBody
     if (Buffer.isBuffer(req.body)) {
         rawBody = req.body.toString('utf8')
     } else {
-        // Fallback if body is not a buffer
         rawBody = JSON.stringify(req.body)
     }
 
-    // Implement signature verification
     if (!signature) {
         return res.status(401).json({ success: false, message: 'No signature provided' })
     }
@@ -25,7 +22,6 @@ export const webhookSignature = async (req, res, next) => {
         return res.status(401).json({ success: false, message: 'Invalid signature' })
     }
     
-    // Parse JSON for the controller
     try {
         req.body = JSON.parse(rawBody)
     } catch (error) {
@@ -50,7 +46,6 @@ function verifyWebhookSignature(rawBody, signatureHeader, secret) {
     })
 
     const timestamp = signatureParts.t
-    // Use 'te' for test mode, 'li' for live mode
     const isLiveMode = rawBody.includes('"livemode":true')
     const expectedSignature = isLiveMode ? signatureParts.li : signatureParts.te
     

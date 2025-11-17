@@ -1,6 +1,6 @@
 import { create } from "zustand"
-import { apiInstance } from "../../api/_base.js"
 import toast from "react-hot-toast"
+import { verifyCode as verifyCodeService, resendCode as resendCodeService } from "../../services/donor/authService.js"
 
 const VERIFICATION_EXPIREATION = 'DonorVerificationExpireAt'
 
@@ -22,15 +22,15 @@ export const useVerificationStore = create((set, get) => ({
         set({ otp_expiration: null });
     },
 
-    resendCode: async () => {
+    resendCode: async (rq_access) => {
         try {
-            const response = await apiInstance.post(`/api/donor-auth/resend-verification-code`)
-            if(!response.data.success) { 
-                toast.error(response.data.message) 
+            const response = await resendCodeService(rq_access)
+            if(!response.success) { 
+                toast.error(response.message) 
                 return false
             }
-            await get().setExpiresAt(response.data.otp_expiration)
-            toast.success(response.data.message)
+            await get().setExpiresAt(response.otp_expiration)
+            toast.success(response.message)
             return true
 
         } catch (error) {
@@ -39,14 +39,14 @@ export const useVerificationStore = create((set, get) => ({
         }
     },
 
-    verifyCode: async (otp) => {
+    verifyCode: async (otp, rq_access) => {
         try {
-            const response = await apiInstance.post('/api/donor-auth/verify-code', { code: otp } )
-            if(!response.data.success) {
-                toast.error('code failed to resent')
+            const response = await verifyCodeService(otp, rq_access)
+            if(!response.success) {
+                toast.error(response.message || 'code failed to verify')
                 return false
             }
-            toast.success(response.data.message)
+            toast.success(response.message)
             return true
 
         } catch (error) {

@@ -39,16 +39,16 @@ import "../models/index.js";
 const testConnection = async () => {
   try {
     await db.authenticate();
-    console.log("✅ PostgreSQL database connected");
+    console.log("PostgreSQL database connected");
   } catch (error) {
-    console.error("❌ Database connection failed:", error.message);
+    console.error("Database connection failed:", error.message);
   }
 };
 
 const dropTables = async () => {
   try {
     await db.sync({ force: true });
-    console.log("✅ All tables successfully dropped");
+    console.log("All tables successfully dropped");
   } catch (error) {
     console.error("❌ Drop tables failed:", error.message);
   }
@@ -57,9 +57,9 @@ const dropTables = async () => {
 const updateSchemaChanges = async () => {
   try {
     await db.sync();
-    console.log("✅ Schema synchronized");
+    console.log("Schema synchronized");
   } catch (error) {
-    console.error("❌ Schema update failed:", error.message);
+    console.error("Schema update failed:", error.message);
   }
 };
 

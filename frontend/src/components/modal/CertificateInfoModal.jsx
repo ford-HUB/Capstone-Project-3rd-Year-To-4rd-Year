@@ -119,7 +119,7 @@ const CertificateInfoModal = ({ dest, certificateData, isOpen, setOpen }) => {
                     </div>
 
                     <div className="flex justify-end">
-                        <NavLink to={`https://uclmcares.online/${dest}/certificate-viewer?title=${queryData.title}&certId=${queryData.certId}&preview_url=${queryData.preview_url}&downloadable=${queryData.downloadable}&series_id=${queryData.series_id}&issued_at=${queryData.issued_at}&organizer=${queryData.organizer}`} className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors">
+                        <NavLink to={`${import.meta.env.VITE_FRONTEND_URL_PROD}/${dest}/certificate-viewer?title=${queryData.title}&certId=${queryData.certId}&preview_url=${queryData.preview_url}&downloadable=${queryData.downloadable}&series_id=${queryData.series_id}&issued_at=${queryData.issued_at}&organizer=${queryData.organizer}`} className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors">
                             View & Download
                         </NavLink>
                     </div>

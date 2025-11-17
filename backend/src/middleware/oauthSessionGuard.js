@@ -1,4 +1,3 @@
-// Middleware to ensure OAuth session is valid before processing
 export const oauthSessionGuard = (req, res, next) => {
     // Check if user is authenticated via Passport session
     if (!req.user) {

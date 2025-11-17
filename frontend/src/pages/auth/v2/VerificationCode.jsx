@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../../../store/participant/useAuthStore.js';
 import { useDonorAuthStore } from '../../../store/donor/useDonorAuthStore.js';
 import { useProfileStore } from '../../../store/participant/useProfileStore.js';
@@ -9,6 +10,8 @@ import { useNavigate } from 'react-router-dom';
 
 const VerificationCode = () => {
     const navigate = useNavigate()
+    const [ searchParams, setSearchParams] = useSearchParams()
+    const encrypt_data = searchParams.get('rq_access')
     
     // Check if user is donor or participant based on localStorage userRole
     const isDonor = localStorage.getItem('userRole') === 'Donor';
@@ -144,12 +147,17 @@ const VerificationCode = () => {
             return;
         }
 
+        if (!encrypt_data) {
+            setError('Verification link is invalid. Please request a new verification email.');
+            return;
+        }
+
         setIsLoading(true);
         setError('');
 
         setTimeout(async () => {
-
-            const success = await verifyCode(enteredOTP)
+            // Pass rq_access for both participants and donors
+            const success = await verifyCode(enteredOTP, encrypt_data)
             if(!success) {
                 setError('Invalid verification code. Please try again.');
                 // Clear inputs on error response
@@ -166,12 +174,19 @@ const VerificationCode = () => {
     };
 
     const handleResendCode = async () => {
+        // Validate rq_access is present
+        if (!encrypt_data) {
+            setError('Verification link is invalid. Please request a new verification email.');
+            return;
+        }
+
         setOtp(['', '', '', '', '', '', '']);
         setError('');
         setIsSuccess(false);
         setResendLoading(true)
         inputRefs.current[0]?.focus();
-        const success = await resendCode()
+        // Pass rq_access for both participants and donors
+        const success = await resendCode(encrypt_data)
         if(!success) return setResendLoading(false)
         setResendLoading(false)
         console.log('Resending verification code...');

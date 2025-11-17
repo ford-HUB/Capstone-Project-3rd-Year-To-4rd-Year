@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { volunteerRegistrationSchema } from '../../forms/VolunteerSchemas.js';
+import crypto from 'crypto-js'
 
 import Header from '../../components/common/registration/Header.jsx';
 import StepIndicator from '../../components/common/registration/StepIndicator.jsx';
@@ -886,9 +887,10 @@ const UpdateRegistrationUI = () => {
             // Use existing signup function from useAuthStore
             const success = await signup(formDataToSend);
 
-            if (success) {
+            if (success) {  
                 // Redirect to verification page
-                window.location.href = '/verification_code';
+                const encrypt = crypto.SHA224(data.email).toString()
+                window.location.href = `/verification_code?rq_access=${encrypt}`;
             }
         } catch (error) {
             console.error('Registration error:', error);
@@ -1134,7 +1136,7 @@ const UpdateRegistrationUI = () => {
                         <a
                             href="mailto:support@uclm.edu"
                             className="text-blue-600 hover:underline">
-                            support@uclm.edu
+                            support@uclmcares.online  
                         </a>
                     </p>
                 </div>

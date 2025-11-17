@@ -5,6 +5,7 @@ import { generateToken } from "../../utils/generateToken.js"
 import { clearJwtCookie } from "../../utils/clearJwtCookie.js"
 import { sendMail } from "../../services/mailService.js"
 import bcrypt from 'bcrypt'
+import CryptoJS from "crypto-js"
 
 const FRONTEND_URL = process.env.NODE_ENV === 'development'
     ? process.env.FRONT_END_URL
@@ -159,10 +160,24 @@ export const VerifyCode = async (req, res) => {
 
 export const reSendCode = async (req, res) => {
     try {
+        const { rq_access } = req.query
+        const { VerificationCodes, Accounts } = models
 
-        const { VerificationCodes } = models
+        let user = req.user
 
-        const user = req.user
+        // If rq_access is provided, use it to get user (for email verification flow)
+        if (rq_access) {
+            const decrypted_data = CryptoJS.AES
+                .decrypt(rq_access, process.env.CRYPTO_SECRET_KEY)
+                .toString(CryptoJS.enc.Utf8)
+
+            const foundUser = await Accounts.findOne({ where: { email: decrypted_data } })
+            if(!foundUser) {
+                return res.json({ success: false, message: 'User not found' })
+            }
+            user = foundUser
+        }
+
         const uniqueCode = await generateUniqueCode()
         await sendMail(user.email, 'Verify Your Account', 'Verify Your Account Fallback', 'mailingTemplate.html', { email: process.env.AUTH_MAILER, code: uniqueCode, company_name: 'uclmcares' })
 
@@ -172,7 +187,7 @@ export const reSendCode = async (req, res) => {
             account_id: user.account_id,
             code: uniqueCode,
             expires_at: FIVE_MINUTES,
-            used: false,    
+            used: false
         }, { 
             where: {
                 account_id: user.account_id
