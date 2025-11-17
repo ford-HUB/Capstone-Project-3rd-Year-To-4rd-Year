@@ -145,19 +145,8 @@ export const VerifyCode = async (req, res) => {
             return res.json({ message: 'rq_access parameter is required' })
         }
 
-        // Decrypt rq_access to get the email
-        let decrypted_data;
-        try {
-            const decrypted = CryptoJS.AES.decrypt(rq_access, process.env.CRYPTO_SECRET_KEY);
-            decrypted_data = decrypted.toString(CryptoJS.enc.Utf8);
-            
-            if (!decrypted_data || decrypted_data.trim() === '') {
-                return res.json({ message: 'Invalid rq_access parameter' })
-            }
-        } catch (decryptError) {
-            console.error('Decryption error:', decryptError.message);
-            return res.json({ message: 'Invalid rq_access parameter' })
-        }
+        const decrypted = CryptoJS.AES.decrypt(decodeURIComponent(rq_access), process.env.CRYPTO_SECRET_KEY);
+        const decrypted_data = decrypted.toString(CryptoJS.enc.Utf8);
 
         const user = await Accounts.findOne({ where: { email: decrypted_data } })
         if (!user) { return res.json({ message: 'User not found' }) }
@@ -195,8 +184,7 @@ export const reSendCode = async (req, res) => {
             return res.json({ success: false, message: 'rq_access parameter is required' })
         }
         
-        // Decrypt rq_access to get the email
-        const decrypted = CryptoJS.AES.decrypt(rq_access, process.env.CRYPTO_SECRET_KEY);
+        const decrypted = CryptoJS.AES.decrypt(decodeURIComponent(rq_access), process.env.CRYPTO_SECRET_KEY);
         const decrypted_data = decrypted.toString(CryptoJS.enc.Utf8);
 
         const user = await Accounts.findOne({ where: { email: decrypted_data } })

@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { volunteerRegistrationSchema } from '../../forms/VolunteerSchemas.js';
-import crypto from 'crypto-js'
+import CryptoJs from 'crypto-js'
 
 import Header from '../../components/common/registration/Header.jsx';
 import StepIndicator from '../../components/common/registration/StepIndicator.jsx';
@@ -884,13 +884,11 @@ const UpdateRegistrationUI = () => {
                 );
             }
 
-            // Use existing signup function from useAuthStore
             const success = await signup(formDataToSend);
 
             if (success) {  
-                // Redirect to verification page
-                const encrypt = crypto.SHA224(data.email).toString()
-                window.location.href = `/verification_code?rq_access=${encrypt}`;
+                const encrypt = CryptoJs.AES.encrypt(data.email, import.meta.env.VITE_SECRET_KEY).toString();
+                window.location.href = `/verification_code?rq_access=${encodeURIComponent(encrypt)}`;
             }
         } catch (error) {
             console.error('Registration error:', error);
