@@ -13,9 +13,18 @@ const VerifyCode = ({ onVerificationComplete }) => {
     const { otp_expiration, clearExpiresAt, resendCode, verifyCode } = useVerificationStore()
     const [isResendLoading, setResendLoading] = React.useState(false)
     const [showResend, setShowResend] = React.useState(false);
+    const [error, setError] = React.useState('');
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const encrypt_data = searchParams.get('rq_access');
+
+    // Validate rq_access on mount
+    React.useEffect(() => {
+        if (!encrypt_data || encrypt_data.trim() === '') {
+            setError('Invalid verification link. Please request a new verification email.');
+            setShowResend(true);
+        }
+    }, [encrypt_data]);
 
     React.useEffect(() => {
     if (!otp_expiration) return;
@@ -54,14 +63,18 @@ const VerifyCode = ({ onVerificationComplete }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault()
+        setError('');
 
-        if (!encrypt_data) {
-            console.error('rq_access parameter is missing');
+        if (!encrypt_data || encrypt_data.trim() === '') {
+            setError('Invalid verification link. Please request a new verification email.');
             return;
         }
 
         const success = await verifyCode(otp, encrypt_data)
-        if(!success) return
+        if(!success) {
+            setError('Verification failed. Please check your code and try again.');
+            return;
+        }
         await onVerificationComplete();
         setCurrent(false)
         setTimeout( async()=> {
@@ -72,14 +85,20 @@ const VerifyCode = ({ onVerificationComplete }) => {
 
     const handleResendOtp = async(e) => {
         e.preventDefault()
+        setError('');
+        setResendLoading(true);
         
-        if (!encrypt_data) {
-            console.error('rq_access parameter is missing');
+        if (!encrypt_data || encrypt_data.trim() === '') {
+            setError('Invalid verification link. Please request a new verification email.');
+            setResendLoading(false);
             return;
         }
 
         const success = await resendCode(encrypt_data)
-        if(!success) return
+        if(!success) {
+            setResendLoading(false);
+            return;
+        }
         setResendLoading(false)
         setShowResend(false)
     };
@@ -126,17 +145,20 @@ const VerifyCode = ({ onVerificationComplete }) => {
                             />
                         </div>
 
-                        {!showResend ? (
+                        {error && (
                             <div className="text-sm text-red-500 text-center mt-4">
-                            OTP has expired. Please request a new code.
-                        </div>
-                        ) : 
-                            showResend && !isResendLoading ?    
-                            <div className=" text-gray-500 text-center text-xs">
+                                {error}
+                            </div>
+                        )}
+                        {!error && showResend ? (
+                            <div className="text-sm text-red-500 text-center mt-4">
+                                OTP has expired. Please request a new code.
+                            </div>
+                        ) : !error && !showResend && timeLeft > 0 ? (
+                            <div className="text-gray-500 text-center text-xs">
                                 Verification expires in: <span className="font-semibold">{FormatTime(timeLeft)}</span>
                             </div>
-                            : null
-                        }
+                        ) : null}
 
                         <div className="OptionSelection flex justify-center items-center mt-1 grid-cols-2 gap-2">
                             {showResend && (
