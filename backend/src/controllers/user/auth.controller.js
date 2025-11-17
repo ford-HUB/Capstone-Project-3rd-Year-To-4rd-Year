@@ -548,9 +548,24 @@ export const VerifyCode = async (req, res) => {
 
         if (!rq_access) { return res.json({ message: 'rq_access parameter is required' })}
 
+        if (!process.env.CRYPTO_SECRET_KEY) {
+            return res.status(500).json({ message: 'Server configuration error: CRYPTO_SECRET_KEY is not set' })
+        }
+
         // Decrypt rq_access to get the email
-        const decrypted = CryptoJS.AES.decrypt(decodeURIComponent(rq_access), process.env.CRYPTO_SECRET_KEY);
-        const decrypted_data = decrypted.toString(CryptoJS.enc.Utf8);
+        let decrypted_data;
+        try {
+            const decrypted = CryptoJS.AES.decrypt(decodeURIComponent(rq_access), process.env.CRYPTO_SECRET_KEY);
+            decrypted_data = decrypted.toString(CryptoJS.enc.Utf8);
+            
+            // Check if decryption was successful
+            if (!decrypted_data || decrypted_data.trim() === '') {
+                return res.json({ message: 'Invalid verification link. Please request a new verification email.' })
+            }
+        } catch (decryptError) {
+            console.error('Decryption error:', decryptError.message);
+            return res.json({ message: 'Invalid verification link. Please request a new verification email.' })
+        }
 
         const user = await Accounts.findOne({ where: { email: decrypted_data } })
         if (!user) { return res.json({ message: 'User not found' }) }
@@ -587,10 +602,24 @@ export const reSendCode = async (req, res) => {
             return res.json({ success: false, message: 'rq_access parameter is required' })
         }
 
+        if (!process.env.CRYPTO_SECRET_KEY) {
+            return res.status(500).json({ success: false, message: 'Server configuration error: CRYPTO_SECRET_KEY is not set' })
+        }
+
         // Decrypt rq_access to get the email
-        
-        const decrypted = CryptoJS.AES.decrypt(decodeURIComponent(rq_access), process.env.CRYPTO_SECRET_KEY);
-        const decrypted_data = decrypted.toString(CryptoJS.enc.Utf8);
+        let decrypted_data;
+        try {
+            const decrypted = CryptoJS.AES.decrypt(decodeURIComponent(rq_access), process.env.CRYPTO_SECRET_KEY);
+            decrypted_data = decrypted.toString(CryptoJS.enc.Utf8);
+            
+            // Check if decryption was successful
+            if (!decrypted_data || decrypted_data.trim() === '') {
+                return res.json({ success: false, message: 'Invalid verification link. Please request a new verification email.' })
+            }
+        } catch (decryptError) {
+            console.error('Decryption error:', decryptError.message);
+            return res.json({ success: false, message: 'Invalid verification link. Please request a new verification email.' })
+        }
         
         const user = await Accounts.findOne({ where: { email: decrypted_data } })
         if(!user) { return res.json({ success: false, message: 'User not found' }) }
