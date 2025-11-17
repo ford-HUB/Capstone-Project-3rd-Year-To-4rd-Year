@@ -1,7 +1,7 @@
 import React from 'react';
 import OptionModal from './OptionModal.jsx';
 import { FormatTime } from '../../utils/FormatTime.js';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { asset } from '../../assets/asset.jsx';
 import { useVerificationStore } from '../../store/donor/useVerificationStore.js';
 import { useDonorAuthStore } from '../../store/donor/useDonorAuthStore.js';
@@ -14,6 +14,8 @@ const VerifyDonorCode = ({ onVerificationComplete }) => {
     const [isResendLoading, setResendLoading] = React.useState(false)
     const [showResend, setShowResend] = React.useState(false);
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const encrypt_data = searchParams.get('rq_access');
 
     React.useEffect(() => {
     if (!otp_expiration) return;
@@ -53,7 +55,12 @@ const VerifyDonorCode = ({ onVerificationComplete }) => {
     const handleSubmit = async (e) => {
         e.preventDefault()
 
-        const success = await verifyCode(otp)
+        if (!encrypt_data) {
+            console.error('rq_access parameter is missing');
+            return;
+        }
+
+        const success = await verifyCode(otp, encrypt_data)
         if(!success) return
         await onVerificationComplete();
         setTimeout( async()=> {
@@ -64,14 +71,20 @@ const VerifyDonorCode = ({ onVerificationComplete }) => {
 
     const handleResendOtp = async(e) => {
         e.preventDefault()
-        const success = await resendCode()
+        
+        if (!encrypt_data) {
+            console.error('rq_access parameter is missing');
+            return;
+        }
+
+        const success = await resendCode(encrypt_data)
         if(!success) return
         setShowResend(false)
     };
 
     return (
         <>
-            <OptionModal open={open}>
+            <OptionModal open={current} setOpen={current}>
                 <div className="content flex justify-between">
                     <div className="logo px-2 py-4">
                         <img src={asset.logo} alt="UCLM CARES" className="h-24 w-24" />

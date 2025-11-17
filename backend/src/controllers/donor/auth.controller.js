@@ -62,7 +62,7 @@ export const signup = async (req, res) => {
             used: false
         }, { transaction: t })
         
-        await sendMail(email, 'Verify Your Account', 'Verify Your Account Fallback', 'mailingTemplate.html', { email: process.env.AUTH_MAILER, code: uniqueCode, company_name: 'uclmcares' })
+        // await sendMail(email, 'Verify Your Account', 'Verify Your Account Fallback', 'mailingTemplate.html', { email: process.env.AUTH_MAILER, code: uniqueCode, company_name: 'uclmcares' })
         
         await generateToken(newAccount.account_id, res)
         
@@ -138,10 +138,22 @@ export const logout = async (req, res) => {
 export const VerifyCode = async (req, res) => {
     try {
         const { code } = req.body
-        const { VerificationCodes } = models
-        const accountId = req.user.account_id
+        const { rq_access } = req.query
+        const { VerificationCodes, Accounts } = models
 
-        const isMatch = await VerificationCodes.findOne({ where: { account_id: accountId, code: code } })
+        if (!rq_access) {
+            return res.json({ message: 'rq_access parameter is required' })
+        }
+
+        // Decrypt rq_access to get the email
+        const decrypted_data = CryptoJS.AES
+            .decrypt(rq_access, process.env.CRYPTO_SECRET_KEY)
+            .toString(CryptoJS.enc.Utf8)
+
+        const user = await Accounts.findOne({ where: { email: decrypted_data } })
+        if (!user) { return res.json({ message: 'User not found' }) }
+
+        const isMatch = await VerificationCodes.findOne({ where: { account_id: user.account_id, code: code } })
         if(!isMatch) { return res.json({ message: 'Verification Code Does not Match' }) }
 
         if(isMatch.used) { return res.json({ message: 'Verification Code Already Used, Please attempt resend code' }) }
@@ -153,7 +165,10 @@ export const VerifyCode = async (req, res) => {
         const updateStatus = await VerificationCodes.update({ used: true }, { where: { vc_id: isMatch.vc_id } })
         if(!updateStatus) { return res.json({ message: 'verification code is not successfully updated the status' }) }
 
-        res.json({ success: true, message: 'Verification Code Accepted' })
+        // Activate the account after successful verification
+        await Accounts.update({ is_active: true }, { where: { account_id: user.account_id } });
+
+        res.json({ success: true, message: 'Verification Code Accepted - Account Activated!' })
 
     } catch (error) {
         res.status(500).json({ message: 'Internal Server Error' })
@@ -167,20 +182,17 @@ export const reSendCode = async (req, res) => {
         const { rq_access } = req.query
         const { VerificationCodes, Accounts } = models
 
-        let user = req.user
-
-        // If rq_access is provided, use it to get user (for email verification flow)
-        if (rq_access) {
-            const decrypted_data = CryptoJS.AES
-                .decrypt(rq_access, process.env.CRYPTO_SECRET_KEY)
-                .toString(CryptoJS.enc.Utf8)
-
-            const foundUser = await Accounts.findOne({ where: { email: decrypted_data } })
-            if(!foundUser) {
-                return res.json({ success: false, message: 'User not found' })
-            }
-            user = foundUser
+        if (!rq_access) {
+            return res.json({ success: false, message: 'rq_access parameter is required' })
         }
+
+        // Decrypt rq_access to get the email
+        const decrypted_data = CryptoJS.AES
+            .decrypt(rq_access, process.env.CRYPTO_SECRET_KEY)
+            .toString(CryptoJS.enc.Utf8)
+
+        const user = await Accounts.findOne({ where: { email: decrypted_data } })
+        if(!user) { return res.json({ success: false, message: 'User not found' }) }
 
         const uniqueCode = await generateUniqueCode()
         await sendMail(user.email, 'Verify Your Account', 'Verify Your Account Fallback', 'mailingTemplate.html', { email: process.env.AUTH_MAILER, code: uniqueCode, company_name: 'uclmcares' })

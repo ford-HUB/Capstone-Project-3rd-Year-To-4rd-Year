@@ -1,7 +1,7 @@
 import React from 'react';
 import OptionModal from './OptionModal.jsx';
 import { FormatTime } from '../../utils/FormatTime.js';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { asset } from '../../assets/asset.jsx';
 import { useVerificationStore } from '../../store/participant/useVerificationStore.js';
 import { useAuthStore } from '../../store/participant/useAuthStore.js';
@@ -14,6 +14,8 @@ const VerifyCode = ({ onVerificationComplete }) => {
     const [isResendLoading, setResendLoading] = React.useState(false)
     const [showResend, setShowResend] = React.useState(false);
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const encrypt_data = searchParams.get('rq_access');
 
     React.useEffect(() => {
     if (!otp_expiration) return;
@@ -53,7 +55,12 @@ const VerifyCode = ({ onVerificationComplete }) => {
     const handleSubmit = async (e) => {
         e.preventDefault()
 
-        const success = await verifyCode(otp)
+        if (!encrypt_data) {
+            console.error('rq_access parameter is missing');
+            return;
+        }
+
+        const success = await verifyCode(otp, encrypt_data)
         if(!success) return
         await onVerificationComplete();
         setCurrent(false)
@@ -65,7 +72,13 @@ const VerifyCode = ({ onVerificationComplete }) => {
 
     const handleResendOtp = async(e) => {
         e.preventDefault()
-        const success = await resendCode()
+        
+        if (!encrypt_data) {
+            console.error('rq_access parameter is missing');
+            return;
+        }
+
+        const success = await resendCode(encrypt_data)
         if(!success) return
         setResendLoading(false)
         setShowResend(false)

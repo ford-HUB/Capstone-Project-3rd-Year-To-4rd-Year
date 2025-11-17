@@ -43,12 +43,10 @@ export const signup = async (req, res) => {
             return res.status(400).json({ message: 'Your email account already exists' });
         }
 
-        // Hash password
         const truePassword = password || confirmPassword;
         const salt = await bcrypt.genSalt(10);
         const hashPassword = await bcrypt.hash(truePassword, salt);
 
-        // Create account
         const newAccount = await Accounts.create({
             email,
             password: hashPassword,
@@ -60,7 +58,6 @@ export const signup = async (req, res) => {
         console.log('is beneficiary type: ', typeof IsBeneficiary)
         console.log('is beneficiary type: ', IsBeneficiary)
         
-        // Create role
         await Role.create({
             account_id: newAccount.account_id,
             name: IsBeneficiary ? 'beneficiary' : 'student',
@@ -69,7 +66,6 @@ export const signup = async (req, res) => {
                 : 'This role allows access to volunteer events'
         }, { transaction: t });
 
-        // ===== BENEFICIARY FLOW =====
         if (IsBeneficiary) {
             await Beneficiary.create({
                 account_id: newAccount.account_id,
@@ -295,10 +291,10 @@ export const checkEmailExists = async (req, res) => {
         const { Accounts } = models;
         
         // Check if email exists (including soft-deleted records)
-        const account = await Accounts.findOne({
-            where: { email: email },
+        const account = await Accounts.findOne({ 
+            where: { email: email }, 
             paranoid: false // include soft-deleted records
-        });
+        })
         
         if (!account) {
             return res.json({ 
@@ -308,7 +304,6 @@ export const checkEmailExists = async (req, res) => {
             });
         }
 
-        // Return account details for status checking
         return res.json({ 
             success: true, 
             exists: true,
@@ -548,27 +543,21 @@ export const VerifyCode = async (req, res) => {
         const { rq_access } = req.query
 
         const { VerificationCodes, Accounts } = models
-        const accountId = req.user.account_id
 
+        if (!rq_access) { return res.json({ message: 'rq_access parameter is required' })}
+
+        // Decrypt rq_access to get the email
         const decrypted_data = CryptoJS.AES
-        .decrypt(rq_access, process.env.CRYPTO_SECRET_KEY)
-        .toString(CryptoJS.enc.Utf8)
+            .decrypt(rq_access, process.env.CRYPTO_SECRET_KEY)
+            .toString(CryptoJS.enc.Utf8)
 
-        const isMatch = await VerificationCodes.findOne(
-            { where: { account_id: accountId, code: code },
-            include: [
-                { 
-                    model: Accounts,
-                    where: { email: decrypted_data },
-                    required: true
-                }
-            ]
-        })
-        if(!isMatch || !isMatch.Account.email) { return res.json({ message: 'Verification Code Does not Match' }) }
+        const user = await Accounts.findOne({ where: { email: decrypted_data } })
+        if (!user) { return res.json({ message: 'User not found' }) }
+
+        const isMatch = await VerificationCodes.findOne({ where: { account_id: user.account_id, code: code } })
+        if(!isMatch) { return res.json({ message: 'Verification Code Does not Match' }) }
 
         if(isMatch.used) { return res.json({ message: 'Verification Code Already Used, Please attempt resend code' }) }
-
-        console.log(isMatch.expires_at)
 
         const now = Date.now()
         const expiresAt = new Date(isMatch.expires_at)
@@ -578,7 +567,7 @@ export const VerifyCode = async (req, res) => {
         if(!updateStatus) { return res.json({ message: 'verification code is not successfully updated the status' }) }
 
         // Activate the account after successful verification
-        await Accounts.update({ is_active: true }, { where: { account_id: accountId } });
+        await Accounts.update({ is_active: true }, { where: { account_id: user.account_id } });
 
         return res.json({ success: true, message: 'Verification Code Accepted - Account Activated!',  })
 
@@ -593,9 +582,14 @@ export const reSendCode = async (req, res) => {
         const { rq_access } = req.query
         const { VerificationCodes, Accounts } = models
 
+        if (!rq_access) {
+            return res.json({ success: false, message: 'rq_access parameter is required' })
+        }
+
+        // Decrypt rq_access to get the email
         const decrypted_data = CryptoJS.AES
-        .decrypt(rq_access, process.env.CRYPTO_SECRET_KEY)
-        .toString(CryptoJS.enc.Utf8)
+            .decrypt(rq_access, process.env.CRYPTO_SECRET_KEY)
+            .toString(CryptoJS.enc.Utf8)
 
         const user = await Accounts.findOne({ where: { email: decrypted_data } })
         if(!user) { return res.json({ success: false, message: 'User not found' }) }

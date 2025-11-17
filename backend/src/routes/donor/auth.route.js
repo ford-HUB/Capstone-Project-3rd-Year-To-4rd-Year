@@ -18,8 +18,8 @@ const authDonorRouter = express.Router()
 authDonorRouter.post('/donor-signup', validateRequest(donorSignupSchema), signup)
 authDonorRouter.post('/donor-login', validateRequest(donorLoginSchema), login)
 authDonorRouter.post('/donor-logout', guard('donor'), logout)
-authDonorRouter.post('/verify-code', guard('donor'), VerifyCode) 
-authDonorRouter.post('/resend-verification-code', guard('donor'), reSendCode)
+authDonorRouter.post('/verify-code', VerifyCode) 
+authDonorRouter.post('/resend-verification-code', reSendCode)
 
 // Forgot Password Routes
 authDonorRouter.post('/check-email', checkEmailForPasswordReset)

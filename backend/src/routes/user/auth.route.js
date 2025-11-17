@@ -23,8 +23,8 @@ authRouter.post('/forgot-password', validateRequest(forgotPasswordSchema), forgo
 authRouter.post('/reset-password', validateRequest(resetPasswordSchema), resetPassword)
 
 
-authRouter.post('/verify-code', guard('student', 'beneficiary', 'donor'), VerifyCode)
-authRouter.post('/resend-verification-code', guard('student', 'beneficiary', 'donor'), reSendCode)
+authRouter.post('/verify-code', VerifyCode)
+authRouter.post('/resend-verification-code', reSendCode)
 
 authRouter.get('/checkAuth', guard('student', 'beneficiary', 'donor'), checkAuth)
 

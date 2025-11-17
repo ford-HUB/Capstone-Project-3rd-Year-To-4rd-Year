@@ -1,7 +1,7 @@
 import { Resend } from 'resend'
-// import { MailerSend } from 'mailersend'
 import nodemailer from 'nodemailer'
 import dotenv from 'dotenv'
+// import { MailerSend } from 'mailersend''
 
 dotenv.config()
 

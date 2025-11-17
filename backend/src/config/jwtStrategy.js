@@ -6,7 +6,7 @@ dotenv.config()
 
 const options = {
     jwtFromRequest: ExtractJwt.fromExtractors([
-        // Priority 1: Check cookies first (primary auth method for non-donor users)
+        // Check cookies first (primary auth method for non-donor users)
         (req) => {
             const cookieToken = req?.cookies?.jwt;
             // Log for attendance endpoints to debug 401 errors
@@ -26,7 +26,7 @@ const options = {
             }
             return cookieToken;
         },
-        // Priority 2: Check Authorization header (for donor endpoints)
+        // Check Authorization header (for donor endpoints)
         (req) => {
             const authHeaderExtractor = ExtractJwt.fromAuthHeaderAsBearerToken();
             const token = authHeaderExtractor(req);
@@ -38,7 +38,7 @@ const options = {
             }
             return token;
         },
-        // Priority 3: Check query token (skip for attendance endpoints - they have QR tokens in query)
+        // Check query token (skip for attendance endpoints - they have QR tokens in query)
         (req) => {
             // Skip query token extraction for attendance endpoints
             // They use 'token' query param for QR codes, not JWT tokens
@@ -47,7 +47,7 @@ const options = {
             }
             
             const queryToken = req?.query?.token;
-            // Basic validation: JWT tokens are typically longer and contain dots
+            // JWT tokens are typically longer and contain dots
             // QR tokens are short alphanumeric strings (e.g., "D6EI8CA")
             if (queryToken && queryToken.length > 20 && queryToken.includes('.')) {
                 if (req?.path === '/api/donor-auth/checkAuth') {
@@ -60,7 +60,7 @@ const options = {
             }
             return null;
         },
-        // Priority 4: Check body token
+        // Check body token
         (req) => {
             const bodyToken = req?.body?.token;
             if (req?.path === '/api/donor-auth/checkAuth') {
@@ -77,11 +77,9 @@ const options = {
 export const jwtStrategy = new Strategy(options, async (jwt_payload, done) => {
     try {
         if (!jwt_payload || !jwt_payload.id) {
-            console.error('[JWT Strategy] Invalid payload - no id found');
             return done(null, false);
         }
         
-        console.log('[JWT Strategy] Strategy invoked:', { payloadId: jwt_payload.id });
         const { Accounts, Role } = models;
         const user = await Accounts.findOne({ 
             where: { account_id: jwt_payload.id },
@@ -92,10 +90,7 @@ export const jwtStrategy = new Strategy(options, async (jwt_payload, done) => {
             attributes: { exclude: ['password'] }
         })
         
-        if(!user) { 
-            console.error('[JWT Strategy] User not found for account_id:', jwt_payload.id);
-            return done(null, false) 
-        }
+        if(!user) { return done(null, false) }
 
         console.log('[JWT Strategy] User authenticated:', { 
             account_id: user.account_id, 
