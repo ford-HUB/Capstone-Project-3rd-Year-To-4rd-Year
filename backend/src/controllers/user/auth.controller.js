@@ -542,6 +542,8 @@ export const VerifyCode = async (req, res) => {
         const { code } = req.body
         const { rq_access } = req.query
 
+        console.log('rq_access: ', rq_access) 
+
         const { VerificationCodes, Accounts } = models
 
         if (!rq_access) { return res.json({ message: 'rq_access parameter is required' })}
