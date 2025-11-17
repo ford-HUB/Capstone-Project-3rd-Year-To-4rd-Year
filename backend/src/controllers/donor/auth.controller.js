@@ -22,7 +22,7 @@ export const signup = async (req, res) => {
 
         const isEmailExist = await Accounts.findOne({ where: { email: email } })
         if(isEmailExist) {
-            t.rollback()
+            await t.rollback()
             return res.json({ message: 'your email is already registered' })
         }
 
@@ -50,9 +50,8 @@ export const signup = async (req, res) => {
             is_verified: false
         }, { transaction: t })
 
+        // Generate verification code
         const uniqueCode = await generateUniqueCode()
-        await sendMail(email, 'Verify Your Account', 'Verify Your Account Fallback', 'mailingTemplate.html', { email: process.env.AUTH_MAILER, code: uniqueCode, company_name: 'uclmcares' })
-        
         // const FIVE_MINUTES = new Date(Date.now() + 5 * 60 * 1000) // this will set expireration to 5 minutes
         const ONE_MINUTE = new Date(Date.now() + 60_000); // debugging purposes
         
@@ -63,13 +62,18 @@ export const signup = async (req, res) => {
             used: false
         }, { transaction: t })
         
+        await sendMail(email, 'Verify Your Account', 'Verify Your Account Fallback', 'mailingTemplate.html', { email: process.env.AUTH_MAILER, code: uniqueCode, company_name: 'uclmcares' })
+        
         await generateToken(newAccount.account_id, res)
+        
         await t.commit()
+        
         res.json({ success: true, message: "Account Successfully Registered", otp_expiration: ONE_MINUTE })
 
 
     } catch (error) {
-        t.rollback()
+        // Rollback transaction if it hasn't been committed
+        await t.rollback()
         res.json({ message: 'Internal Server Error' })
         console.log('signup donor failed:', error.message)
     }

@@ -83,7 +83,7 @@ export const signup = async (req, res) => {
                 organization_name: beneficiaryType === 'organization' ? organization_name : null
             }, { transaction: t });
 
-            // send verification email & generate token
+            // Generate verification code
             const uniqueCode = await generateUniqueCode();
             const ONE_MINUTE = new Date(Date.now() + 60_000);
 
@@ -176,7 +176,7 @@ export const signup = async (req, res) => {
             is_subscribed: true
         }, { transaction: t });
 
-        // send verification email & generate token
+        // Generate verification code
         const uniqueCode = await generateUniqueCode();
         const FIVE_MINUTES = new Date(Date.now() + 5 * 60_000);
 
@@ -202,10 +202,11 @@ export const signup = async (req, res) => {
         res.json({ 
             success: true, 
             message: 'Volunteer registration successful! Please verify your email.', 
-            otp_expiration: ONE_MINUTE 
+            otp_expiration: FIVE_MINUTES 
         });
 
     } catch (error) {
+        // Rollback transaction if it hasn't been committed
         await t.rollback();
         console.error('Sign up controller failed:', error);
         res.json({ message: 'Internal Server Error' });
