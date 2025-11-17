@@ -1,11 +1,11 @@
 import models from "../../models/index.js";
 import { db } from "../../config/db.js";
 import bcrypt from 'bcrypt'
-import CryptoJS from "crypto-js";
 import { sendMail } from "../../services/mailService.js";
 import { generateUniqueCode } from "../../utils/generateUniqueCode.js";
 import { generateToken } from "../../utils/generateToken.js";
 import { clearJwtCookie } from "../../utils/clearJwtCookie.js";
+import { decrypt } from "../../utils/crypto.js";
 import { emitUserActivityUpdate } from "../../socket.js";
 import dotenv from 'dotenv';
 
@@ -550,23 +550,18 @@ export const VerifyCode = async (req, res) => {
 
         if (!rq_access) { return res.json({ message: 'rq_access parameter is required' })}
 
-        if (!process.env.CRYPTO_SECRET_KEY) {
-            return res.status(500).json({ message: 'Server configuration error: CRYPTO_SECRET_KEY is not set' })
-        }
-
         // Decrypt rq_access to get the email
         let decrypted_data;
         try {
-            const decrypted = CryptoJS.AES.decrypt(decodeURIComponent(rq_access), process.env.CRYPTO_SECRET_KEY);
-            decrypted_data = decrypted.toString(CryptoJS.enc.Utf8);
+            decrypted_data = decrypt(rq_access);
             
             // Check if decryption was successful
-            if (!decrypted_data || decrypted_data.trim() === '') {
+            if (!decrypted_data) {
                 return res.json({ message: 'Invalid verification link. Please request a new verification email.' })
             }
         } catch (decryptError) {
             console.error('Decryption error:', decryptError.message);
-            return res.json({ message: 'Invalid verification link. Please request a new verification email.' })
+            return res.status(500).json({ message: 'Server configuration error: CRYPTO_SECRET_KEY is not set' })
         }
 
         console.log('decrypted_data: ', decrypted_data)
@@ -606,23 +601,18 @@ export const reSendCode = async (req, res) => {
             return res.json({ success: false, message: 'rq_access parameter is required' })
         }
 
-        if (!process.env.CRYPTO_SECRET_KEY) {
-            return res.status(500).json({ success: false, message: 'Server configuration error: CRYPTO_SECRET_KEY is not set' })
-        }
-
         // Decrypt rq_access to get the email
         let decrypted_data;
         try {
-            const decrypted = CryptoJS.AES.decrypt(decodeURIComponent(rq_access), process.env.CRYPTO_SECRET_KEY);
-            decrypted_data = decrypted.toString(CryptoJS.enc.Utf8);
+            decrypted_data = decrypt(rq_access);
             
             // Check if decryption was successful
-            if (!decrypted_data || decrypted_data.trim() === '') {
+            if (!decrypted_data) {
                 return res.json({ success: false, message: 'Invalid verification link. Please request a new verification email.' })
             }
         } catch (decryptError) {
             console.error('Decryption error:', decryptError.message);
-            return res.json({ success: false, message: 'Invalid verification link. Please request a new verification email.' })
+            return res.status(500).json({ success: false, message: 'Server configuration error: CRYPTO_SECRET_KEY is not set' })
         }
         
         const user = await Accounts.findOne({ where: { email: decrypted_data } })
