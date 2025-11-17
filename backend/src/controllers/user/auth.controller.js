@@ -567,6 +567,8 @@ export const VerifyCode = async (req, res) => {
             return res.json({ message: 'Invalid verification link. Please request a new verification email.' })
         }
 
+        console.log('decrypted_data: ', decrypted_data)
+
         const user = await Accounts.findOne({ where: { email: decrypted_data } })
         if (!user) { return res.json({ message: 'User not found' }) }
 
