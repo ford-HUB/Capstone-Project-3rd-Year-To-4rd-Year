@@ -226,19 +226,17 @@ export const updateProfileSchema = Joi.object({
         'string.base': 'Current address must be a string',
         'any.required': 'Current address is required',
     }),
-    course: Joi.string().trim().required().messages({
+    course: Joi.string().trim().allow('', null).optional().messages({
         'string.base': 'Course must be a string',
-        'any.required': 'Course is required',
     }),
     department: Joi.string().trim().required().messages({
         'string.base': 'Department must be a string',
         'any.required': 'Department is required',
     }),
-    year_level: Joi.number().integer().min(1).max(12).required().messages({
+    year_level: Joi.number().integer().min(1).max(12).allow(null).optional().messages({
         'number.base': 'Year level must be a number',
         'number.min': 'Year level must be at least 1',
-        'number.max': 'Year level cannot be greater than 6',
-        'any.required': 'Year level is required',
+        'number.max': 'Year level cannot be greater than 12',
     }),
     disability: Joi.string().allow('').optional().messages({
         'string.base': 'Disability must be a string',
