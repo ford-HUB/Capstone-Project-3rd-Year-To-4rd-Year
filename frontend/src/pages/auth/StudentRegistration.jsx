@@ -12,7 +12,6 @@ import toast from "react-hot-toast";
 import { signupSchema } from "../../forms/StudentSchemas";
 import { useForm } from "react-hook-form";
 import { zodResolver } from '@hookform/resolvers/zod';
-import VerifyCode from "../../components/modal/VerifyCode";
 
 const StudentRegistration = () => {
   const { signup } = useAuthStore();
@@ -170,11 +169,6 @@ const StudentRegistration = () => {
 
   return (
     <>
-
-      {
-        isMounted && openVerify && <VerifyCode onVerificationComplete={handleVerification}/>
-      }
-
       <OptionModal open={isLoading} setOpen={isLoading}>
         <div className="loaderContainer flex justify-center items-center flex-col">
           <h1 className="mb-4 flex items-center justify-center">
