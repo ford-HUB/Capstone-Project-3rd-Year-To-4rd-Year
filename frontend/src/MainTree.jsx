@@ -18,7 +18,6 @@ import SystemPerformance from './pages/director/SystemPerformance'
 import BeneficiaryRequest from './pages/director/BeneficiaryRequest'
 import BeneficiaryList from './pages/director/BeneficiaryList'
 import ManagementLayout from './layouts/ManagementLayout.jsx'   
-import StudentVerifyAccountPage from './components/modal/VerifyCode'
 import RequestToken from './utils/RequestToken'
 import ResetPasswordPage from './pages/auth/ResetPasswordPage'
 import DirectorLogin from './pages/director/DirectorLogin'
@@ -151,10 +150,6 @@ const MainTree = [
     {
         path: '/register-volunteer',
         element: <UpdateRegistrationUI/>
-    },
-    {
-        path: '/verify-account',
-        element: <StudentVerifyAccountPage />
     },
     {
         path: '/request-account',
