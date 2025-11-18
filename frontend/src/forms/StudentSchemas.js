@@ -189,7 +189,7 @@ export const updateProfileSchema = z.object({
 
     current_address: z.string().min(1, 'Current address is required').optional().nullable(),
 
-    course: z.string().min(1, 'Course is required').optional().nullable(),
+    course: z.string().optional().nullable().or(z.literal('')),
 
     department: z.string().min(1, 'Department is required'),
 
@@ -197,8 +197,9 @@ export const updateProfileSchema = z.object({
         .number({ invalid_type_error: 'Year level must be a number' })
         .int('Year level must be an integer')
         .min(1, 'Year level must be at least 1')
-        .max(12, 'Year level cannot be greater than 6')
-        .optional(),
+        .max(12, 'Year level cannot be greater than 12')
+        .optional()
+        .nullable(),
 
     disability: z.string().optional().or(z.literal('')), // allows empty string
 
