@@ -25,7 +25,7 @@ import DirectorLayout from './layouts/DirectorLayout.jsx'
 import ProtectedDirector from './utils/ProtectedDirector'
 import DirectorDashboard from './pages/director/DirectorDashboard'
 import CheckInterestWrapper from './utils/CheckInterestWrapper'
-import ProtectedStudent from './utils/ProtectedStudent'
+import ProtectedVolunteer from './utils/ProtectedVolunteer.jsx'
 import ProtectedBeneficiary from './utils/ProtectedBeneficiary'
 import ProtectedDonor from './utils/ProtectedDonor'
 import ManagementLogin from './pages/management/ManagementLogin.jsx'
@@ -193,22 +193,14 @@ const MainTree = [
     },
   
     // Participant Routes
-    {
-        path: '/participant/home',
-        element: <ProtectedStudent roles={'student'}>
-            <CheckInterestWrapper>
-                <ParticipantHomePage/>
-            </CheckInterestWrapper>
-        </ProtectedStudent>
-    },
 
     {
         path: '/participant/*',
-        element: <ProtectedStudent roles={'student'}>
+        element: <ProtectedVolunteer roles={'volunteer'}>
             <CheckInterestWrapper>
                 <ParticipantLayout/>
             </CheckInterestWrapper>
-        </ProtectedStudent>,
+        </ProtectedVolunteer>,
         children: [
             {
                 path: 'dashboard',
