@@ -7,10 +7,11 @@ const VERIFICATION_EXPIREATION = 'DonorVerificationExpireAt'
 export const useVerificationStore = create((set, get) => ({
     otp_expiration: localStorage.getItem(VERIFICATION_EXPIREATION) || null,
 
-    setExpiresAt: async (timestamp) => {
+    setExpiresAt: (timestamp) => {
         try {
-            localStorage.setItem(VERIFICATION_EXPIREATION, timestamp)
-            set({ otp_expiration: timestamp })
+            const expirationValue = timestamp instanceof Date ? timestamp.toISOString() : timestamp
+            localStorage.setItem(VERIFICATION_EXPIREATION, expirationValue)
+            set({ otp_expiration: expirationValue })
         } catch (error) {
             console.log('set expires at failed:', error.message)
             set({ otp_expiration: null })
@@ -29,7 +30,7 @@ export const useVerificationStore = create((set, get) => ({
                 toast.error(response.message) 
                 return false
             }
-            await get().setExpiresAt(response.otp_expiration)
+            get().setExpiresAt(response.otp_expiration)
             toast.success(response.message)
             return true
 

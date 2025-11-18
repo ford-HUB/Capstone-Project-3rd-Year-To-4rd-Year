@@ -39,6 +39,7 @@ const VerificationCode = () => {
         }
 
         setShowResend(false);
+        setTimeLeft(0);
         let intervalId;
 
         const updateTimer = () => {
