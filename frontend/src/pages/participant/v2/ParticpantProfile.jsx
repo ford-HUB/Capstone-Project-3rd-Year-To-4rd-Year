@@ -93,21 +93,21 @@ const ParticipantProfile = () => {
     React.useEffect(() => {
         if (currentProfileInfo) {
           // Handle both regular courses and strand courses
-          const courseName = currentProfileInfo?.CampusUsers?.Course?.course_name || 
-                           currentProfileInfo?.CampusUsers?.StrandCourse?.name || '';
+          const courseName = currentProfileInfo?.CampusUser?.Course?.course_name || 
+                           currentProfileInfo?.CampusUser?.StrandCourse?.name || '';
           
           reset({
-            firstname: currentProfileInfo?.CampusUsers?.firstname || '',
-            lastname: currentProfileInfo?.CampusUsers?.lastname || '',
-            gender: currentProfileInfo?.CampusUsers?.gender.trim() || '',
-            middle_initial: currentProfileInfo?.CampusUsers?.middle_initial || '',
-            phone_number: currentProfileInfo?.CampusUsers?.phone_number || '',
-            current_address: currentProfileInfo?.CampusUsers?.current_address || '',
+            firstname: currentProfileInfo?.CampusUser?.firstname || '',
+            lastname: currentProfileInfo?.CampusUser?.lastname || '',
+            gender: currentProfileInfo?.CampusUser?.gender.trim() || '',
+            middle_initial: currentProfileInfo?.CampusUser?.middle_initial || '',
+            phone_number: currentProfileInfo?.CampusUser?.phone_number || '',
+            current_address: currentProfileInfo?.CampusUser?.current_address || '',
             course: courseName,
-            department: currentProfileInfo?.CampusUsers?.Department?.department_name || '',
-            year_level: currentProfileInfo?.CampusUsers?.YearLevel?.year_level || undefined,
-            disability: currentProfileInfo?.CampusUsers?.disability || '',
-            disability_specification: currentProfileInfo?.CampusUsers?.disability_specification || '',
+            department: currentProfileInfo?.CampusUser?.Department?.department_name || '',
+            year_level: currentProfileInfo?.CampusUser?.YearLevel?.year_level || undefined,
+            disability: currentProfileInfo?.CampusUser?.disability || '',
+            disability_specification: currentProfileInfo?.CampusUser?.disability_specification || '',
             is_subscribed: currentProfileInfo?.is_subscribed ?? false,
           });
         }
