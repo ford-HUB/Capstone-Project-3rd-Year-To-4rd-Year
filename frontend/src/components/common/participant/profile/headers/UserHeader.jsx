@@ -13,11 +13,13 @@ const UserHeader = ({ userData }) => (
       </div>
       <div className="text-white">
         <div className="text-lg mb-2">Welcome,</div>
-        <div className="text-3xl font-bold mb-2">{`${userData?.CampusUsers?.firstname?.toUpperCase() || ''} ${userData?.CampusUsers?.lastname?.toUpperCase() || ''}`}</div>
+        <div className="text-3xl font-bold mb-2">{`${userData?.CampusUser?.firstname?.toUpperCase() || ''} ${userData?.CampusUser?.lastname?.toUpperCase() || ''}`}</div>
         <div className="flex items-center space-x-2 text-sm opacity-90">
-          <span>Volunteer</span>
+          <span>Volunteer {userData?.CampusUser?.type
+            ? userData.CampusUser.type.charAt(0).toUpperCase() + userData.CampusUser.type.slice(1)
+            : ''}</span>
           <span>•</span>
-          <span>{userData?.CampusUsers?.Department?.department_name || ''}</span>
+          <span>{userData?.CampusUser?.Department?.department_name || ''}</span>
         </div>
       </div>
     </div>
