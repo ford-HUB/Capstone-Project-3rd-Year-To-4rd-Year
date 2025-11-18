@@ -44,7 +44,6 @@ const EventRegistrationModal = ({ open, setOpen, eventData, onSuccess }) => {
         }
     }, [errors]);
 
-    // Handle keyboard navigation
     React.useEffect(() => {
         const handleKeyDown = (event) => {
             if (event.key === 'Escape') {
@@ -54,7 +53,6 @@ const EventRegistrationModal = ({ open, setOpen, eventData, onSuccess }) => {
 
         if (open) {
             document.addEventListener('keydown', handleKeyDown);
-            // Focus the modal when it opens
             const modal = document.querySelector('[role="dialog"]');
             if (modal) {
                 modal.focus();

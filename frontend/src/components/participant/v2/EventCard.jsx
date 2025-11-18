@@ -296,7 +296,6 @@ const EventCard = ({ eventData }) => {
                 onSuccess={async (eventId) => {
                     console.log('Registration successful for event:', eventId);
                     setShowRegistrationModal(false);
-                    // Refresh the registration status and participant count immediately
                     try {
                         await fetchStatus();
                         await fetchParticipants();

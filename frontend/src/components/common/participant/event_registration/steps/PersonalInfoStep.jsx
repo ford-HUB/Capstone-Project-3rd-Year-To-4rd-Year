@@ -33,7 +33,7 @@ const PersonalInfoStep = ({ userProfile, userEmail }) => (
                         <div className="relative">
                             <div
                             className={`w-full bg-gray-100 cursor-not-allowed pl-4 pr-4 py-3 border-2 focus:ring-blue-500 focus:border-blue-500 rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 border-gray-200`}>
-                                {userProfile?.CampusUsers?.firstname}
+                                {userProfile?.CampusUser?.firstname}
                             </div>
                         </div>
                     </div>
@@ -44,7 +44,7 @@ const PersonalInfoStep = ({ userProfile, userEmail }) => (
                         <div className="relative">
                             <div
                             className={`w-full pl-4 bg-gray-100 cursor-not-allowed pr-4 py-3 border-2 focus:ring-blue-500 focus:border-blue-500 rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 border-gray-200`}>
-                                {userProfile?.CampusUsers?.lastname}
+                                {userProfile?.CampusUser?.lastname}
                             </div>
                         </div>
                     </div>
@@ -76,7 +76,7 @@ const PersonalInfoStep = ({ userProfile, userEmail }) => (
                                 <div className="relative">
                                     <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                                     <div className={`w-full pl-12 bg-gray-100 cursor-not-allowed pr-4 py-3 border-2 focus:ring-blue-500 focus:border-blue-500 rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 border-gray-200`}>
-                                        { userProfile?.CampusUsers?.phone_number }
+                                        { userProfile?.CampusUser?.phone_number }
                                     </div>
                                 </div>
                             </div>

@@ -24,16 +24,12 @@ const EventDetailsStep = ({ userProfile, userEmail, formValues}) => (
                         <UserCircle className="w-5 h-5 mr-2 text-blue-600" />
                         Your Personal Information
                     </h3>
-                    <button className="flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium">
-                        <Edit3 className="w-4 h-4 mr-1" />
-                        Edit
-                    </button>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex flex-col">
                         <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Full Name</span>
-                        <span className="text-gray-900 font-medium mt-1">{`${userProfile?.CampusUsers?.firstname || ''} ${userProfile?.CampusUsers?.lastname || ''}`}</span>
+                        <span className="text-gray-900 font-medium mt-1">{`${userProfile?.CampusUser?.firstname || ''} ${userProfile?.CampusUser?.lastname || ''}`}</span>
                     </div>
                     <div className="flex flex-col">
                         <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Email Address</span>
@@ -41,11 +37,11 @@ const EventDetailsStep = ({ userProfile, userEmail, formValues}) => (
                     </div>
                     <div className="flex flex-col">
                         <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Phone Number</span>
-                        <span className="text-gray-900 font-medium mt-1">{userProfile?.CampusUsers?.phone_number}</span>
+                        <span className="text-gray-900 font-medium mt-1">{userProfile?.CampusUser?.phone_number}</span>
                     </div>
                     <div className="flex flex-col">
                         <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Address</span>
-                        <span className="text-gray-900 font-medium mt-1">{userProfile?.CampusUsers?.current_address}</span>
+                        <span className="text-gray-900 font-medium mt-1">{userProfile?.CampusUser?.current_address}</span>
                     </div>
                 </div>
             </div>
@@ -64,10 +60,6 @@ const EventDetailsStep = ({ userProfile, userEmail, formValues}) => (
                             <p className="text-sm text-gray-600">Information provided for your safety and event logistics</p>
                         </div>
                     </div>
-                    <button className="flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium">
-                        <Edit3 className="w-4 h-4 mr-1" />
-                        Edit
-                    </button>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

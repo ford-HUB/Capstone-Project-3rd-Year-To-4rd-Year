@@ -150,7 +150,6 @@ const ParticpantHomePage = () => {
                         </div>
                     </div>
 
-                    {/* Matching Progress Indicator */}
                     {matchingProgress && (
                         <div className="mb-4 p-3  rounded-lg">
                             <div className="flex items-center space-x-2">

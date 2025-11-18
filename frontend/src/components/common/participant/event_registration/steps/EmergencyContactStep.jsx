@@ -33,7 +33,7 @@ const EmergencyContactStep = ({ register, userProfile, errors, focusRef }) => (
                         <div className="relative">
                             <div
                             className={`w-full bg-gray-100 cursor-not-allowed pl-4 pr-4 py-3 border-2 focus:ring-blue-500 focus:border-blue-500 rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 border-gray-200`}>
-                                { userProfile?.CampusUsers?.current_address }
+                                { userProfile?.CampusUser?.current_address }
                             </div>
                         </div>
                 </div>
