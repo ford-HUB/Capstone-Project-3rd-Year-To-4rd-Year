@@ -124,47 +124,44 @@ export const signup = async (req, res) => {
             transaction: t
         });
 
-        let courseId = null
-        let strandCourseId = null
-
-        console.log('department data: ' + department)
-
-        if(department === 'Senior High Department') {
-            const [strandCourse] = await StrandCourse.findOrCreate({
-                where: { name: course },
-                defaults: { name: course },
-                transaction: t
-            })
-            strandCourseId = strandCourse.strand_course_id
-        } else {
-            const [regularCourse] = await Course.findOrCreate({
-                where: { course_name: course },
-                defaults: { course_name: course },
-                transaction: t
-            });
-            courseId = regularCourse.course_id
-        }
-
-        // YearLevel
-        const [newYearLevel] = await YearLevel.findOrCreate({
-            where: { year_level: yearLevel },
-            defaults: { year_level: yearLevel },
-            transaction: t
-        });
-
         // CampusUsers - Determine type based on participantType or default to 'student'
         const userType = participantType || 'student';
         
-        // For staff and faculty, course and yearLevel may be null in CampusUsers
-        // But Volunteer model requires yl_id, so we'll use a default year level for staff/faculty
-        const finalCourseId = (userType === 'staff' || userType === 'faculty') ? null : courseId;
-        const finalStrandCourseId = (userType === 'staff' || userType === 'faculty') ? null : strandCourseId;
-        const finalYearLevelId = (userType === 'staff' || userType === 'faculty') ? null : newYearLevel.yl_id;
+        let courseId = null
+        let strandCourseId = null
+        let newYearLevel = null
+        let volunteerYearLevelId = null
 
-        // For Volunteer, we need a year level - use default year level 1 if not provided for staff/faculty
-        let volunteerYearLevelId = newYearLevel.yl_id;
-        if (userType === 'staff' || userType === 'faculty') {
-            // Get or create a default year level (e.g., "N/A" or "1")
+        // Only lookup course and yearLevel if user is NOT staff or faculty
+        if (userType !== 'staff' && userType !== 'faculty') {
+            console.log('department data: ' + department)
+
+            if(department === 'Senior High Department') {
+                const [strandCourse] = await StrandCourse.findOrCreate({
+                    where: { name: course },
+                    defaults: { name: course },
+                    transaction: t
+                })
+                strandCourseId = strandCourse.strand_course_id
+            } else {
+                const [regularCourse] = await Course.findOrCreate({
+                    where: { course_name: course },
+                    defaults: { course_name: course },
+                    transaction: t
+                });
+                courseId = regularCourse.course_id
+            }
+
+            // YearLevel
+            const [yearLevelRecord] = await YearLevel.findOrCreate({
+                where: { year_level: yearLevel },
+                defaults: { year_level: yearLevel },
+                transaction: t
+            });
+            newYearLevel = yearLevelRecord;
+            volunteerYearLevelId = yearLevelRecord.yl_id;
+        } else {
+            // For staff/faculty, get or create a default year level for Volunteer (required field)
             const [defaultYearLevel] = await YearLevel.findOrCreate({
                 where: { year_level: '1' },
                 defaults: { year_level: '1' },
@@ -172,6 +169,11 @@ export const signup = async (req, res) => {
             });
             volunteerYearLevelId = defaultYearLevel.yl_id;
         }
+
+        // Final values for CampusUsers and Volunteer
+        const finalCourseId = (userType === 'staff' || userType === 'faculty') ? null : courseId;
+        const finalStrandCourseId = (userType === 'staff' || userType === 'faculty') ? null : strandCourseId;
+        const finalYearLevelId = (userType === 'staff' || userType === 'faculty') ? null : (newYearLevel ? newYearLevel.yl_id : null);
 
         const newCampusUser = await CampusUsers.create({
             account_id: newAccount.account_id,
