@@ -187,7 +187,7 @@ export const updateProfileSchema = z.object({
         .min(1, 'Phone number is required')
         .regex(/^[0-9]{11}$/, 'Phone number must be exactly 11 digits'),
 
-    current_address: z.string().min(1, 'Current address is required'),
+    current_address: z.string().min(1, 'Current address is required').optional().nullable(),
 
     course: z.string().min(1, 'Course is required').optional().nullable(),
 
