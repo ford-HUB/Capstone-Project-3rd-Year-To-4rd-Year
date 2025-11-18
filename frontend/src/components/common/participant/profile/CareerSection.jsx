@@ -8,7 +8,12 @@ const CareerSection = ({ watch, register, errors }) => {
     const { departmentCourses } = useDepartment()
 
     const selectedDepartment = watch('department')
+    const courseValue = watch('course')
+    const yearLevelValue = watch('year_level')
     const isSeniorHighDepartment = selectedDepartment === 'Senior High Department'
+
+    const isCourseEmpty = !courseValue || courseValue === ''
+    const isYearLevelEmpty = yearLevelValue === undefined
 
     const YearOptions = isSeniorHighDepartment ? [
       { value: 11, label: 'Grade 11' },
@@ -42,22 +47,36 @@ const CareerSection = ({ watch, register, errors }) => {
                 <FormField label={isSeniorHighDepartment ? "Strand" : "Course"} error={errors?.course?.message}>
                 <select
                     {...register('course')}
-                    disabled={!selectedDepartment}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    <option value="">{isSeniorHighDepartment ? 'Strand' : 'Course'}</option>
-                    {(departmentCourses[selectedDepartment] || []).map((course) => (
-                      <option key={course} value={course}>{course}</option>
-                    ))}
+                    disabled={!selectedDepartment || isCourseEmpty}
+                    className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${(!selectedDepartment || isCourseEmpty) ? 'bg-gray-100 cursor-not-allowed' : ''}`}>
+                    {
+                        isCourseEmpty ? 
+                        <option value={'Not Applicable'}>Not Applicable</option>
+                        :
+                        <>
+                            {(departmentCourses[selectedDepartment] || []).map((course) => (
+                            <option key={course} value={course}>{course}</option>
+                            ))}
+                        </>
+                    }
                 </select>
                 </FormField>
 
                 <FormField label={isSeniorHighDepartment ? "Grade Level" : "Year Level"} error={errors?.year_level?.message}>
-                    <Select
-                        {...register('year_level', {
-                            setValueAs: (v) => v === '' ? undefined : Number(v)
-                        })}
-                        options={YearOptions}
-                    />
+                {
+                    isYearLevelEmpty ? 
+                    <option value={'Not Applicable'}>Not Applicable</option>
+                    :
+                        <>
+                            <Select
+                                {...register('year_level', {
+                                    setValueAs: (v) => v === '' ? undefined : Number(v)
+                                })}
+                                options={YearOptions}
+                                disabled={isYearLevelEmpty}
+                            />
+                        </>
+                    }
                 </FormField>
             </div>
         </div>

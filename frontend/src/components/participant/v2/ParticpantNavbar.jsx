@@ -3,6 +3,7 @@ import { Grid, ChevronDown, Search } from 'lucide-react'
 import { asset } from '../../../assets/asset.jsx'
 import { NavLink } from 'react-router-dom'
 import { useProfileStore } from '../../../store/participant/useProfileStore.js'
+import { GetFirstLetter } from '../../../utils/GetFirstLetter.js'
 import ParticipantProfileSlider from '../../modal/v2/participant/ParticipantProfileSlider.jsx'
 
 const ParticpantNavbar = () => {
@@ -98,10 +99,10 @@ const ParticpantNavbar = () => {
                     <button onClick={() => setShowProfileSlider(!showProfileSlider)}
                     className="flex cursor-pointer items-center space-x-3 border-l border-gray-300 pl-4 pr-6 ">
                         <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs">
-                            BP
+                            {GetFirstLetter(currentProfileInfo?.CampusUser?.firstname?.toUpperCase() || '')}
                         </div>
                         <div className="text-sm text-start">
-                            <div className="font-semibold">{`${currentProfileInfo?.CampusUsers?.firstname?.toUpperCase() || ''}`}</div>
+                            <div className="font-semibold">{`${currentProfileInfo?.CampusUser?.firstname?.toUpperCase() || ''}`}</div>
                             <div className="text-xs text-gray-500">Volunteer</div>
                         </div>
                     </button>
