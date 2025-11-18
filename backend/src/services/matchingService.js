@@ -16,7 +16,7 @@ export const runMatchingAI = async (volunteer_id) => {
 
         const {
             Volunteer,
-            Student,
+            CampusUsers,
             Event,
             Department,
             Course,
@@ -30,7 +30,7 @@ export const runMatchingAI = async (volunteer_id) => {
         const volunteer = await Volunteer.findOne({
             where: { volunteer_id },
             include: [
-                { model: Student },
+                { model: CampusUsers },
                 { model: Department },
                 { model: Course },
                 { model: YearLevel },

@@ -85,13 +85,13 @@ const UserInfoModal = ({ open, setOpen, userData }) => {
                                         </span>
                                     </div>
                                 </div>
-                                {/* Student ID for volunteers */}
-                                {userData.type === 'student' && userData.details?.student_number && (
+                                {/* School ID for campus users */}
+                                {(userData.type === 'student' || userData.type === 'staff' || userData.type === 'faculty' || userData.type === 'alumni') && userData.details?.school_number && (
                                     <div className="flex items-center gap-3">
                                         <GraduationCap className="w-5 h-5 text-gray-400" />
                                         <div>
-                                            <p className="text-sm text-gray-500">Student ID</p>
-                                            <p className="text-gray-900 font-mono">{userData.details.student_number}</p>
+                                            <p className="text-sm text-gray-500">School ID</p>
+                                            <p className="text-gray-900 font-mono">{userData.details.school_number}</p>
                                         </div>
                                     </div>
                                 )}

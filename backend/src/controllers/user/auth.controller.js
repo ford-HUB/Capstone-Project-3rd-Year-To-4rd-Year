@@ -32,11 +32,12 @@ export const signup = async (req, res) => {
             yearLevel,
             isBeneficiary,
             beneficiaryType,
-            organization_name
+            organization_name,
+            participantType
         } = req.validatedBody;
 
         const picture_id_image = req.file ? req.file.path : null;
-        const { Accounts, Role, Beneficiary, Department, Course, YearLevel, Student, StrandCourse, Volunteer, VerificationCodes } = models;
+        const { Accounts, Role, Beneficiary, Department, Course, YearLevel, CampusUsers, StrandCourse, Volunteer, VerificationCodes } = models;
 
         // Check if email exists
         const isEmailExist = await Accounts.findOne({ where: { email } });
@@ -62,7 +63,7 @@ export const signup = async (req, res) => {
         
         await Role.create({
             account_id: newAccount.account_id,
-            name: IsBeneficiary ? 'beneficiary' : 'student',
+            name: IsBeneficiary ? 'beneficiary' : 'volunteer',
             description: IsBeneficiary 
                 ? 'This role allows access to beneficiary events' 
                 : 'This role allows access to volunteer events'
@@ -151,10 +152,31 @@ export const signup = async (req, res) => {
             transaction: t
         });
 
-        // Student
-        const newStudent = await Student.create({
+        // CampusUsers - Determine type based on participantType or default to 'student'
+        const userType = participantType || 'student';
+        
+        // For staff and faculty, course and yearLevel may be null in CampusUsers
+        // But Volunteer model requires yl_id, so we'll use a default year level for staff/faculty
+        const finalCourseId = (userType === 'staff' || userType === 'faculty') ? null : courseId;
+        const finalStrandCourseId = (userType === 'staff' || userType === 'faculty') ? null : strandCourseId;
+        const finalYearLevelId = (userType === 'staff' || userType === 'faculty') ? null : newYearLevel.yl_id;
+
+        // For Volunteer, we need a year level - use default year level 1 if not provided for staff/faculty
+        let volunteerYearLevelId = newYearLevel.yl_id;
+        if (userType === 'staff' || userType === 'faculty') {
+            // Get or create a default year level (e.g., "N/A" or "1")
+            const [defaultYearLevel] = await YearLevel.findOrCreate({
+                where: { year_level: '1' },
+                defaults: { year_level: '1' },
+                transaction: t
+            });
+            volunteerYearLevelId = defaultYearLevel.yl_id;
+        }
+
+        const newCampusUser = await CampusUsers.create({
             account_id: newAccount.account_id,
-            student_number: studentId,
+            type: userType,
+            school_number: studentId || null,
             firstname,
             lastname,
             middle_initial: middlename,
@@ -162,19 +184,19 @@ export const signup = async (req, res) => {
             current_address: address,
             age,
             gender,
-            profile_image: picture_id_image,
-            strand_course_id: strandCourseId,
-            course_id: courseId,
+            school_image_id: picture_id_image,
+            strand_course_id: finalStrandCourseId,
+            course_id: finalCourseId,
             department_id: newDepartment.department_id,
-            yl_id: newYearLevel.yl_id
+            yl_id: finalYearLevelId
         }, { transaction: t });
 
         await Volunteer.create({
-            student_id: newStudent.student_id,
+            campus_user_id: newCampusUser.campus_user_id,
             department_id: newDepartment.department_id,
-            course_id: courseId,
-            strand_course_id: strandCourseId,
-            yl_id: newYearLevel.yl_id,
+            course_id: finalCourseId,
+            strand_course_id: finalStrandCourseId,
+            yl_id: volunteerYearLevelId,
             profile_image: picture_id_image,
             is_subscribed: true
         }, { transaction: t });
@@ -236,7 +258,7 @@ export const login = async (req, res) => {
             return res.json({ message: 'Invalid Credentials' })
         }
 
-        if(roleType.name !== 'student') {
+        if(roleType.name !== 'volunteer') {
             const isMatch = await bcrypt.compare(password, isValid.password)
             if(!isMatch) { return res.json({ message: 'Invalid Credentials' }) }
             await Accounts.update({ is_active: true }, { where: { account_id: isValid.account_id } })
@@ -341,7 +363,7 @@ export const forgotPassword = async (req, res) => {
     try {
         const { email } = req.validatedBody;
 
-        const { Accounts, Student, Beneficiary, Staff, Coordinator, Director, Role, ResetPassword } = models;
+        const { Accounts, CampusUsers, Beneficiary, Staff, Coordinator, Director, Role, ResetPassword } = models;
         
         // Check if email exists in database
         const account = await Accounts.findOne({ 
@@ -352,7 +374,7 @@ export const forgotPassword = async (req, res) => {
                 attributes: ['name']
             },
             {
-                model: Student,
+                model: CampusUsers,
                 attributes: ['firstname'],
                 required: false
             },
@@ -386,10 +408,10 @@ export const forgotPassword = async (req, res) => {
             account_id: account.account_id,
             email: account.email,
             is_deactivated: account.is_deactivated,
-            firstname: account.Director ? account.Director.firstname :
+            firstname:             account.Director ? account.Director.firstname :
             account.Staff ? account.Staff.firstname :
             account.Coordinator ? account.Coordinator.firstname :
-            account.Student ? account.Student.firstname : 'User'
+            account.CampusUsers ? account.CampusUsers.firstname : 'User'
         }
         
         if (!account) {

@@ -19,7 +19,7 @@ export const login = async (req, res) => {
             return res.json({ message: 'Invalid Credentials' }) 
         }
     
-        if(['student', 'staff', 'coordinator', 'assistant_coordinator', 'donor'].includes(isEmailValid.Role.name)) {
+        if(['volunteer', 'staff', 'coordinator', 'assistant_coordinator', 'donor'].includes(isEmailValid.Role.name)) {
             return res.json({ message: 'Invalid Credentials' })
         }
 

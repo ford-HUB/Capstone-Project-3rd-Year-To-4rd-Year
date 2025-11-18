@@ -110,14 +110,14 @@ const RHFAccountInfoStep = ({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <RHFInputField
-                    label="Student or Teacher"
+                    label="School ID"
                     name="studentId"
                     register={register}
                     error={errors.studentId}
                     placeholder={
                         isBeneficiary
                             ? 'Not required for beneficiaries'
-                            : 'Enter your student or teacher ID'
+                            : 'Enter your School ID'
                     }
                     icon={User}
                     required={!isBeneficiary}
@@ -138,7 +138,7 @@ const RHFAccountInfoStep = ({
                         <input
                             id="email"
                             type="email"
-                            placeholder="youremail@gmail.com"
+                            placeholder="email@gmail.com"
                             className={`w-full px-3 py-2 pl-10 pr-12 border rounded-md focus:outline-none focus:ring-2 ${
                                 errors.email
                                     ? 'border-red-500 focus:ring-red-500'

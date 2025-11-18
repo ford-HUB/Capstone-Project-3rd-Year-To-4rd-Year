@@ -397,7 +397,7 @@ export const getParticipantEvent = async (req, res) => {
     try {
         const { event_id } = req.params;
 
-        const { EventRegistration, Volunteer, Department, Student, Staff, Coordinator, Director, Accounts } = models;
+        const { EventRegistration, Volunteer, Department, CampusUsers, Staff, Coordinator, Director, Accounts } = models;
 
         const registrations = await EventRegistration.findAll({
             where: { event_id }
@@ -412,7 +412,7 @@ export const getParticipantEvent = async (req, res) => {
                     case 'volunteer': {
                         const volunteer = await Volunteer.findByPk(reg.participant_id, {
                             include: { 
-                                model: Student,
+                                model: CampusUsers,
                                 include: [
                                     { model: Department },
                                 ]
@@ -422,24 +422,24 @@ export const getParticipantEvent = async (req, res) => {
                         if (volunteer) {
                             participantData = {
                                 volunteer_id: volunteer.volunteer_id,
-                                type: "student",
-                                details: volunteer.Student
+                                type: volunteer.CampusUsers?.type || "student",
+                                details: volunteer.CampusUsers
                                     ? {
-                                        student_id: volunteer.Student.student_id,
-                                        student_number: volunteer.Student.student_number,
-                                        firstname: volunteer.Student.firstname,
-                                        lastname: volunteer.Student.lastname,
-                                        gender: volunteer.Student.gender?.trim(),
-                                        middle_initial: volunteer.Student.middle_initial,
-                                        age: volunteer.Student.age,
-                                        disability: volunteer.Student.disability,
-                                        phone_number: volunteer.Student.phone_number,
-                                        current_address: volunteer.Student.current_address,
+                                        campus_user_id: volunteer.CampusUsers.campus_user_id,
+                                        school_number: volunteer.CampusUsers.school_number,
+                                        firstname: volunteer.CampusUsers.firstname,
+                                        lastname: volunteer.CampusUsers.lastname,
+                                        gender: volunteer.CampusUsers.gender?.trim(),
+                                        middle_initial: volunteer.CampusUsers.middle_initial,
+                                        age: volunteer.CampusUsers.age,
+                                        disability: volunteer.CampusUsers.disability,
+                                        phone_number: volunteer.CampusUsers.phone_number,
+                                        current_address: volunteer.CampusUsers.current_address,
                                         image_url: volunteer.profile_image
                                     }
                                     : {},
                                 academic_info: {
-                                    department: volunteer?.Student.Department?.department_name,
+                                    department: volunteer?.CampusUsers?.Department?.department_name,
                                 },
                                 volunteer_info: {
                                     interested_events: volunteer.interested_events,
@@ -576,7 +576,7 @@ export const getEventUserStatus = async (req, res) => {
         const { event_id } = req.params;
         const roleType = req.user.Role.name
 
-        const { Director, Staff, Coordinator, EventRegistration, Student, Department, Volunteer } = models
+        const { Director, Staff, Coordinator, EventRegistration, CampusUsers, Department, Volunteer } = models
 
         let payload = {}
         let participant_id
@@ -605,9 +605,9 @@ export const getEventUserStatus = async (req, res) => {
                     participant_type = 'assistant_coordinator'
                     participant_id = payload.coordinator_id
                 break;
-            case 'student':
-                const studentData = await Student.findOne({ where: { account_id: req.user.account_id } })
-                payload = await Volunteer.findOne({ where: { student_id: studentData.student_id }})
+            case 'volunteer':
+                const campusUserData = await CampusUsers.findOne({ where: { account_id: req.user.account_id } })
+                payload = await Volunteer.findOne({ where: { campus_user_id: campusUserData.campus_user_id }})
                 participant_type = 'volunteer'
                 participant_id = payload.volunteer_id
                 break;
@@ -712,7 +712,7 @@ export const removeEventRegistration = async (req, res) => {
     try {
         const { registration_id } = req.params
         const { reason } = req.body
-        const { EventRegistration, Event, Volunteer, Student, Staff, Coordinator, Director, Accounts } = models
+        const { EventRegistration, Event, Volunteer, CampusUsers, Staff, Coordinator, Director, Accounts } = models
 
         // Find the registration with participant details
         const registration = await EventRegistration.findByPk(registration_id, { 
@@ -739,15 +739,15 @@ export const removeEventRegistration = async (req, res) => {
             case 'volunteer': {
                 const volunteer = await Volunteer.findByPk(registration.participant_id, {
                     include: { 
-                        model: Student,
+                        model: CampusUsers,
                         include: [{ model: Accounts, attributes: ['email'] }]
                     },
                     transaction: t
                 })
-                if (volunteer?.Student) {
-                    participantData = volunteer.Student
-                    participantEmail = volunteer.Student.Account?.email
-                    participantName = `${volunteer.Student.firstname} ${volunteer.Student.lastname}`
+                if (volunteer?.CampusUsers) {
+                    participantData = volunteer.CampusUsers
+                    participantEmail = volunteer.CampusUsers.Account?.email
+                    participantName = `${volunteer.CampusUsers.firstname} ${volunteer.CampusUsers.lastname}`
                 }
                 break
             }

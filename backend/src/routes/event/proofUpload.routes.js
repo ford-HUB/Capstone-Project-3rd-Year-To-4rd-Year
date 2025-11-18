@@ -5,9 +5,9 @@ import { guard } from '../../middleware/guard.js';
 
 const router = express.Router();
 
-router.post('/:event_id/upload-proof', guard('student'), proofUpload.array('images', 5), uploadEventProof);
+router.post('/:event_id/upload-proof', guard('volunteer'), proofUpload.array('images', 5), uploadEventProof);
 
-router.get('/:event_id/proof-status', guard('student'), getEventProofStatus);
+router.get('/:event_id/proof-status', guard('volunteer'), getEventProofStatus);
 
 
 export default router;

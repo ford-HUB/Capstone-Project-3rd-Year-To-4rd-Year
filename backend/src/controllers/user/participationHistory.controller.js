@@ -24,15 +24,15 @@ export const getParticipationHistory = async (req, res) => {
         const limit = parseInt(req.query.limit) || 10;
         const offset = (page - 1) * limit;
 
-        const { EventRegistration, Event, Volunteer, Student, Attendance } = models;
+        const { EventRegistration, Event, Volunteer, CampusUsers, Attendance } = models;
         
-        // Get the student and volunteer
-        const student = await Student.findOne({ where: { account_id } });
-        if (!student) {
-            return res.json({ success: false, message: 'Student not found' });
+        // Get the campus user and volunteer
+        const campusUser = await CampusUsers.findOne({ where: { account_id } });
+        if (!campusUser) {
+            return res.json({ success: false, message: 'Campus user not found' });
         }
 
-        const volunteer = await Volunteer.findOne({ where: { student_id: student.student_id } });
+        const volunteer = await Volunteer.findOne({ where: { campus_user_id: campusUser.campus_user_id } });
         if (!volunteer) {
             return res.json({ success: false, message: 'Volunteer not found' });
         }

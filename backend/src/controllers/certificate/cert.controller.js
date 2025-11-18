@@ -106,15 +106,15 @@ export const getDeployedCertificateTemplate = async (req, res) => {
 
 export const getUserCertificates = async (req, res) => {
     try {
-        const { Event, Category, Organizer, Volunteer, Student, Staff, Coordinator, Director, Certificate } = models
+        const { Event, Category, Organizer, Volunteer, CampusUsers, Staff, Coordinator, Director, Certificate } = models
 
         let participant
         let participant_id
 
         switch(req.user.Role.name) {
-            case 'student': 
-                const student = await Student.findOne({ where: { account_id: req.user.account_id } })
-                participant = await Volunteer.findOne({ where: { student_id: student.student_id } })
+            case 'volunteer': 
+                const campusUser = await CampusUsers.findOne({ where: { account_id: req.user.account_id } })
+                participant = await Volunteer.findOne({ where: { campus_user_id: campusUser.campus_user_id } })
                 participant_id = participant.volunteer_id
                 break
             
@@ -140,7 +140,7 @@ export const getUserCertificates = async (req, res) => {
         }
 
         const certificateData = await Certificate.findAll({ 
-            where: { participant_id: participant_id, participant_type: req.user.Role.name === 'student' ? 'volunteer': req.user.Role.name },
+            where: { participant_id: participant_id, participant_type: req.user.Role.name === 'volunteer' ? 'volunteer': req.user.Role.name },
             include: [
                 { 
                     model: Event,
@@ -186,7 +186,7 @@ export const getUserCertificates = async (req, res) => {
 
 export const getCertificateCountAndEvent = async (req, res) => {
     try {
-        const { Event, Volunteer, Student, Staff, Coordinator, Director, Certificate, EventRegistration, Attendance } = models
+        const { Event, Volunteer, CampusUsers, Staff, Coordinator, Director, Certificate, EventRegistration, Attendance } = models
         const { account_id } = req.user
         const roleName = req.user.Role.name
 
@@ -194,12 +194,12 @@ export const getCertificateCountAndEvent = async (req, res) => {
         let participant_id, participant_type
 
         switch(roleName) {
-            case 'student': {
-                const student = await Student.findOne({ where: { account_id } })
-                if (!student) {
-                    return res.json({ success: false, message: 'Student not found' })
+            case 'volunteer': {
+                const campusUser = await CampusUsers.findOne({ where: { account_id } })
+                if (!campusUser) {
+                    return res.json({ success: false, message: 'Campus user not found' })
                 }
-                const volunteer = await Volunteer.findOne({ where: { student_id: student.student_id } })
+                const volunteer = await Volunteer.findOne({ where: { campus_user_id: campusUser.campus_user_id } })
                 if (!volunteer) {
                     return res.json({ success: false, message: 'Volunteer not found' })
                 }

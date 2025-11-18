@@ -16,7 +16,7 @@ const eventEvaluationRouter = express.Router()
 eventEvaluationRouter.get('/admin/all', guard('director'), getEventEvaluations)
 eventEvaluationRouter.get('/admin/event/:event_id', guard('director'), getEventEvaluationsByEvent)
 
-// Student route for submitting evaluation
-eventEvaluationRouter.post('/:event_id/volunteer/feedback', guard('student'), validateRequest(eventEvaluationSchema), submitEventEvaluation)
+// Volunteer route for submitting evaluation
+eventEvaluationRouter.post('/:event_id/volunteer/feedback', guard('volunteer'), validateRequest(eventEvaluationSchema), submitEventEvaluation)
 
 export default eventEvaluationRouter

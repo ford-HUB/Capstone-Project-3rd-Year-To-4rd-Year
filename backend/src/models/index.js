@@ -1,12 +1,12 @@
 import { Op } from 'sequelize';
 import { db } from '../config/db.js';
 import Accounts from "./Accounts.model.js"
-import Student from "./Student/Student.model.js"
+import CampusUsers from "./Campus/CampusUsers.model.js"
 import Department from "./Department.model.js"
-import Course from "./Student/Course.model.js"
-import YearLevel from "./Student/YearLevel.model.js"
+import Course from "./Campus/Course.model.js"
+import YearLevel from "./Campus/YearLevel.model.js"
 import Role from "./Role.model.js"
-import VerificationCodes from "./Student/VerificationCode.model.js"
+import VerificationCodes from "./Campus/VerificationCode.model.js"
 import Staff from "./management/Staff.model.js"
 import RequestApproval from "./management/RequestApproval.model.js"
 import ApprovalToken from "./management/ApprovalToken.model.js"
@@ -41,7 +41,7 @@ import Submission from "./submission/Submission.model.js"
 import Beneficiary from "./benefitciary/Beneficiary.model.js"
 import FormLink from './form/v2/FormLink.model.js';
 import Response from './form/v2/Response.model.js';
-import StrandCourse from './Student/StrandCourse.model.js';
+import StrandCourse from './Campus/StrandCourse.model.js';
 import DocumentRequestApproval from './director/DocumentRequestApproval.model.js';
 import ResetPassword from './ResetPassword.model.js';
 import Donations from './donations/Donations.model.js';
@@ -56,8 +56,8 @@ import LinkedPaymentAccounts from './LinkedPaymentAccounts.model.js';
 Accounts.hasOne(Role, { foreignKey: "account_id", onDelete: "CASCADE" });
 Role.belongsTo(Accounts, { foreignKey: "account_id" });
 
-Accounts.hasOne(Student, { foreignKey: 'account_id', onDelete: "CASCADE", hooks: true });
-Student.belongsTo(Accounts, { foreignKey: 'account_id' });
+Accounts.hasOne(CampusUsers, { foreignKey: 'account_id', onDelete: "CASCADE", hooks: true });
+CampusUsers.belongsTo(Accounts, { foreignKey: 'account_id' });
 
 Accounts.hasOne(Staff, { foreignKey: 'account_id', onDelete: "CASCADE", hooks: true });
 Staff.belongsTo(Accounts, { foreignKey: 'account_id' });
@@ -80,20 +80,20 @@ LinkedPaymentAccounts.belongsTo(Accounts, { foreignKey: 'account_id' })
 Accounts.hasMany(PaymentMethod, { foreignKey: 'account_id', onDelete: "CASCADE", hooks: true })
 PaymentMethod.belongsTo(Accounts, { foreignKey: 'account_id', onDelete: "CASCADE", hooks: true })
 
-Department.hasMany(Student, { foreignKey: 'department_id', onDelete: "CASCADE", hooks: true });
-Student.belongsTo(Department, { foreignKey: 'department_id', onDelete: "CASCADE", hooks: true });
+Department.hasMany(CampusUsers, { foreignKey: 'department_id', onDelete: "CASCADE", hooks: true });
+CampusUsers.belongsTo(Department, { foreignKey: 'department_id', onDelete: "CASCADE", hooks: true });
 
-Course.hasMany(Student, { foreignKey: "course_id", onDelete: "CASCADE", hooks: true });
-Student.belongsTo(Course, { foreignKey: "course_id", onDelete: "CASCADE", hooks: true });
+Course.hasMany(CampusUsers, { foreignKey: "course_id", onDelete: "CASCADE", hooks: true });
+CampusUsers.belongsTo(Course, { foreignKey: "course_id", onDelete: "CASCADE", hooks: true });
 
-StrandCourse.hasMany(Student, { foreignKey: 'strand_course_id', onDelete: "CASCADE", hooks: true })
-Student.belongsTo(StrandCourse, { foreignKey: 'strand_course_id', onDelete: "CASCADE", hooks: true })
+StrandCourse.hasMany(CampusUsers, { foreignKey: 'strand_course_id', onDelete: "CASCADE", hooks: true })
+CampusUsers.belongsTo(StrandCourse, { foreignKey: 'strand_course_id', onDelete: "CASCADE", hooks: true })
 
-YearLevel.hasMany(Student, { foreignKey: "yl_id", onDelete: "CASCADE", hooks: true });
-Student.belongsTo(YearLevel, { foreignKey: "yl_id" });
+YearLevel.hasMany(CampusUsers, { foreignKey: "yl_id", onDelete: "CASCADE", hooks: true });
+CampusUsers.belongsTo(YearLevel, { foreignKey: "yl_id" });
 
-Student.hasOne(VerificationCodes, { foreignKey: 'account_id', onDelete: 'CASCADE', hooks:true })
-VerificationCodes.belongsTo(Student, { foreignKey: 'account_id' })
+CampusUsers.hasOne(VerificationCodes, { foreignKey: 'account_id', onDelete: 'CASCADE', hooks:true })
+VerificationCodes.belongsTo(CampusUsers, { foreignKey: 'account_id' })
 
 Department.hasMany(Coordinator, { foreignKey: 'department_id', onDelete: "CASCADE", hooks: true })
 Coordinator.belongsTo(Department, { foreignKey: 'department_id' })
@@ -161,8 +161,8 @@ Attendance.belongsTo(Coordinator, { foreignKey: 'participant_id', constraints: f
 Beneficiary.hasMany(Attendance, { foreignKey: 'participant_id', constraints: false, onDelete: "CASCADE", hooks: true })
 Attendance.belongsTo(Beneficiary, { foreignKey: 'participant_id', constraints: false, onDelete: "CASCADE", hooks: true })
 
-Student.hasOne(Volunteer, { foreignKey: 'student_id', onDelete: "CASCADE", hooks: true })
-Volunteer.belongsTo(Student, { foreignKey: 'student_id', onDelete: "CASCADE", hooks: true })
+CampusUsers.hasOne(Volunteer, { foreignKey: 'campus_user_id', onDelete: "CASCADE", hooks: true })
+Volunteer.belongsTo(CampusUsers, { foreignKey: 'campus_user_id', onDelete: "CASCADE", hooks: true })
 
 Volunteer.belongsTo(Department, { foreignKey: 'department_id', onDelete: "CASCADE", hooks: true })
 Volunteer.belongsTo(Course, { foreignKey: 'course_id', onDelete: "CASCADE", hooks: true })
@@ -341,7 +341,7 @@ const models = {
     RequestApproval,
     Beneficiary,
     ApprovalToken,
-    Student,
+    CampusUsers,
     StrandCourse,
     Accounts,
     Staff,

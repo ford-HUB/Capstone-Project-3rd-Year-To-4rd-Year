@@ -14,15 +14,15 @@ import { currentUserProfile, updateUserProfile, updateEmailAccount, undoEmailCha
 
 const profileRouter = express.Router()
 
-profileRouter.post('/add-interest', guard('student'), validateRequest(add_interestSchema), addInterest)
-profileRouter.put('/update-interest', guard('student'), validateRequest(add_interestSchema), updateInterest)
-profileRouter.get('/check-interest', guard('student'), checkInterest)
+profileRouter.post('/add-interest', guard('volunteer'), validateRequest(add_interestSchema), addInterest)
+profileRouter.put('/update-interest', guard('volunteer'), validateRequest(add_interestSchema), updateInterest)
+profileRouter.get('/check-interest', guard('volunteer'), checkInterest)
 
-profileRouter.get('/current-profile', guard('student'), currentUserProfile)
-profileRouter.put('/update-profile', guard('student'), validateRequest(updateProfileSchema), updateUserProfile)
-profileRouter.put('/update-account-email', guard('student'), validateRequest(emailUpdateSchema), updateEmailAccount)
-profileRouter.put('/undo-email-changes', guard('student'), undoEmailChanges)
-profileRouter.put('/change-password', guard('student'), validateRequest(participantPasswordChangeSchema), changeParticipantPassword)
+profileRouter.get('/current-profile', guard('volunteer'), currentUserProfile)
+profileRouter.put('/update-profile', guard('volunteer'), validateRequest(updateProfileSchema), updateUserProfile)
+profileRouter.put('/update-account-email', guard('volunteer'), validateRequest(emailUpdateSchema), updateEmailAccount)
+profileRouter.put('/undo-email-changes', guard('volunteer'), undoEmailChanges)
+profileRouter.put('/change-password', guard('volunteer'), validateRequest(participantPasswordChangeSchema), changeParticipantPassword)
 
 profileRouter.get('/testing', (req, res) => {
     res.send("routes working")

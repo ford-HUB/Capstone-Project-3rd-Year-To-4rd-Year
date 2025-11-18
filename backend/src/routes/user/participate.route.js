@@ -19,12 +19,12 @@ import { getParticipationHistory } from "../../controllers/user/participationHis
 
 const participateRouter = express.Router()
 
-participateRouter.post('/register-event/:eventId', guard('student'), validateRequest(register_eventSchema), register_event)
-participateRouter.post('/event-registration/:event_id', guard('student'), validateRequest(eventRegistrationSchema), event_registration)
-participateRouter.delete('/event-cancellation/:event_id', guard('student'), cancel_registration)
-participateRouter.get('/get-all-registered-events', guard('student'), get_all_registered_events)
-participateRouter.get('/participation-history', guard('student'), getParticipationHistory)
-participateRouter.get('/event-calendar', guard('student'), get_all_events_calendar)
+participateRouter.post('/register-event/:eventId', guard('volunteer'), validateRequest(register_eventSchema), register_event)
+participateRouter.post('/event-registration/:event_id', guard('volunteer'), validateRequest(eventRegistrationSchema), event_registration)
+participateRouter.delete('/event-cancellation/:event_id', guard('volunteer'), cancel_registration)
+participateRouter.get('/get-all-registered-events', guard('volunteer'), get_all_registered_events)
+participateRouter.get('/participation-history', guard('volunteer'), getParticipationHistory)
+participateRouter.get('/event-calendar', guard('volunteer'), get_all_events_calendar)
 
 participateRouter.get('/testing', (req, res) => {
     res.send("routes working")

@@ -12,7 +12,7 @@ export const getStaffOverview = async (req, res) => {
             EventRegistration,
             Attendance,
             Volunteer,
-            Student,
+            CampusUsers,
             Beneficiary,
             Document,
             Accounts
@@ -75,7 +75,7 @@ export const getStaffOverview = async (req, res) => {
 
         // 3. Get total volunteers
         const totalVolunteers = await Volunteer.count();
-        const totalStudents = await Student.count();
+        const totalCampusUsers = await CampusUsers.count();
 
         // 4. Get total beneficiaries
         const totalBeneficiaries = await Beneficiary.count();
@@ -112,7 +112,7 @@ export const getStaffOverview = async (req, res) => {
                 totalParticipants,
                 recentRegistrations,
                 totalVolunteers,
-                totalStudents,
+                totalCampusUsers,
                 totalBeneficiaries,
                 totalAttendance,
                 recentAttendance

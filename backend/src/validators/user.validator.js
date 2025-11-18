@@ -103,12 +103,16 @@ export const signupSchema = Joi.object({
       .empty('')
       .when('isBeneficiary', {
         is: 'false',
-        then: Joi.required().messages({
-          'any.required': 'Course is required for regular volunteers',
+        then: Joi.when('participantType', {
+          is: Joi.string().valid('staff', 'faculty'),
+          then: Joi.optional().allow(''),
+          otherwise: Joi.required().messages({
+            'any.required': 'Course is required for regular volunteers (except staff and faculty)',
+          }),
         }),
         otherwise: Joi.optional().allow(''),
       }),
-  
+
     yearLevel: Joi.string()
       .trim()
       .empty('undefined')
@@ -123,14 +127,18 @@ export const signupSchema = Joi.object({
       .when('isBeneficiary', {
         is: 'true',
         then: Joi.optional().allow(''),
-        otherwise: Joi.required(),
+        otherwise: Joi.when('participantType', {
+          is: Joi.string().valid('staff', 'faculty'),
+          then: Joi.optional().allow(''),
+          otherwise: Joi.required(),
+        }),
       })
       .messages({
-        'any.required': 'Year level is required for regular volunteers',
+        'any.required': 'Year level is required for regular volunteers (except staff and faculty)',
         'number.base': 'Year level must be a number',
         'number.range': 'Year level must be between 1 and 10',
       }),
-  
+
     isBeneficiary: Joi.string()
       .valid('true', 'false')
       .required()
@@ -138,7 +146,20 @@ export const signupSchema = Joi.object({
         'any.required': 'Beneficiary status is required',
         'any.only': 'Beneficiary must be true or false',
       }),
-  
+
+    participantType: Joi.string()
+      .valid('student', 'staff', 'faculty', 'alumni')
+      .empty('undefined')
+      .empty('')
+      .when('isBeneficiary', {
+        is: 'false',
+        then: Joi.required().messages({
+          'any.required': 'Participant type is required for regular volunteers',
+          'any.only': 'Participant type must be one of: student, staff, faculty, alumni',
+        }),
+        otherwise: Joi.optional().allow(''),
+      }),
+
     beneficiaryType: Joi.string()
       .valid('individual', 'organization')
       .empty('undefined')

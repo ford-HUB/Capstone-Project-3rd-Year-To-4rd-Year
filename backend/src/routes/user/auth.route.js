@@ -17,16 +17,16 @@ const authRouter = express.Router()
 
 authRouter.post('/user-signup', upload.single('studentIdFile'), validateRequest(signupSchema), signup)
 authRouter.post('/user-login', validateRequest(loginSchema), login)
-authRouter.post('/logout', guard('student', 'beneficiary', 'donor'), logout)
+authRouter.post('/logout', guard('volunteer', 'beneficiary', 'donor'), logout)
 authRouter.post('/check-email', checkEmailExists)
 authRouter.post('/forgot-password', validateRequest(forgotPasswordSchema), forgotPassword)
 authRouter.post('/reset-password', validateRequest(resetPasswordSchema), resetPassword)
 
 
-authRouter.post('/verify-code', guard('student', 'donor'), VerifyCode)
-authRouter.post('/resend-verification-code', guard('student', 'donor'), reSendCode)
+authRouter.post('/verify-code', guard('volunteer', 'donor'), VerifyCode)
+authRouter.post('/resend-verification-code', guard('volunteer', 'donor'), reSendCode)
 
-authRouter.get('/checkAuth', guard('student', 'beneficiary', 'donor'), checkAuth)
+authRouter.get('/checkAuth', guard('volunteer', 'beneficiary', 'donor'), checkAuth)
 
 
 

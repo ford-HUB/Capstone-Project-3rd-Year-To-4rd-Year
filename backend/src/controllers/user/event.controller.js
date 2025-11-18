@@ -10,13 +10,13 @@ export const addInterest = async (req, res) => {
 
         const { interest } = req.validatedBody
 
-        const { Student, Volunteer } = models
+        const { CampusUsers, Volunteer } = models
 
-        const studentValid = await Student.findOne({ where: { account_id: account.account_id } })
+        const campusUserValid = await CampusUsers.findOne({ where: { account_id: account.account_id } })
 
-        if (!studentValid) { return t.rollback(), res.json({ message: 'student not found' }) }
+        if (!campusUserValid) { return t.rollback(), res.json({ message: 'campus user not found' }) }
 
-        const existingVolunteer = await Volunteer.findOne({ where: { student_id: studentValid.student_id } })
+        const existingVolunteer = await Volunteer.findOne({ where: { campus_user_id: campusUserValid.campus_user_id } })
 
         let volunteerInstance
         if (existingVolunteer) {
@@ -24,11 +24,11 @@ export const addInterest = async (req, res) => {
             volunteerInstance = existingVolunteer
         } else {
             volunteerInstance = await Volunteer.create({
-                student_id: studentValid.student_id,
-                department_id: studentValid.department_id,
-                course_id: studentValid.course_id,
-                strand_course_id: studentValid.strand_course_id,
-                yl_id: studentValid.yl_id,
+                campus_user_id: campusUserValid.campus_user_id,
+                department_id: campusUserValid.department_id,
+                course_id: campusUserValid.course_id,
+                strand_course_id: campusUserValid.strand_course_id,
+                yl_id: campusUserValid.yl_id,
                 interested_events: interest,
                 is_beneficiary: false
             }, { transaction: t })
@@ -55,9 +55,9 @@ export const updateInterest = async (req, res) => {
 
         const { interest } = req.validatedBody
 
-        const { Student, Volunteer, Course, YearLevel } = models
+        const { CampusUsers, Volunteer, Course, YearLevel } = models
 
-        const studentValid = await Student.findOne({
+        const campusUserValid = await CampusUsers.findOne({
             where: { account_id: account.account_id },
             include: [
                 { model: Course },
@@ -65,9 +65,9 @@ export const updateInterest = async (req, res) => {
             ]
         })
 
-        if (!studentValid) { return t.rollback(), res.json({ message: 'student not found' }) }
+        if (!campusUserValid) { return t.rollback(), res.json({ message: 'campus user not found' }) }
 
-        const existingVolunteer = await Volunteer.findOne({ where: { student_id: studentValid.student_id } })
+        const existingVolunteer = await Volunteer.findOne({ where: { campus_user_id: campusUserValid.campus_user_id } })
 
         let volunteerInstance
         if (existingVolunteer) {
@@ -75,10 +75,10 @@ export const updateInterest = async (req, res) => {
             volunteerInstance = existingVolunteer
         } else {
             volunteerInstance = await Volunteer.create({
-                student_id: studentValid.student_id,
-                department_id: studentValid.department_id,
-                course_id: studentValid.Course.course_id,
-                yl_id: studentValid.YearLevel.yl_id,
+                campus_user_id: campusUserValid.campus_user_id,
+                department_id: campusUserValid.department_id,
+                course_id: campusUserValid.Course?.course_id || campusUserValid.course_id,
+                yl_id: campusUserValid.YearLevel?.yl_id || campusUserValid.yl_id,
                 interested_events: interest,
                 is_beneficiary: false
             }, { transaction: t })
@@ -102,17 +102,17 @@ export const checkInterest = async (req, res) => {
     try {
         const user = req.user;
 
-        const { Student, Volunteer } = models;
-        const student = await Student.findOne({
+        const { CampusUsers, Volunteer } = models;
+        const campusUser = await CampusUsers.findOne({
             where: { account_id: user.account_id }
         });
 
-        if (!student) {
-            return res.status(404).json({ success: false, message: 'Student not found', hasInterests: false });
+        if (!campusUser) {
+            return res.status(404).json({ success: false, message: 'Campus user not found', hasInterests: false });
         }
 
         const volunteer = await Volunteer.findOne({
-            where: { student_id: student.student_id },
+            where: { campus_user_id: campusUser.campus_user_id },
             attributes: ['volunteer_id', 'interested_events']
         });
 
@@ -137,13 +137,13 @@ export const checkInterest = async (req, res) => {
 
 export const getMatchedEvents = async (req, res) => {
   try {
-    const { Student, Volunteer, Organizer, Category, Event, Department, MatchedEvent } = models
+    const { CampusUsers, Volunteer, Organizer, Category, Event, Department, MatchedEvent } = models
     const user = req.user;
 
-    const student = await Student.findOne({ where: { account_id: user.account_id } })
-    if (!student) return res.json({ message: 'student not found' })
+    const campusUser = await CampusUsers.findOne({ where: { account_id: user.account_id } })
+    if (!campusUser) return res.json({ message: 'campus user not found' })
 
-    const volunteer = await Volunteer.findOne({ where: { student_id: student.student_id } })
+    const volunteer = await Volunteer.findOne({ where: { campus_user_id: campusUser.campus_user_id } })
     if (!volunteer) return res.json({ message: 'Must complete your profile info' })
 
     const record = await MatchedEvent.findOne({ where: { volunteer_id: volunteer.volunteer_id } })
@@ -230,13 +230,13 @@ export const register_event = async (req, res) => {
 
         if (event_id === 0 || event_id === null) { return res.json({ message: 'event id is not provided' }) }
 
-        const { Volunteer, Student, EventRegistration, Event } = models
+        const { Volunteer, CampusUsers, EventRegistration, Event } = models
 
-        const isStudentExist = await Student.findOne({ where: { account_id: user.account_id } })
-        if (!isStudentExist) { await t.rollback(); return res.json({ message: 'student not found' }) }
+        const isCampusUserExist = await CampusUsers.findOne({ where: { account_id: user.account_id } })
+        if (!isCampusUserExist) { await t.rollback(); return res.json({ message: 'campus user not found' }) }
 
 
-        const isVolunteerExist = await Volunteer.findOne({ where: { student_id: isStudentExist.student_id } })
+        const isVolunteerExist = await Volunteer.findOne({ where: { campus_user_id: isCampusUserExist.campus_user_id } })
         if (!isVolunteerExist) { await t.rollback(); return res.json({ message: 'your volunteer info is not found' }) }
 
         const existingRegistration = await EventRegistration.findOne({
@@ -285,17 +285,17 @@ export const event_registration = async (req, res) => {
         const { event_id } = req.params
         const { account_id } = req.user
 
-        const { Student, Volunteer, EventRegistration, Event } = models
+        const { CampusUsers, Volunteer, EventRegistration, Event } = models
 
-        const student = await Student.findOne({ where: { account_id } })
-        if(!student) { 
+        const campusUser = await CampusUsers.findOne({ where: { account_id } })
+        if(!campusUser) { 
             await t.rollback()
             return res.json({ message: 'information not found' }) 
         }
 
-        const volunterData = await Volunteer.findOne({ where: {student_id: student.student_id}, 
+        const volunterData = await Volunteer.findOne({ where: {campus_user_id: campusUser.campus_user_id}, 
             include: [
-                { model: Student }
+                { model: CampusUsers }
             ]
         })
 
@@ -392,9 +392,9 @@ export const cancel_registration = async (req, res) => {
         const { event_id } = req.params
         const { account_id } = req.user
 
-        const { EventRegistration, Event, Student, Volunteer } = models
+        const { EventRegistration, Event, CampusUsers, Volunteer } = models
         const eventValid = await Event.findOne({ where: { event_id } })
-        const userValid = await Student.findOne({ where: { account_id } })
+        const userValid = await CampusUsers.findOne({ where: { account_id } })
 
         if(!eventValid) { 
             await t.rollback()
@@ -405,7 +405,7 @@ export const cancel_registration = async (req, res) => {
             return res.json({ message: 'user is not found' }) 
         }
 
-        const volunteer = await Volunteer.findOne({ where: { student_id: userValid.student_id } })
+        const volunteer = await Volunteer.findOne({ where: { campus_user_id: userValid.campus_user_id } })
         if(!volunteer) { 
             await t.rollback()
             return res.json({ message: 'student info to proceed to volunteer is not found' }) 
@@ -477,12 +477,12 @@ export const get_all_registered_events = async (req, res) => {
         const limit = parseInt(req.query.limit) || 5
         const offset = (page - 1) * limit
 
-        const { EventRegistration, Event, Volunteer, Student } = models
-        const userValid = await Student.findOne({ where: { account_id } })
+        const { EventRegistration, Event, Volunteer, CampusUsers } = models
+        const userValid = await CampusUsers.findOne({ where: { account_id } })
 
         if(!userValid) { return res.json({ message: 'user is not found' }) }
 
-        const volunteer = await Volunteer.findOne({ where: { student_id: userValid.student_id } })
+        const volunteer = await Volunteer.findOne({ where: { campus_user_id: userValid.campus_user_id } })
         if(!volunteer) { return res.json({ message: 'student info to proceed to volunteer is not found' }) }
 
         const rows = await EventRegistration.findAll({
@@ -554,7 +554,7 @@ export const get_all_registered_events = async (req, res) => {
 export const get_all_events_calendar = async (req, res) => {
     try {
         console.log('Calendar request received for user:', req.user?.account_id)
-        const { Event, Category, MatchedEvent, Volunteer, Student, Accounts } = models
+        const { Event, Category, MatchedEvent, Volunteer, CampusUsers, Accounts } = models
         
         // Check if user is authenticated
         if (!req.user || !req.user.account_id) {
@@ -569,13 +569,13 @@ export const get_all_events_calendar = async (req, res) => {
             return res.json({ success: false, message: 'Account not found' })
         }
 
-        const student = await Student.findOne({ where: { account_id: account.account_id } })
-        console.log('Student found:', !!student, student?.student_id)
-        if (!student) {
-            return res.json({ success: false, message: 'Student profile not found' })
+        const campusUser = await CampusUsers.findOne({ where: { account_id: account.account_id } })
+        console.log('Campus user found:', !!campusUser, campusUser?.campus_user_id)
+        if (!campusUser) {
+            return res.json({ success: false, message: 'Campus user profile not found' })
         }
 
-        const volunteer = await Volunteer.findOne({ where: { student_id: student.student_id } })
+        const volunteer = await Volunteer.findOne({ where: { campus_user_id: campusUser.campus_user_id } })
         console.log('Volunteer found:', !!volunteer, volunteer?.volunteer_id)
         if (!volunteer) {
             return res.json({ success: false, message: 'Volunteer profile not found' })

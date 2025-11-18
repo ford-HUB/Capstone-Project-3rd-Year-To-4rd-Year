@@ -4,8 +4,6 @@ import TextInput from '../../../common/participant/profile/fields/TextInput';
 import { ALL_GOODS_TYPES } from '../../../../constants/goodsTypes.js';
 
 const GoodsStep = ({ formData, handleInputChange, errors, enabledGoodsTypes }) => {
-  // Filter goods types based on what's enabled for this event
-  // If enabledGoodsTypes is not provided or empty, show all (for backward compatibility)
   const goodsTypes = enabledGoodsTypes && enabledGoodsTypes.length > 0
     ? ALL_GOODS_TYPES.filter(gt => enabledGoodsTypes.includes(gt.id))
     : ALL_GOODS_TYPES;
@@ -21,7 +19,6 @@ const GoodsStep = ({ formData, handleInputChange, errors, enabledGoodsTypes }) =
     <div className="bg-white rounded-2xl p-6 border border-gray-200">
       <h2 className="text-xl font-bold text-gray-900 mb-4">What are you donating?</h2>
       
-      {/* Goods Type Selection */}
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-3">
           Type of Goods *
@@ -59,7 +56,6 @@ const GoodsStep = ({ formData, handleInputChange, errors, enabledGoodsTypes }) =
         )}
       </div>
 
-      {/* Description - Only show when goods type is selected */}
       {formData.goodsType && (
         <div className="mb-6">
           <FormField label="Detailed Description" required error={errors?.goodsDescription}>
@@ -78,7 +74,6 @@ const GoodsStep = ({ formData, handleInputChange, errors, enabledGoodsTypes }) =
         </div>
       )}
 
-      {/* Quantity Section - Only show when goods type is selected */}
       {formData.goodsType && (
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -124,8 +119,7 @@ const GoodsStep = ({ formData, handleInputChange, errors, enabledGoodsTypes }) =
         </div>
       )}
 
-      {/* Condition - Show only when goods type requires it (non-food, non-emergency, non-medicine) or when no goods type is selected yet */}
-      {(!formData.goodsType || !['ready_to_eat_food', 'emergency_kits', 'medicine'].includes(formData.goodsType)) && (
+      {(!formData.goodsType || !['ready_to_eat_food', 'emergency_kits', 'medicine', 'bottled_water'].includes(formData.goodsType)) && (
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Condition {formData.goodsType ? '*' : ''}

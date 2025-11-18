@@ -6,7 +6,9 @@ import InfoBox from "../InfoBox.jsx";
 
 const RHFAcademicInfoStep = ({ register, errors, watch, setValue, departmentCourses }) => {
   const department = watch('department');
-  const isSeniorHighDepartment = watch('department') === 'Senior High Department'
+  const participantType = watch('participantType');
+  const isSeniorHighDepartment = watch('department') === 'Senior High Department';
+  const isStaffOrFaculty = participantType === 'staff' || participantType === 'faculty';
 
   // Reset course when department changes
   React.useEffect(() => {
@@ -14,6 +16,14 @@ const RHFAcademicInfoStep = ({ register, errors, watch, setValue, departmentCour
       setValue('course', '');
     }
   }, [department, setValue]);
+
+  // Clear course and yearLevel when staff or faculty is selected
+  React.useEffect(() => {
+    if (isStaffOrFaculty) {
+      setValue('course', '');
+      setValue('yearLevel', undefined);
+    }
+  }, [isStaffOrFaculty, setValue]);
 
   return (
     <div className="space-y-6">
@@ -31,21 +41,22 @@ const RHFAcademicInfoStep = ({ register, errors, watch, setValue, departmentCour
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <RHFSelectField
-          label= { isSeniorHighDepartment ? "Strand" : "Course"}
+          label={isStaffOrFaculty ? "Course (Not Applicable)" : (isSeniorHighDepartment ? "Strand" : "Course")}
           name="course"
           register={register}
           error={errors.course}
-          placeholder="Select your course"
+          placeholder={isStaffOrFaculty ? "Not Applicable" : "Select your course"}
           options={(departmentCourses[department] || []).map(course => ({ value: course, label: course }))}
-          required
+          required={!isStaffOrFaculty}
+          disabled={isStaffOrFaculty}
         />
         
         <RHFSelectField
-          label={ isSeniorHighDepartment ? "Grade Level" : "Year Level" }
+          label={isStaffOrFaculty ? "Year Level (Not Applicable)" : (isSeniorHighDepartment ? "Grade Level" : "Year Level")}
           name="yearLevel"
           register={register}
           error={errors.yearLevel}
-          placeholder={ `Select your ${isSeniorHighDepartment ? `grade level` : `year level`}` }
+          placeholder={isStaffOrFaculty ? "Not Applicable" : `Select your ${isSeniorHighDepartment ? `grade level` : `year level`}`}
           options={ isSeniorHighDepartment ? [
             { value: "11", label: "Grade 11" },
             { value: "12", label: "Grade 12" },
@@ -56,12 +67,17 @@ const RHFAcademicInfoStep = ({ register, errors, watch, setValue, departmentCour
             { value: "3", label: "3rd Year" },
             { value: "4", label: "4th Year" }
           ] }
-          required
+          required={!isStaffOrFaculty}
+          disabled={isStaffOrFaculty}
         />
       </div>
       
       <InfoBox type="warning" title="Important Note:" icon={AlertCircle}>
-        <p>Make sure your department and course information matches exactly with your student ID. This will be verified in the next step.</p>
+        {isStaffOrFaculty ? (
+          <p>Make sure your department information is accurate. Course and year level are not applicable for staff and faculty members.</p>
+        ) : (
+          <p>Make sure your department and course information matches exactly with your student ID. This will be verified in the next step.</p>
+        )}
       </InfoBox>
     </div>
   );

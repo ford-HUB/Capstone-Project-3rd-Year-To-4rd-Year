@@ -147,7 +147,7 @@ const CustomToast = ({t, userData, message, eventDetails}) => {
                     <div className="lg:col-span-1 animate-slide-in-left">
                         <div className="text-center lg:text-left">
                             <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                                Hi, {userData?.Student?.firstname || userData?.firstname || 'Participator'}! 👋
+                                Hi, {userData?.CampusUsers?.firstname || userData?.firstname || 'Participator'}! 👋
                             </h3>
                             <p className="text-lg text-gray-700 mb-4">
                                 {isTimeIn ? 'Welcome to the event!' : 'Thanks for attending!'}

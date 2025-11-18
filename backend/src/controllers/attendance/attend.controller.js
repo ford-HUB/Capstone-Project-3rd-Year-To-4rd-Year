@@ -8,7 +8,7 @@ export const ScanQRAttendance = async (req, res) => {
         const { type, eventId, token } = req.query
         const accountId = req.user.account_id
 
-        const { Attendance, EventQRCode, Student, Volunteer, Director, Staff, Coordinator, Beneficiary, EventRegistration, Event } = models
+        const { Attendance, EventQRCode, CampusUsers, Volunteer, Director, Staff, Coordinator, Beneficiary, EventRegistration, Event } = models
         if(!['in', 'out'].includes(type)) { return res.json({ success: false, message: 'invalid attendance type' }) }
 
         const isQrValid = await EventQRCode.findOne({ where: { token: token } })
@@ -19,10 +19,10 @@ export const ScanQRAttendance = async (req, res) => {
         let participant
 
         switch(req.user.Role.name) {
-            case 'student':
-                const student = await Student.findOne({ where: { account_id: accountId } })
-                if(!student) { return res.json({ success: false, message: 'Student record not found' }) }
-                participant = await Volunteer.findOne({ where: { student_id: student.student_id } })
+            case 'volunteer':
+                const campusUser = await CampusUsers.findOne({ where: { account_id: accountId } })
+                if(!campusUser) { return res.json({ success: false, message: 'Campus user record not found' }) }
+                participant = await Volunteer.findOne({ where: { campus_user_id: campusUser.campus_user_id } })
                 if(!participant) { return res.json({ success: false, message: 'Volunteer record not found. Please complete your volunteer profile first.' }) }
                 participant_id = participant.volunteer_id
                 break
@@ -68,7 +68,7 @@ export const ScanQRAttendance = async (req, res) => {
 
         if(eventStatus === 'Upcoming') { return res.json({ success: false, message: 'Event is not started yet, please wait until its started.' }) }
 
-        const roleType = req.user.Role.name === 'student' ?
+        const roleType = req.user.Role.name === 'volunteer' ?
         'volunteer' : req.user.Role.name
 
         let attendace = await Attendance.findOne({ where: { participant_id: participant_id, participant_type: roleType, event_id: eventId },
@@ -182,7 +182,7 @@ export const attendanceLog = async (req, res) => {
             Attendance, 
             Event, 
             Volunteer, 
-            Student, 
+            CampusUsers, 
             Staff, 
             Director, 
             Category, 
@@ -279,7 +279,7 @@ export const attendanceLog = async (req, res) => {
                 { 
                     model: Volunteer,
                     required: false,
-                    include: [{ model: Student }]
+                    include: [{ model: CampusUsers }]
                 },
                 { model: Staff, required: false },
                 { model: Director, required: false },
@@ -317,11 +317,11 @@ export const attendanceLog = async (req, res) => {
             }
 
             // Map participant details based on type
-            if (record.participant_type === 'volunteer' && record.Volunteer?.Student) {
+            if (record.participant_type === 'volunteer' && record.Volunteer?.CampusUsers) {
                 formatted.participantDetails = {
-                    participant_name: `${record.Volunteer.Student.firstname} ${record.Volunteer.Student.lastname}`,
-                    participant_type: 'Student',
-                    participant_id: record.Volunteer.Student.student_id
+                    participant_name: `${record.Volunteer.CampusUsers.firstname} ${record.Volunteer.CampusUsers.lastname}`,
+                    participant_type: record.Volunteer.CampusUsers.type || 'Student',
+                    participant_id: record.Volunteer.CampusUsers.campus_user_id
                 }
             } else if (record.participant_type === 'staff' && record.Staff) {
                 formatted.participantDetails = {
@@ -415,7 +415,7 @@ export const attendanceRecords = async (req, res) => {
         } = req.query
 
 
-        const { Attendance, Event, Volunteer, Student, Staff, Director, Category, Beneficiary, Coordinator, Department, Accounts } = models
+        const { Attendance, Event, Volunteer, CampusUsers, Staff, Director, Category, Beneficiary, Coordinator, Department, Accounts } = models
 
         // Role-based access control
         const userRole = req.user.Role.name
@@ -511,7 +511,7 @@ export const attendanceRecords = async (req, res) => {
                     model: Volunteer,
                     required: false,
                     include: [
-                        { model: Student, required: false }
+                        { model: CampusUsers, required: false }
                     ]
                 },
                 { model: Staff, required: false },
@@ -599,11 +599,11 @@ export const attendanceRecords = async (req, res) => {
             }
 
             // Handle volunteer/student participants
-            if(attendance.participant_type === 'volunteer' && attendance.Volunteer?.Student) {
+            if(attendance.participant_type === 'volunteer' && attendance.Volunteer?.CampusUsers) {
                 attendanceData.participantDetails = {
-                    participant_name: `${attendance.Volunteer.Student.firstname} ${attendance.Volunteer.Student.lastname}`,
-                    participant_type: 'Student',
-                    participant_id: attendance.Volunteer.Student.student_id
+                    participant_name: `${attendance.Volunteer.CampusUsers.firstname} ${attendance.Volunteer.CampusUsers.lastname}`,
+                    participant_type: attendance.Volunteer.CampusUsers.type || 'Student',
+                    participant_id: attendance.Volunteer.CampusUsers.campus_user_id
                 }
             }
             // Handle staff participants
@@ -917,7 +917,7 @@ export const attendanceRecords = async (req, res) => {
 
 export const attendanceStatistics = async (req, res) => {
     try {
-        const { Attendance, Event, Volunteer, Student, Staff, Director, Category, Beneficiary, Coordinator, Department, Accounts } = models
+        const { Attendance, Event, Volunteer, CampusUsers, Staff, Director, Category, Beneficiary, Coordinator, Department, Accounts } = models
         
         // Get query parameters for filtering
         const { event_id, date_from, date_to, department } = req.query

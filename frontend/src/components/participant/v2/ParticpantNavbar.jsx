@@ -101,7 +101,7 @@ const ParticpantNavbar = () => {
                             BP
                         </div>
                         <div className="text-sm text-start">
-                            <div className="font-semibold">{`${currentProfileInfo?.Student.firstname.toUpperCase()}`}</div>
+                            <div className="font-semibold">{`${currentProfileInfo?.CampusUsers?.firstname?.toUpperCase() || ''}`}</div>
                             <div className="text-xs text-gray-500">Volunteer</div>
                         </div>
                     </button>

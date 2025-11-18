@@ -46,9 +46,8 @@ export const getNotificationList = async (req, res) => {
                 }
                 break
             
-            case 'student':
             case 'volunteer':
-                // Students/volunteers see all notifications except approval requests
+                // Volunteers see all notifications except approval requests
                 whereClause = {
                     [Op.and]: [
                         whereClause,

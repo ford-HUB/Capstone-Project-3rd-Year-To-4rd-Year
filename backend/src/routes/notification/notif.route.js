@@ -9,9 +9,9 @@ import { getNotificationList, markNotificationAsRead } from "../../controllers/n
 
 const notificationRouter = express.Router()
 
-notificationRouter.get('/list', guard('student', 'volunteer', 'director', 'coordinator', 'staff', 'assistant_coordinator'), getNotificationList)
+notificationRouter.get('/list', guard('volunteer', 'director', 'coordinator', 'staff', 'assistant_coordinator'), getNotificationList)
 
-notificationRouter.put('/mark-as-read/:notificationId', guard('student', 'volunteer', 'director', 'coordinator', 'assistant_coordinator', 'staff'), markNotificationAsRead)
+notificationRouter.put('/mark-as-read/:notificationId', guard('volunteer', 'director', 'coordinator', 'assistant_coordinator', 'staff'), markNotificationAsRead)
 
 
 notificationRouter.get('/testing', (req, res) => {

@@ -50,10 +50,10 @@ const ParticipantProfileSlider = ({ open, setOpen, userData }) => {
 
                         <div className="flex flex-col justify-center text-xl font-regular text-gray-900">
                             <div>
-                                {userData?.Student.firstname.toUpperCase()}
+                                {userData?.CampusUsers?.firstname?.toUpperCase() || ''}
                             </div>
                             <div>
-                                {userData?.Student.lastname.toUpperCase()}
+                                {userData?.CampusUsers?.lastname?.toUpperCase() || ''}
                             </div>
                         </div>
 

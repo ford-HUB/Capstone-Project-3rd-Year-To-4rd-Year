@@ -77,6 +77,24 @@ export const volunteerRegistrationSchema = z
                 message: 'Invalid option: expected one of "individual"|"organization"'
             }),
 
+        participantType: z
+            .string()
+            .optional()
+            .transform((val) => {
+                // Convert empty string to undefined
+                if (val === '' || val === null) {
+                    return undefined;
+                }
+                return val;
+            })
+            .refine((val) => {
+                // If value exists, it must be one of the valid options
+                if (val === undefined) return true;
+                return ['student', 'staff', 'faculty', 'alumni'].includes(val);
+            }, {
+                message: 'Invalid option: expected one of "student"|"staff"|"faculty"|"alumni"'
+            }),
+
         organization_name: z.string().optional(),
 
         studentIdFile: z.any().optional(),
@@ -136,21 +154,31 @@ export const volunteerRegistrationSchema = z
     .refine(
         (data) => {
             // If not a beneficiary (isBeneficiary is "false"), course is required
+            // But course is optional for staff and faculty
             if (data.isBeneficiary === "false" || data.isBeneficiary === false) {
+                const isStaffOrFaculty = data.participantType === 'staff' || data.participantType === 'faculty';
+                if (isStaffOrFaculty) {
+                    return true; // Course is optional for staff/faculty
+                }
                 return data.course && data.course.trim().length > 0;
             }
             // For beneficiaries, course is optional
             return true;
         },
         {
-            message: 'Course is required for regular volunteers',
+            message: 'Course is required for regular volunteers (except staff and faculty)',
             path: ['course'],
         }
     )
     .refine(
         (data) => {
             // If not a beneficiary (isBeneficiary is "false"), year level is required and must be valid
+            // But year level is optional for staff and faculty
             if (data.isBeneficiary === "false" || data.isBeneficiary === false) {
+                const isStaffOrFaculty = data.participantType === 'staff' || data.participantType === 'faculty';
+                if (isStaffOrFaculty) {
+                    return true; // Year level is optional for staff/faculty
+                }
                 if (!data.yearLevel) return false;
                 const num = Number(data.yearLevel);
                 return !isNaN(num) && num >= 1 && num <= 12;
@@ -158,7 +186,7 @@ export const volunteerRegistrationSchema = z
             return true;
         },
         {
-            message: 'Year level is required for regular volunteers',
+            message: 'Year level is required for regular volunteers (except staff and faculty)',
             path: ['yearLevel'],
         }
     )
@@ -177,5 +205,22 @@ export const volunteerRegistrationSchema = z
             message:
                 'Organization name is required for organization beneficiaries',
             path: ['organization_name'],
+        }
+    )
+    .refine(
+        (data) => {
+            // If not a beneficiary (isBeneficiary is "false"), participant type is required
+            if (data.isBeneficiary === "false" || data.isBeneficiary === false) {
+                return (
+                    data.participantType &&
+                    ['student', 'staff', 'faculty', 'alumni'].includes(data.participantType)
+                );
+            }
+            // For beneficiaries, participantType is optional
+            return true;
+        },
+        {
+            message: 'Participant type is required for regular volunteers',
+            path: ['participantType'],
         }
     );

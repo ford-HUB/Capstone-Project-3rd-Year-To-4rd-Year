@@ -5,7 +5,7 @@ import { sendMail } from '../services/mailService.js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 
-const { Event, Volunteer, Student, Accounts } = models;
+const { Event, Volunteer, CampusUsers, Accounts } = models;
 
 dayjs.extend(utc);
 
@@ -66,7 +66,7 @@ cron.schedule('0 0 * * *', async () => {
             attributes: ['volunteer_id'],
             include: [
                 {
-                    model: Student,
+                    model: CampusUsers,
                     attributes: ['account_id', 'firstname', 'lastname'],
                     include: [
                         {
@@ -82,7 +82,7 @@ cron.schedule('0 0 * * *', async () => {
         const toEmails = subscribers
             .map((v) => {
                 // Depending on Sequelize naming, Account may appear as Accounts or Account
-                const accountObj = v.Student?.Accounts || v.Student?.Account || null;
+                const accountObj = v.CampusUsers?.Accounts || v.CampusUsers?.Account || null;
                 return accountObj?.email || null;
             })
             .filter(Boolean);

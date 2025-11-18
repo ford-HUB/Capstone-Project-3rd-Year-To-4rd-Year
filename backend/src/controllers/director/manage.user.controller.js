@@ -6,7 +6,7 @@ import { getActiveUsers } from "../../socket.js";
 
 export const ListUsers = async (req, res) => {
     try {
-        const { Accounts, Role, Department, Student, Coordinator, Staff, Course, YearLevel } = models;
+        const { Accounts, Role, Department, CampusUsers, Coordinator, Staff, Course, YearLevel } = models;
 
         const getList = await Accounts.findAll({
             attributes: ['account_id', 'email', 'is_active', 'is_deactivated', 'createdAt', 'updatedAt', 'activeAt'],
@@ -17,8 +17,8 @@ export const ListUsers = async (req, res) => {
                     attributes: ['role_id', 'name']
                 },
                 {
-                    model: Student,
-                    attributes: ['firstname', 'lastname', 'phone_number', 'student_number', 'student_image_id'],
+                    model: CampusUsers,
+                    attributes: ['firstname', 'lastname', 'phone_number', 'school_number', 'school_image_id', 'type'],
                     required: false,
                     include: [
                         {
@@ -68,7 +68,7 @@ export const ListUsers = async (req, res) => {
                 email: account.email,
                 role: account.Role,
                 status: account.is_deactivated ? 'deactivated': account.is_active ? 'active' : 'inactive',
-                type: account.Student ? 'student' : account.Staff ? 'staff' : account.Coordinator ? 'coordinator' : 'director',
+                type: account.CampusUsers ? (account.CampusUsers.type || 'student') : account.Staff ? 'staff' : account.Coordinator ? 'coordinator' : 'director',
                 details: null,
                 departments: [],
                 createdAt: account.createdAt,
@@ -77,17 +77,18 @@ export const ListUsers = async (req, res) => {
                 isOnline: activeUserIds.has(account.account_id.toString())
             };
 
-            if (account.Student) {
+            if (account.CampusUsers) {
                 userData.details = {
-                    firstname: account.Student.firstname,
-                    lastname: account.Student.lastname,
-                    phone_number: account.Student.phone_number,
-                    course: account.Student.Course,
-                    year_level: account.Student.YearLevel,
-                    student_number: account.Student.student_number,
-                    student_image_id: account.Student.student_image_id
+                    firstname: account.CampusUsers.firstname,
+                    lastname: account.CampusUsers.lastname,
+                    phone_number: account.CampusUsers.phone_number,
+                    course: account.CampusUsers.Course,
+                    year_level: account.CampusUsers.YearLevel,
+                    school_number: account.CampusUsers.school_number,
+                    school_image_id: account.CampusUsers.school_image_id,
+                    type: account.CampusUsers.type
                 };
-                userData.departments = account.Student.Department || [];
+                userData.departments = account.CampusUsers.Department || [];
             } 
             else if (account.Staff) {
                 userData.details = {

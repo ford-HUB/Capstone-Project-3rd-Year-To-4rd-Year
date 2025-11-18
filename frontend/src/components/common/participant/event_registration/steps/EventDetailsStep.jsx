@@ -33,7 +33,7 @@ const EventDetailsStep = ({ userProfile, userEmail, formValues}) => (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex flex-col">
                         <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Full Name</span>
-                        <span className="text-gray-900 font-medium mt-1">{`${userProfile.Student.firstname} ${userProfile.Student.lastname}`}</span>
+                        <span className="text-gray-900 font-medium mt-1">{`${userProfile?.CampusUsers?.firstname || ''} ${userProfile?.CampusUsers?.lastname || ''}`}</span>
                     </div>
                     <div className="flex flex-col">
                         <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Email Address</span>
@@ -41,11 +41,11 @@ const EventDetailsStep = ({ userProfile, userEmail, formValues}) => (
                     </div>
                     <div className="flex flex-col">
                         <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Phone Number</span>
-                        <span className="text-gray-900 font-medium mt-1">{userProfile.Student.phone_number}</span>
+                        <span className="text-gray-900 font-medium mt-1">{userProfile?.CampusUsers?.phone_number}</span>
                     </div>
                     <div className="flex flex-col">
                         <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Address</span>
-                        <span className="text-gray-900 font-medium mt-1">{userProfile.Student.current_address}</span>
+                        <span className="text-gray-900 font-medium mt-1">{userProfile?.CampusUsers?.current_address}</span>
                     </div>
                 </div>
             </div>

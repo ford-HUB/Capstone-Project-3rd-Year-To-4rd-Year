@@ -54,6 +54,7 @@ const UpdateRegistrationUI = () => {
             currentAddress: '',
             isBeneficiary: 'false',
             beneficiaryType: '',
+            participantType: '',
             organization_name: '',
             studentIdFile: undefined,
         },
@@ -81,6 +82,7 @@ const UpdateRegistrationUI = () => {
     // Watch form values for dynamic steps
     const isBeneficiary = watch('isBeneficiary') === 'true';
     const beneficiaryType = watch('beneficiaryType');
+    const participantType = watch('participantType');
     const currentIsBeneficiary = watch('isBeneficiary');
 
     // Track previous volunteer type to detect changes
@@ -127,8 +129,12 @@ const UpdateRegistrationUI = () => {
                             formValues.organization_name?.trim())
                     );
                 } else {
-                    // For regular volunteers, just check if isBeneficiary is set
-                    return formValues.isBeneficiary === 'false';
+                    // For regular volunteers, check if isBeneficiary is set and participantType is selected
+                    return (
+                        formValues.isBeneficiary === 'false' &&
+                        formValues.participantType &&
+                        ['student', 'staff', 'faculty', 'alumni'].includes(formValues.participantType)
+                    );
                 }
 
             case 2:
@@ -193,6 +199,11 @@ const UpdateRegistrationUI = () => {
                 if (isBeneficiaryForStep4) {
                     return true; // No fields to validate for beneficiaries
                 } else {
+                    const isStaffOrFaculty = formValues.participantType === 'staff' || formValues.participantType === 'faculty';
+                    // Department is always required, but course and yearLevel are optional for staff/faculty
+                    if (isStaffOrFaculty) {
+                        return formValues.department;
+                    }
                     return (
                         formValues.department &&
                         formValues.course &&
@@ -250,7 +261,7 @@ const UpdateRegistrationUI = () => {
                 id: 5,
                 name: 'ID Verification',
                 icon: Upload,
-                description: 'Upload your student ID',
+                description: 'Upload your school ID',
             });
         }
 
@@ -290,6 +301,7 @@ const UpdateRegistrationUI = () => {
             currentAddress: '',
             isBeneficiary: 'false',
             beneficiaryType: '',
+            participantType: '',
             organization_name: '',
             studentIdFile: undefined,
         });
@@ -325,6 +337,7 @@ const UpdateRegistrationUI = () => {
         // Reset fields that are specific to volunteer types
         setValue('studentId', newVolunteerType === 'false' ? '' : '');
         setValue('beneficiaryType', '');
+        setValue('participantType', '');
         setValue('organization_name', '');
         setValue('department', '');
         setValue('course', '');
@@ -419,7 +432,7 @@ const UpdateRegistrationUI = () => {
                         'organization_name',
                     ];
                 }
-                return ['isBeneficiary'];
+                return ['isBeneficiary', 'participantType'];
             case 2:
                 // Account information - only validate studentId for regular volunteers
                 const isBeneficiaryForFields =
@@ -445,7 +458,10 @@ const UpdateRegistrationUI = () => {
                 if (isBeneficiaryForStep4) {
                     return []; // No fields to validate for beneficiaries
                 }
-                return ['department', 'course', 'yearLevel'];
+                const participantTypeForStep4 = watch('participantType');
+                const isStaffOrFacultyForStep4 = participantTypeForStep4 === 'staff' || participantTypeForStep4 === 'faculty';
+                // For staff/faculty, only department is required
+                return isStaffOrFacultyForStep4 ? ['department'] : ['department', 'course', 'yearLevel'];
             case 5:
                 // ID verification (only for regular volunteers)
                 const isBeneficiaryForStep5 = watch('isBeneficiary') === 'true';
@@ -470,13 +486,13 @@ const UpdateRegistrationUI = () => {
 
         // We need to manually check the fields we care about for each step
         // because the trigger result might include errors from other steps
-        let isValid;
+            let isValid;
         if (registrationStep === 1) {
             // Step 1: Volunteer type selection
             const isBeneficiarySelected = watch('isBeneficiary') === 'true';
             const fieldsToCheck = isBeneficiarySelected
                 ? ['isBeneficiary', 'beneficiaryType', 'organization_name']
-                : ['isBeneficiary'];
+                : ['isBeneficiary', 'participantType'];
             
             // Check if there are any errors for the fields we care about
             const hasErrors = fieldsToCheck.some((field) => errors[field]);
@@ -494,19 +510,23 @@ const UpdateRegistrationUI = () => {
                         formValues.organization_name?.trim())
                 );
             } else {
-                // For regular volunteers, just check if isBeneficiary is set
-                fieldsValid = formValues.isBeneficiary === 'false';
+                // For regular volunteers, check if isBeneficiary is set and participantType is selected
+                fieldsValid = (
+                    formValues.isBeneficiary === 'false' &&
+                    formValues.participantType &&
+                    ['student', 'staff', 'faculty', 'alumni'].includes(formValues.participantType)
+                );
             }
             
             isValid = !hasErrors && fieldsValid;
 
-            console.log('Step 1 Debug:');
-            console.log('Fields to check:', fieldsToCheck);
-            console.log('Errors:', errors);
-            console.log('Has errors:', hasErrors);
-            console.log('Fields valid:', fieldsValid);
-            console.log('Form values:', formValues);
-            console.log('Is valid:', isValid);
+            // console.log('Step 1 Debug:');
+            // console.log('Fields to check:', fieldsToCheck);
+            // console.log('Errors:', errors);
+            // console.log('Has errors:', hasErrors);
+            // console.log('Fields valid:', fieldsValid);
+            // console.log('Form values:', formValues);
+            // console.log('Is valid:', isValid);
         } else if (registrationStep === 2) {
             // Step 2: Account information
             const isBeneficiaryForFields = watch('isBeneficiary') === 'true';
@@ -555,12 +575,12 @@ const UpdateRegistrationUI = () => {
             
             isValid = !hasErrors && fieldsValid;
 
-            console.log('Step 2 Debug:');
-            console.log('Fields to check:', fieldsToCheck);
-            console.log('Errors:', errors);
-            console.log('Has errors:', hasErrors);
-            console.log('Fields valid:', fieldsValid);
-            console.log('Is valid:', isValid);
+            // console.log('Step 2 Debug:');
+            // console.log('Fields to check:', fieldsToCheck);
+            // console.log('Errors:', errors);
+            // console.log('Has errors:', hasErrors);
+            // console.log('Fields valid:', fieldsValid);
+            // console.log('Is valid:', isValid);
         } else if (registrationStep === 3) {
             // Step 3: Personal details
             const fieldsToCheck = [
@@ -590,41 +610,52 @@ const UpdateRegistrationUI = () => {
             
             isValid = !hasErrors && fieldsValid;
 
-            console.log('Step 3 Debug:');
-            console.log('Fields to check:', fieldsToCheck);
-            console.log('Errors:', errors);
-            console.log('Has errors:', hasErrors);
-            console.log('Fields valid:', fieldsValid);
-            console.log('Form values:', formValues);
-            console.log('Is valid:', isValid);
+            // console.log('Step 3 Debug:');
+            // console.log('Fields to check:', fieldsToCheck);
+            // console.log('Errors:', errors);
+            // console.log('Has errors:', hasErrors);
+            // console.log('Fields valid:', fieldsValid);
+            // console.log('Form values:', formValues);
+            // console.log('Is valid:', isValid);
         } else if (registrationStep === 4) {
             // Step 4: Academic info (only for regular volunteers)
             const isBeneficiaryForStep4 = watch('isBeneficiary') === 'true';
             if (isBeneficiaryForStep4) {
                 isValid = true; // No fields to validate for beneficiaries
             } else {
-                const fieldsToCheck = ['department', 'course', 'yearLevel'];
+                const formValues = watch();
+                const isStaffOrFaculty = formValues.participantType === 'staff' || formValues.participantType === 'faculty';
+                
+                // For staff/faculty, only department is required
+                // For students/alumni, all fields are required
+                const fieldsToCheck = isStaffOrFaculty 
+                    ? ['department'] 
+                    : ['department', 'course', 'yearLevel'];
                 
                 // Check if there are any errors for the fields we care about
                 const hasErrors = fieldsToCheck.some((field) => errors[field]);
                 
                 // Also check if the fields are actually filled and valid
-                const formValues = watch();
-                const fieldsValid = (
-                    formValues.department &&
-                    formValues.course &&
-                    formValues.yearLevel
-                );
+                let fieldsValid;
+                if (isStaffOrFaculty) {
+                    fieldsValid = formValues.department;
+                } else {
+                    fieldsValid = (
+                        formValues.department &&
+                        formValues.course &&
+                        formValues.yearLevel
+                    );
+                }
                 
                 isValid = !hasErrors && fieldsValid;
 
-                console.log('Step 4 Debug:');
-                console.log('Fields to check:', fieldsToCheck);
-                console.log('Errors:', errors);
-                console.log('Has errors:', hasErrors);
-                console.log('Fields valid:', fieldsValid);
-                console.log('Form values:', formValues);
-                console.log('Is valid:', isValid);
+                // console.log('Step 4 Debug:');
+                // console.log('Fields to check:', fieldsToCheck);
+                // console.log('Errors:', errors);
+                // console.log('Has errors:', hasErrors);
+                // console.log('Fields valid:', fieldsValid);
+                // console.log('Form values:', formValues);
+                // console.log('Is valid:', isValid);
             }
         } else if (registrationStep === 5) {
             // Step 5: ID verification (only for regular volunteers)
@@ -643,13 +674,13 @@ const UpdateRegistrationUI = () => {
                 
                 isValid = !hasErrors && fieldsValid;
 
-                console.log('Step 5 Debug:');
-                console.log('Fields to check:', fieldsToCheck);
-                console.log('Errors:', errors);
-                console.log('Has errors:', hasErrors);
-                console.log('Fields valid:', fieldsValid);
-                console.log('Form values:', formValues);
-                console.log('Is valid:', isValid);
+                // console.log('Step 5 Debug:');
+                // console.log('Fields to check:', fieldsToCheck);
+                // console.log('Errors:', errors);
+                // console.log('Has errors:', hasErrors);
+                // console.log('Fields valid:', fieldsValid);
+                // console.log('Form values:', formValues);
+                // console.log('Is valid:', isValid);
             }
         } else {
             // For other steps, use the trigger result directly
@@ -669,7 +700,7 @@ const UpdateRegistrationUI = () => {
                               'beneficiaryType',
                               'organization_name',
                           ]
-                        : ['isBeneficiary'];
+                        : ['isBeneficiary', 'participantType'];
                     break;
                 case 2:
                     const isBeneficiaryForFields =
@@ -692,9 +723,15 @@ const UpdateRegistrationUI = () => {
                 case 4:
                     const isBeneficiaryForStep4 =
                         watch('isBeneficiary') === 'true';
-                    currentStepFields = isBeneficiaryForStep4
-                        ? []
-                        : ['department', 'course', 'yearLevel'];
+                    if (isBeneficiaryForStep4) {
+                        currentStepFields = [];
+                    } else {
+                        const participantTypeForError = watch('participantType');
+                        const isStaffOrFacultyForError = participantTypeForError === 'staff' || participantTypeForError === 'faculty';
+                        currentStepFields = isStaffOrFacultyForError 
+                            ? ['department'] 
+                            : ['department', 'course', 'yearLevel'];
+                    }
                     break;
                 case 5:
                     const isBeneficiaryForStep5 =
@@ -742,6 +779,8 @@ const UpdateRegistrationUI = () => {
                             formattedField = 'Organization Name';
                         if (field === 'beneficiaryType')
                             formattedField = 'Beneficiary Type';
+                        if (field === 'participantType')
+                            formattedField = 'Participant Type';
                         if (field === 'isBeneficiary')
                             formattedField = 'Volunteer Type';
 
@@ -865,6 +904,10 @@ const UpdateRegistrationUI = () => {
             formDataToSend.append(
                 'beneficiaryType',
                 data.beneficiaryType || ''
+            );
+            formDataToSend.append(
+                'participantType',
+                data.participantType || ''
             );
 
             // Add organization name for organization beneficiaries
@@ -1010,7 +1053,7 @@ const UpdateRegistrationUI = () => {
                                                           'beneficiaryType',
                                                           'organization_name',
                                                       ]
-                                                    : ['isBeneficiary'];
+                                                    : ['isBeneficiary', 'participantType'];
                                             break;
                                         case 2:
                                             const isBeneficiaryForFields =
@@ -1045,14 +1088,15 @@ const UpdateRegistrationUI = () => {
                                             const isBeneficiaryForStep4 =
                                                 watch('isBeneficiary') ===
                                                 'true';
-                                            currentStepFields =
-                                                isBeneficiaryForStep4
-                                                    ? []
-                                                    : [
-                                                          'department',
-                                                          'course',
-                                                          'yearLevel',
-                                                      ];
+                                            if (isBeneficiaryForStep4) {
+                                                currentStepFields = [];
+                                            } else {
+                                                const participantTypeForGlobalError = watch('participantType');
+                                                const isStaffOrFacultyForGlobalError = participantTypeForGlobalError === 'staff' || participantTypeForGlobalError === 'faculty';
+                                                currentStepFields = isStaffOrFacultyForGlobalError 
+                                                    ? ['department'] 
+                                                    : ['department', 'course', 'yearLevel'];
+                                            }
                                             break;
                                         case 5:
                                             const isBeneficiaryForStep5 =
@@ -1073,39 +1117,39 @@ const UpdateRegistrationUI = () => {
                                         currentStepFields.includes(field)
                                     );
 
-                                    if (currentStepErrors.length > 0) {
-                                        return (
-                                            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
-                                                <div className="flex">
-                                                    <div className="flex-shrink-0">
-                                                        <svg
-                                                            className="h-5 w-5 text-yellow-400"
-                                                            viewBox="0 0 20 20"
-                                                            fill="currentColor">
-                                                            <path
-                                                                fillRule="evenodd"
-                                                                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                                                                clipRule="evenodd"
-                                                            />
-                                                        </svg>
-                                                    </div>
-                                                    <div className="ml-3">
-                                                        <h3 className="text-sm font-medium text-yellow-800">
-                                                            🚫 Form has
-                                                            validation errors -
-                                                            Cannot proceed
-                                                        </h3>
-                                                        <div className="mt-1 text-sm text-yellow-700">
-                                                            Please review and
-                                                            fix all highlighted
-                                                            errors below before
-                                                            continuing.
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    }
+                                    // if (currentStepErrors.length > 0) {
+                                    //     return (
+                                    //         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
+                                    //             <div className="flex">
+                                    //                 <div className="flex-shrink-0">
+                                    //                     <svg
+                                    //                         className="h-5 w-5 text-yellow-400"
+                                    //                         viewBox="0 0 20 20"
+                                    //                         fill="currentColor">
+                                    //                         <path
+                                    //                             fillRule="evenodd"
+                                    //                             d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                    //                             clipRule="evenodd"
+                                    //                         />
+                                    //                     </svg>
+                                    //                 </div>
+                                    //                 <div className="ml-3">
+                                    //                     <h3 className="text-sm font-medium text-yellow-800">
+                                    //                         🚫 Form has
+                                    //                         validation errors -
+                                    //                         Cannot proceed
+                                    //                     </h3>
+                                    //                     <div className="mt-1 text-sm text-yellow-700">
+                                    //                         Please review and
+                                    //                         fix all highlighted
+                                    //                         errors below before
+                                    //                         continuing.
+                                    //                     </div>
+                                    //                 </div>
+                                    //             </div>
+                                    //         </div>
+                                    //     );
+                                    // }
                                     return null;
                                 })()}
 
@@ -1132,7 +1176,7 @@ const UpdateRegistrationUI = () => {
                     <p className="text-gray-600 text-sm">
                         Need help? Contact us at{' '}
                         <a
-                            href="mailto:support@uclm.edu"
+                            href="mailto:support@uclmcares.online"
                             className="text-blue-600 hover:underline">
                             support@uclmcares.online  
                         </a>

@@ -20,7 +20,7 @@ export const generateCertificateBatch = async (event, category, department, batc
             Event,
             Accounts,
             EventRegistration,
-            Student,
+            CampusUsers,
             Role,
             Volunteer,
             Staff,
@@ -177,7 +177,7 @@ export const generateCertificateBatch = async (event, category, department, batc
                     model: Volunteer,
                     required: false,
                     include: [
-                        { model: Student }
+                        { model: CampusUsers }
                     ]
                 },
                 { model: Staff, required: false },
@@ -240,13 +240,13 @@ export const generateCertificateBatch = async (event, category, department, batc
 
                 let participant = null;
 
-                if (att.participant_type === 'volunteer' && att.Volunteer?.Student) {
-                    const account = await Accounts.findOne({ where: { account_id: att?.Volunteer.Student.account_id } })
+                if (att.participant_type === 'volunteer' && att.Volunteer?.CampusUsers) {
+                    const account = await Accounts.findOne({ where: { account_id: att?.Volunteer.CampusUsers.account_id } })
                     participant = {
                         id: att.participant_id, // Use attendance participant_id
                         email: account.email,
-                        name: `${att.Volunteer.Student.firstname} ${att.Volunteer.Student.lastname}`,
-                        type: 'Student',
+                        name: `${att.Volunteer.CampusUsers.firstname} ${att.Volunteer.CampusUsers.lastname}`,
+                        type: att.Volunteer.CampusUsers.type || 'Student',
                     }
                 } else if (att.participant_type === 'staff' && att.Staff) {
                     const account = await Accounts.findOne({ where: { account_id: att?.Staff.account_id } })

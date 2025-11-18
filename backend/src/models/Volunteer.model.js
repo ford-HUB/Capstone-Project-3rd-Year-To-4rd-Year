@@ -10,12 +10,12 @@ Volunteer.init({
         autoIncrement: true
     },
 
-    student_id: {
+    campus_user_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: 'student',
-            key: 'student_id'
+            model: 'campus_users',
+            key: 'campus_user_id'
         }
     },
 
@@ -84,7 +84,7 @@ Volunteer.init({
     timestamps: true,
     indexes: [
         {
-            fields: ['student_id']
+            fields: ['campus_user_id']
         },
         {
             fields: ['department_id']

@@ -6,6 +6,7 @@ import RHFInputField from "../RHFInputField.jsx";
 const RHFVolunteerTypeStep = ({ register, watch, errors }) => {
   const isBeneficiary = watch('isBeneficiary') === 'true';
   const beneficiaryType = watch('beneficiaryType');
+  const participantType = watch('participantType');
 
   return (
     <div className="space-y-6">
@@ -27,7 +28,7 @@ const RHFVolunteerTypeStep = ({ register, watch, errors }) => {
                 Regular Volunteer
               </label>
               <p className="text-sm text-gray-500 mt-1">
-                I want to volunteer for community service events and activities. I will need to upload my student ID for verification.
+                I want to volunteer for community service events and activities. I will need to upload my school ID for verification.
               </p>
             </div>
           </div>
@@ -53,6 +54,101 @@ const RHFVolunteerTypeStep = ({ register, watch, errors }) => {
           </div>
         </div>
       </div>
+      
+      {/* Participant Type Selection - Only show for regular volunteers */}
+      {!isBeneficiary && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium text-gray-900">Participant Type</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="border border-gray-200 rounded-lg p-4">
+              <div className="flex items-start space-x-3">
+                <input
+                  type="radio"
+                  id="student-participant"
+                  value="student"
+                  {...register('participantType')}
+                  className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+                <div className="flex-1">
+                  <label htmlFor="student-participant" className="text-sm font-medium text-gray-900 cursor-pointer">
+                    Student
+                  </label>
+                  <p className="text-sm text-gray-500 mt-1">
+                    I am currently enrolled as a student
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="border border-gray-200 rounded-lg p-4">
+              <div className="flex items-start space-x-3">
+                <input
+                  type="radio"
+                  id="staff-participant"
+                  value="staff"
+                  {...register('participantType')}
+                  className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+                <div className="flex-1">
+                  <label htmlFor="staff-participant" className="text-sm font-medium text-gray-900 cursor-pointer">
+                    Staff
+                  </label>
+                  <p className="text-sm text-gray-500 mt-1">
+                    I am a staff member of the institution
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="border border-gray-200 rounded-lg p-4">
+              <div className="flex items-start space-x-3">
+                <input
+                  type="radio"
+                  id="faculty-participant"
+                  value="faculty"
+                  {...register('participantType')}
+                  className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+                <div className="flex-1">
+                  <label htmlFor="faculty-participant" className="text-sm font-medium text-gray-900 cursor-pointer">
+                    Faculty
+                  </label>
+                  <p className="text-sm text-gray-500 mt-1">
+                    I am a faculty member of the institution
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="border border-gray-200 rounded-lg p-4">
+              <div className="flex items-start space-x-3">
+                <input
+                  type="radio"
+                  id="alumni-participant"
+                  value="alumni"
+                  {...register('participantType')}
+                  className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+                <div className="flex-1">
+                  <label htmlFor="alumni-participant" className="text-sm font-medium text-gray-900 cursor-pointer">
+                    Alumni
+                  </label>
+                  <p className="text-sm text-gray-500 mt-1">
+                    I am a graduate of the institution
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Show error message if participant type is not selected */}
+          {!isBeneficiary && !participantType && (
+            <div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-3">
+              <p>Please select your participant type (Student, Staff, Faculty, or Alumni).</p>
+            </div>
+          )}
+        </div>
+      )}
       
       {/* Beneficiary Type Selection - Only show for beneficiaries */}
       {isBeneficiary && (

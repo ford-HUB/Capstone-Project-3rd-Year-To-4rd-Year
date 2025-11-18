@@ -13,7 +13,7 @@ const __dirname = getDirname(__filename);
 // Run every 5 minutes to process pending form link notifications
 cron.schedule('0 */5 * * * *', async () => {
     try {
-        const { Event, Attendance, FormLink, EventRegistration, Volunteer, Student, Accounts } = models
+        const { Event, Attendance, FormLink, EventRegistration, Volunteer, CampusUsers, Accounts } = models
 
         const AttendanceCompletedProcess = await Attendance.findAll({
             where: {
@@ -44,7 +44,7 @@ cron.schedule('0 */5 * * * *', async () => {
                             model: Volunteer,
                             include: [
                                 {
-                                    model: Student,
+                                    model: CampusUsers,
                                     include: [
                                         {
                                             model: Accounts,
@@ -80,8 +80,8 @@ cron.schedule('0 */5 * * * *', async () => {
                 }
 
                 // Get participant details
-                const participantEmail = eventRegisteredParticipant?.Volunteer?.Student?.Account.email;
-                const participantName = `${eventRegisteredParticipant?.Volunteer?.Student?.firstname} ${eventRegisteredParticipant?.Volunteer?.Student?.lastname}`;
+                const participantEmail = eventRegisteredParticipant?.Volunteer?.CampusUsers?.Account.email;
+                const participantName = `${eventRegisteredParticipant?.Volunteer?.CampusUsers?.firstname} ${eventRegisteredParticipant?.Volunteer?.CampusUsers?.lastname}`;
                 const eventName = attendance.Event.title;
                 const googleFormLink = eventFormLinkRecord.form_link;
 

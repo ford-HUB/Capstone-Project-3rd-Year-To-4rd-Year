@@ -8,16 +8,16 @@ import bcrypt from 'bcrypt'
 export const currentUserProfile = async (req, res) => {
     try {
         const accountId = req.user.account_id
-        const { Volunteer, Student, Department, Course, YearLevel, StrandCourse } = models
+        const { Volunteer, CampusUsers, Department, Course, YearLevel, StrandCourse } = models
 
-        const studentData = await Student.findOne({ where: { account_id: accountId } })
+        const campusUserData = await CampusUsers.findOne({ where: { account_id: accountId } })
 
-        if (!studentData) { return res.json({ message: 'Student profile not found' }) }
+        if (!campusUserData) { return res.json({ message: 'Campus user profile not found' }) }
 
         const volunteerData = await Volunteer.findAll({
-            where: { student_id: studentData.student_id },
+            where: { campus_user_id: campusUserData.campus_user_id },
             include: [
-                { model: Student,
+                { model: CampusUsers,
                     include: [
                         { model: Department },
                         { model: Course },
@@ -42,10 +42,10 @@ export const updateUserProfile = async (req, res) => {
         const { firstname, lastname, gender, middle_initial, phone_number, current_address, course, department, year_level, disability, disability_specification, is_subscribed } = req.validatedBody
         const accountId = req.user.account_id
 
-        const { Student, Volunteer, Course, Department, YearLevel, StrandCourse } = models
-        const studentData = await Student.findOne({ where: { account_id: accountId } })
+        const { CampusUsers, Volunteer, Course, Department, YearLevel, StrandCourse } = models
+        const campusUserData = await CampusUsers.findOne({ where: { account_id: accountId } })
 
-        if(!studentData) { return res.json({ message: 'Student profile not found' }) }
+        if(!campusUserData) { return res.json({ message: 'Campus user profile not found' }) }
 
         // Handle course updates based on department type
         let courseUpdate = null
@@ -53,31 +53,31 @@ export const updateUserProfile = async (req, res) => {
             // Update strand course
             courseUpdate = await StrandCourse.update(
                 { name: course }, 
-                { where: { strand_course_id: studentData.strand_course_id } }, 
+                { where: { strand_course_id: campusUserData.strand_course_id } }, 
                 { transaction: t }
             )
         } else {
             // Update regular course
             courseUpdate = await Course.update(
                 { course_name: course }, 
-                { where: { course_id: studentData.course_id } }, 
+                { where: { course_id: campusUserData.course_id } }, 
                 { transaction: t }
             )
         }
 
         const [departmentUpdate] = await Department.findOrCreate({ 
-            where: { department_id: studentData.department_id }, 
+            where: { department_id: campusUserData.department_id }, 
             defaults: { department_name: department }, 
             transaction: t
         })
         
         const ylUpdate = await YearLevel.update(
             { year_level: year_level }, 
-            { where: { yl_id: studentData.yl_id } }, 
+            { where: { yl_id: campusUserData.yl_id } }, 
             { transaction: t }
         )
 
-        const updateStudentInfo = await studentData.update({
+        const updateCampusUserInfo = await campusUserData.update({
             firstname,
             lastname,
             gender,
@@ -91,9 +91,9 @@ export const updateUserProfile = async (req, res) => {
         const updateSubscription = await Volunteer.update({
             is_subscribed,
             is_beneficiary: req.validatedBody.is_beneficiary || false
-        }, { where: { student_id: studentData.student_id }, transaction: t })
+        }, { where: { campus_user_id: campusUserData.campus_user_id }, transaction: t })
 
-        if(!updateStudentInfo || !updateSubscription || !courseUpdate || !departmentUpdate || !ylUpdate) {
+        if(!updateCampusUserInfo || !updateSubscription || !courseUpdate || !departmentUpdate || !ylUpdate) {
             await t.rollback()
             return res.json({ message: 'Failed to update profile' })
         }

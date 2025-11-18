@@ -23,8 +23,8 @@ certificateRouter.get('/get-certificate-templates',  guard(...allowedRoleManageE
 certificateRouter.post('/assign-certificate-template', guard(...allowedRoleManageEvent), validateRequest(certificateTemplateSchema), createCertificateTemplate)
 certificateRouter.get('/get-deployed-template-certificates', guard(...allowedRoleManageEvent), getDeployedCertificateTemplate)
 certificateRouter.delete('/delete-certificate-template/:ct_id', guard(...allowedRoleManageEvent), deleteCertificateTemplate)
-certificateRouter.get('/get-your-certificates', guard('student', 'director', 'staff', 'coordinator', 'assistant_coordinator'), getUserCertificates)
-certificateRouter.get('/get-user-certificate-count-and-event-completed-count', guard('student', 'director', 'staff', 'coordinator'), getCertificateCountAndEvent)
+certificateRouter.get('/get-your-certificates', guard('volunteer', 'director', 'staff', 'coordinator', 'assistant_coordinator'), getUserCertificates)
+certificateRouter.get('/get-user-certificate-count-and-event-completed-count', guard('volunteer', 'director', 'staff', 'coordinator'), getCertificateCountAndEvent)
 
 
 certificateRouter.get('/testing', (req, res) => {

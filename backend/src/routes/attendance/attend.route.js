@@ -9,7 +9,7 @@ import { ScanQRAttendance, generateBothQR, attendanceLog, attendanceRecords, att
 
 const attendRouter = express.Router()
 
-attendRouter.get('/scanQr/attendance', guard('student', 'director', 'staff', 'coordinator', 'assistant_coordinator', 'beneficiary'), ScanQRAttendance)
+attendRouter.get('/scanQr/attendance', guard('volunteer', 'director', 'staff', 'coordinator', 'assistant_coordinator', 'beneficiary'), ScanQRAttendance)
 attendRouter.get('/attendance-log', guard('director', 'staff', 'coordinator', 'assistant_coordinator'), attendanceLog)
 attendRouter.get('/attendance-records', guard('director', 'staff', 'coordinator', 'assistant_coordinator'), attendanceRecords)
 attendRouter.get('/attendance-statistics', guard('director', 'staff', 'coordinator', 'assistant_coordinator'), attendanceStatistics)
