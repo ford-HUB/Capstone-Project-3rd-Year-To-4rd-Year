@@ -50,6 +50,7 @@ import GoodsDonation from './donations/GoodsDonation.model.js';
 import Payments from './donations/Payments.model.js';
 import EventGoodsType from './donations/EventGoodsType.model.js';
 import LinkedPaymentAccounts from './LinkedPaymentAccounts.model.js';
+import Testimonials from './testimonial/Testimonials.model.js';
 
 
 
@@ -366,7 +367,8 @@ const models = {
     Payments,
     EventGoodsType,
     LinkedPaymentAccounts,
-    PaymentMethod
+    PaymentMethod,
+    Testimonials
 }
 
 export default models 

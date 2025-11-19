@@ -43,7 +43,7 @@ const Navbar = ({ idRoute }) => {
         </div>
 
         <div className="sideContainer flex justify-end items-center text-md/6 text-white gap-2">
-          <button onClick={() => navigate('/')} type="submit" className="bg-blue-600 px-2.5 py-1.5 rounded-[4px] hover:bg-blue-700 transition-colors duration-400 hover:text-white">
+          <button onClick={() => window.location.href = '/'} type="submit" className="bg-blue-600 px-2.5 py-1.5 rounded-[4px] hover:bg-blue-700 transition-colors duration-400 hover:text-white">
             Get Involved
           </button>
 

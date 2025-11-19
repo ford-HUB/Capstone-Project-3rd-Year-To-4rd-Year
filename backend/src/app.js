@@ -45,6 +45,7 @@ import webhookPaymentRouter from './routes/webhook/payment/webhook.payment.route
 import donationTrackingRouter from './routes/director/donationTracking.route.js'
 import statisticsRouter from './routes/director/statistics.route.js'
 import guestEventRouter from './routes/guest/event.route.js'
+import testimonialRouter from './routes/testimonial/testimonial.route.js'
 
 
 // @ Middleware
@@ -150,6 +151,7 @@ app.use('/api/director/statistics', statisticsRouter)
 app.use('/api/v1/payment', paymentRouter)
 
 app.use('/api/guest', guestEventRouter)
+app.use('/api/testimonial', testimonialRouter)
 
 app.get('/health', (req, res) => {
     res.json({ success: true, status: 'Health check is OK', timestamp: new Date() })

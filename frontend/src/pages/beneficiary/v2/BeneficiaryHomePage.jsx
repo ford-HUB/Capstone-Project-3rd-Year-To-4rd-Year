@@ -6,6 +6,7 @@ import BeneficiaryRecommendationSidebar from '../../../components/beneficiary/v2
 import BeneficiaryEventCalendar from '../../../components/beneficiary/v2/cards/BeneficiaryEventCalendar.jsx';
 import BeneficiaryLocationStats from '../../../components/beneficiary/v2/cards/BeneficiaryLocationStats.jsx';
 import { initSocket } from '../../../api/socket.js';
+import TestimonialSubmissionModal from '../../../components/modal/v2/beneficiary/TestimonialSubmissionModal.jsx';
 
 const BeneficiaryHomePage = () => {
     const { 
@@ -22,10 +23,13 @@ const BeneficiaryHomePage = () => {
         initializeSocket,
         cleanupSocket,
         checkConnectionStatus,
-        clearLoading
+        clearLoading,
+        getAttendanceRecords
     } = useBeneficiaryEventStore();
 
     const [dots, setDots] = React.useState('');
+    const [showTestimonialModal, setShowTestimonialModal] = React.useState(false);
+    const [testimonialEventData, setTestimonialEventData] = React.useState(null);
 
     // Show near you events in center, recommendations in sidebar
     const allEvents = [...nearYouEvents, ...almostNearYouEvents];
@@ -76,6 +80,71 @@ const BeneficiaryHomePage = () => {
             isMounted = false;
         };
     }, [getMatchedEvents, clearLoading]);
+
+    // Check for completed events and show testimonial modal
+    React.useEffect(() => {
+        const checkCompletedEvents = async () => {
+            try {
+                const response = await getAttendanceRecords(1, 10);
+
+                if (response?.success && response?.data?.length > 0) {
+                    // Get events that have ended and beneficiary has time_out
+                    const completedEvents = response.data.filter(record => 
+                        record.event?.status === 'Completed' && 
+                        record.time_out && 
+                        record.event?.event_ended
+                    );
+
+                    if (completedEvents.length > 0) {
+                        // Get the most recent completed event
+                        const mostRecentEvent = completedEvents[0];
+                        const eventId = mostRecentEvent.event?.event_id;
+
+                        // Check if we've already shown testimonial modal for this event
+                        const shownTestimonials = JSON.parse(
+                            localStorage.getItem('shownTestimonials') || '[]'
+                        );
+
+                        if (eventId && !shownTestimonials.includes(eventId)) {
+                            // Show modal for this event
+                            setTestimonialEventData({
+                                event_id: eventId,
+                                title: mostRecentEvent.event?.title
+                            });
+                            setShowTestimonialModal(true);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking completed events:', error);
+            }
+        };
+
+        // Check on mount and periodically (every 5 minutes)
+        checkCompletedEvents();
+        const interval = setInterval(checkCompletedEvents, 5 * 60 * 1000);
+
+        return () => clearInterval(interval);
+    }, [getAttendanceRecords]);
+
+    const handleTestimonialClose = () => {
+        setShowTestimonialModal(false);
+        if (testimonialEventData?.event_id) {
+            // Mark this event as shown
+            const shownTestimonials = JSON.parse(
+                localStorage.getItem('shownTestimonials') || '[]'
+            );
+            if (!shownTestimonials.includes(testimonialEventData.event_id)) {
+                shownTestimonials.push(testimonialEventData.event_id);
+                localStorage.setItem('shownTestimonials', JSON.stringify(shownTestimonials));
+            }
+        }
+        setTestimonialEventData(null);
+    };
+
+    const handleTestimonialSuccess = () => {
+        // Modal will close automatically after success
+    };
 
     const handleRefreshMatches = async () => {
         await refreshMatches();
@@ -245,6 +314,14 @@ const BeneficiaryHomePage = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Testimonial Modal */}
+            <TestimonialSubmissionModal
+                isOpen={showTestimonialModal}
+                onClose={handleTestimonialClose}
+                eventData={testimonialEventData}
+                onSuccess={handleTestimonialSuccess}
+            />
         </div>
     );
 };
