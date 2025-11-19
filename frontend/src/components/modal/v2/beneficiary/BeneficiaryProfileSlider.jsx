@@ -15,11 +15,13 @@ import Logout from '../../Logout.jsx';
 import { NavLink } from 'react-router-dom';
 import { useBeneficiaryAuthStore } from '../../../../store/beneficiary/useBeneficiaryAuthStore.js';
 import { useNavigate } from 'react-router-dom';
+import TestimonialSubmissionModal from './TestimonialSubmissionModal.jsx';
 
 const BeneficiaryProfileSlider = ({ open, setOpen, userData }) => {
     const navigate = useNavigate();
     const { logout } = useBeneficiaryAuthStore();
     const [showLogoutModal, setShowLogoutModal] = React.useState(false);
+    const [showTestimonialModal, setShowTestimonialModal] = React.useState(false);
 
     const handleLogoutConfirm = async () => {
         const success = await logout();
@@ -118,8 +120,8 @@ const BeneficiaryProfileSlider = ({ open, setOpen, userData }) => {
                         </div>
                         <button
                             onClick={() => {
-                                navigate('/beneficiary/testimonial')
-                                setOpen(false)
+                                setOpen(false);
+                                setShowTestimonialModal(true);
                             }}
                             className="w-full flex items-center justify-between text-sm text-gray-700 py-2 px-2 rounded hover:bg-gray-50">
                             <span>Support System Testimonial</span>
@@ -167,6 +169,11 @@ const BeneficiaryProfileSlider = ({ open, setOpen, userData }) => {
                 onOpen={showLogoutModal}
                 onClose={() => setShowLogoutModal(false)}
                 onConfirm={handleLogoutConfirm}
+            />
+
+            <TestimonialSubmissionModal
+                isOpen={showTestimonialModal}
+                onClose={() => setShowTestimonialModal(false)}
             />
         </>
     );

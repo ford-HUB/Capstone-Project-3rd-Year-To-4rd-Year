@@ -30,7 +30,7 @@ export const useTestimonialStore = create((set, get) => ({
                 return { success: false, message: response.message };
             }
         } catch (error) {
-            const errorMessage = error.response?.data?.message || 'Failed to submit testimonial. Please try again.';
+            const errorMessage = error.response?.data?.message || error.message || 'Failed to submit testimonial. Please try again.';
             set({ error: errorMessage, success: false });
             toast.error(errorMessage);
             return { success: false, message: errorMessage };

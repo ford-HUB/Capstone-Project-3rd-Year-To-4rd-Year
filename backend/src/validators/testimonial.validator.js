@@ -8,11 +8,16 @@ export const createTestimonialSchema = Joi.object({
         "number.max": "Rating must not exceed 5."
     }),
 
-    role: Joi.string().required().messages({
-        "any.required": "Role is required.",
-        "string.empty": "Role cannot be empty."
-    }),
-
-    initials: Joi.string().allow("").optional()
+    message: Joi.string()
+        .min(1)
+        .min(10)
+        .max(1000)
+        .required()
+        .messages({
+            "any.required": "Message is required.",
+            "string.empty": "Message cannot be empty.",
+            "string.min": "Message must be at least 10 characters.",
+            "string.max": "Message must not exceed 1000 characters."
+        })
 });
 

@@ -30,6 +30,11 @@ Testimonials.init({
         allowNull: true
     },
 
+    message: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
+
     approved: {
         type: DataTypes.BOOLEAN,
         defaultValue: false

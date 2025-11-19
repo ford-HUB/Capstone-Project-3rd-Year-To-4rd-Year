@@ -5,7 +5,7 @@ const { Testimonials, Beneficiary } = models;
 
 export const createTestimonial = async (req, res) => {
     try {
-        const { rating, role, initials } = req.validatedBody;
+        const { rating, message } = req.validatedBody;
         const { account_id } = req.user;
 
         const beneficiary = await Beneficiary.findOne({
@@ -23,16 +23,17 @@ export const createTestimonial = async (req, res) => {
         const name = beneficiary.organization_name 
             || `${beneficiary.firstname} ${beneficiary.lastname}`;
 
-        let generatedInitials = initials;
-        if (!generatedInitials || generatedInitials.trim() === '') {
-            generatedInitials = generateInitials(beneficiary);
-        }
+        const role = beneficiary.organization_name 
+            || 'Community Beneficiary';
+
+        const generatedInitials = generateInitials(beneficiary);
 
         const testimonial = await Testimonials.create({
             rating,
             name,
             role,
             initials: generatedInitials,
+            message,
             approved: false,
             featured: false
         });
