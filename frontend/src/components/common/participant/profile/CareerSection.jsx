@@ -26,11 +26,8 @@ const CareerSection = ({ watch, register, errors }) => {
     ];
   
     return (
-      <Section title="Education" helpIcon>
+      <Section title="Background Education" helpIcon>
         <div className="space-y-6">
-            <FormField label="School ID Number">
-        
-            </FormField>
             <div className="grid sm:grid-cols-3 md:grid-cols-3 gap-6">
                 <FormField label="Department" error={errors?.department?.message}>
                 <select
