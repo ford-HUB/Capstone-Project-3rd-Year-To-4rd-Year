@@ -69,6 +69,7 @@ import BeneficiaryHomePage from './pages/beneficiary/v2/BeneficiaryHomePage.jsx'
 import BeneficiaryProfile from './pages/beneficiary/v2/BeneficiaryProfile.jsx'
 import MyRegistrations from './pages/beneficiary/v2/MyRegistrations.jsx'
 import AttendanceScanner from './pages/beneficiary/v2/AttendanceScanner.jsx'
+import TestimonialPage from './pages/beneficiary/v2/TestimonialPage.jsx'
 import BeneficiaryLayout from './layouts/BeneficiaryLayout.jsx'
 import DonorLayout from './layouts/DonorLayout.jsx'
 import DonorHomePage from './pages/donor/DonorHomePage.jsx'
@@ -268,6 +269,10 @@ const MainTree = [
             {
                 path: 'attendance-scanner',
                 element: <AttendanceScanner/>
+            },
+            {
+                path: 'testimonial',
+                element: <TestimonialPage/>
             }
         ]
     },

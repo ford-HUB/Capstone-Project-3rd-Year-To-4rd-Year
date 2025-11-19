@@ -1,15 +1,13 @@
 import models from "../../models/index.js";
 import { generateInitials } from "../../utils/generateInitials.js";
 
-const { Testimonials, Beneficiary, Accounts } = models;
+const { Testimonials, Beneficiary } = models;
 
-// Create testimonial
 export const createTestimonial = async (req, res) => {
     try {
         const { rating, role, initials } = req.validatedBody;
         const { account_id } = req.user;
 
-        // Get beneficiary information
         const beneficiary = await Beneficiary.findOne({
             where: { account_id },
             attributes: ['beneficiary_id', 'firstname', 'lastname', 'middle_initial', 'organization_name']
@@ -22,18 +20,14 @@ export const createTestimonial = async (req, res) => {
             });
         }
 
-        // Generate name from beneficiary data
         const name = beneficiary.organization_name 
-            ? beneficiary.organization_name 
-            : `${beneficiary.firstname} ${beneficiary.lastname}`;
+            || `${beneficiary.firstname} ${beneficiary.lastname}`;
 
-        // Generate initials if not provided
         let generatedInitials = initials;
         if (!generatedInitials || generatedInitials.trim() === '') {
             generatedInitials = generateInitials(beneficiary);
         }
 
-        // Create testimonial
         const testimonial = await Testimonials.create({
             rating,
             name,
@@ -43,13 +37,6 @@ export const createTestimonial = async (req, res) => {
             featured: false
         });
 
-        if (!testimonial) {
-            return res.json({
-                success: false,
-                message: 'Failed to create testimonial. Please try again.'
-            });
-        }
-
         return res.json({
             success: true,
             message: 'Thank you! Your testimonial has been submitted successfully.',
@@ -57,15 +44,14 @@ export const createTestimonial = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Create testimonial failed:', error.message);
-        return res.json({
+        console.error('Create testimonial failed:', error);
+        return res.status(500).json({
             success: false,
-            message: 'Internal Server Error'
+            message: error.message || 'Internal Server Error'
         });
     }
 };
 
-// Get testimonials (for display)
 export const getTestimonials = async (req, res) => {
     try {
         const { approved, featured } = req.query;
@@ -89,10 +75,10 @@ export const getTestimonials = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Get testimonials failed:', error.message);
-        return res.json({
+        console.error('Get testimonials failed:', error);
+        return res.status(500).json({
             success: false,
-            message: 'Internal Server Error'
+            message: error.message || 'Internal Server Error'
         });
     }
 };

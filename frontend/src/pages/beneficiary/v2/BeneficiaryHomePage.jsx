@@ -5,8 +5,6 @@ import BeneficiaryEventCard from '../../../components/beneficiary/v2/Beneficiary
 import BeneficiaryRecommendationSidebar from '../../../components/beneficiary/v2/sidebar/BeneficiaryRecommendationSidebar.jsx';
 import BeneficiaryEventCalendar from '../../../components/beneficiary/v2/cards/BeneficiaryEventCalendar.jsx';
 import BeneficiaryLocationStats from '../../../components/beneficiary/v2/cards/BeneficiaryLocationStats.jsx';
-import { getSocket } from '../../../api/socket.js';
-import TestimonialSubmissionModal from '../../../components/modal/v2/beneficiary/TestimonialSubmissionModal.jsx';
 
 const BeneficiaryHomePage = () => {
     const { 
@@ -22,13 +20,10 @@ const BeneficiaryHomePage = () => {
         isLoading,
         initializeSocket,
         cleanupSocket,
-        clearLoading,
-        getRegisteredEvents
+        clearLoading
     } = useBeneficiaryEventStore();
 
     const [dots, setDots] = React.useState('');
-    const [showTestimonialModal, setShowTestimonialModal] = React.useState(false);
-    const [testimonialEventData, setTestimonialEventData] = React.useState(null);
 
     const allEvents = [...nearYouEvents, ...almostNearYouEvents];
     React.useEffect(() => {
@@ -50,36 +45,6 @@ const BeneficiaryHomePage = () => {
             cleanupSocket();
         };
     }, [initializeSocket, cleanupSocket]);
-
-    // Listen for testimonial requests from backend
-    React.useEffect(() => {
-        const socket = getSocket();
-        if (!socket) return;
-
-        const handleTestimonialRequest = (data) => {
-            const { event_id, event_title } = data;
-            
-            if (!event_id) return;
-
-            const shownTestimonials = JSON.parse(
-                localStorage.getItem('shownTestimonials') || '[]'
-            );
-
-            if (!shownTestimonials.includes(event_id)) {
-                setTestimonialEventData({
-                    event_id: event_id,
-                    title: event_title
-                });
-                setShowTestimonialModal(true);
-            }
-        };
-
-        socket.on('testimonial_request', handleTestimonialRequest);
-
-        return () => {
-            socket.off('testimonial_request', handleTestimonialRequest);
-        };
-    }, []);
 
     React.useEffect(() => {
         let isMounted = true;
@@ -105,58 +70,6 @@ const BeneficiaryHomePage = () => {
         };
     }, [getMatchedEvents, clearLoading]);
 
-    React.useEffect(() => {
-        const checkCompletedEvents = async () => {
-            try {
-                const response = await getRegisteredEvents(1, 10);
-
-                if (response?.success && response?.data?.length > 0) {
-                    const completedEvents = response.data.filter(record => 
-                        record.event?.status === 'Completed' && 
-                        record.event?.event_ended
-                    );
-
-                    if (completedEvents.length > 0) {
-                        const mostRecentEvent = completedEvents[0];
-                        const eventId = mostRecentEvent.event?.event_id;
-
-                        const shownTestimonials = JSON.parse(
-                            localStorage.getItem('shownTestimonials') || '[]'
-                        );
-
-                        if (eventId && !shownTestimonials.includes(eventId)) {
-                            setTestimonialEventData({
-                                event_id: eventId,
-                                title: mostRecentEvent.event?.title
-                            });
-                            setShowTestimonialModal(true);
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('Error checking completed events:', error);
-            }
-        };
-
-        checkCompletedEvents();
-        const interval = setInterval(checkCompletedEvents, 5 * 60 * 1000);
-
-        return () => clearInterval(interval);
-    }, [getRegisteredEvents]);
-
-    const handleTestimonialClose = () => {
-        setShowTestimonialModal(false);
-        if (testimonialEventData?.event_id) {
-            const shownTestimonials = JSON.parse(
-                localStorage.getItem('shownTestimonials') || '[]'
-            );
-            if (!shownTestimonials.includes(testimonialEventData.event_id)) {
-                shownTestimonials.push(testimonialEventData.event_id);
-                localStorage.setItem('shownTestimonials', JSON.stringify(shownTestimonials));
-            }
-        }
-        setTestimonialEventData(null);
-    };
 
     const handleRefreshMatches = async () => {
         await refreshMatches();
@@ -326,12 +239,6 @@ const BeneficiaryHomePage = () => {
                     </div>
                 </div>
             </div>
-
-            <TestimonialSubmissionModal
-                isOpen={showTestimonialModal}
-                onClose={handleTestimonialClose}
-                eventData={testimonialEventData}
-            />
         </div>
     );
 };

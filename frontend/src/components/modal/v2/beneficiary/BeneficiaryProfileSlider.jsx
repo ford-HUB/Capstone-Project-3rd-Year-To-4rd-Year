@@ -116,15 +116,15 @@ const BeneficiaryProfileSlider = ({ open, setOpen, userData }) => {
                             <Newspaper className="h-6 w-6" />
                             <span>Community</span>
                         </div>
-                        {/* <button
-                        onClick={() => {
-                            navigate('/beneficiary/community')
-                            setOpen(false)
-                        }}
-                        className="w-full flex items-center justify-between text-sm text-gray-700 py-2 px-2 rounded hover:bg-gray-50">
-                            <span>For Beneficiaries</span>
+                        <button
+                            onClick={() => {
+                                navigate('/beneficiary/testimonial')
+                                setOpen(false)
+                            }}
+                            className="w-full flex items-center justify-between text-sm text-gray-700 py-2 px-2 rounded hover:bg-gray-50">
+                            <span>Support System Testimonial</span>
                             <ChevronRight className="h-6 w-6 text-green-600" />
-                        </button>   */}
+                        </button>
                         {[
                             {
                                 name: 'Update Profile',

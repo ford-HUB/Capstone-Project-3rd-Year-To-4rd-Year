@@ -342,25 +342,3 @@ export const updateEventParticipantCount = (eventId, participantCount) => {
     }
 }
 
-export const notifyTestimonialRequest = (accountId, eventData) => {
-    const io = getSocket();
-    if (!io) {
-        console.log('Socket not initialized, cannot emit testimonial request');
-        return;
-    }
-    
-    try {
-        const userData = activeUsers.get(accountId);
-        if (userData && userData.socketId) {
-            io.to(userData.socketId).emit('testimonial_request', {
-                accountId: accountId,
-                ...eventData
-            });
-            console.log('Emitted testimonial request to beneficiary:', accountId, 'for event:', eventData.event_id);
-        } else {
-            console.log('Beneficiary not online, testimonial request will be shown on next login');
-        }
-    } catch (error) {
-        console.log('Socket emission failed:', error.message);
-    }
-}
