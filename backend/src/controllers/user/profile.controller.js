@@ -39,7 +39,7 @@ export const currentUserProfile = async (req, res) => {
 export const updateUserProfile = async (req, res) => {
     const t = await db.transaction()
     try {
-        const { firstname, lastname, gender, middle_initial, phone_number, current_address, course, department, year_level, disability, disability_specification, is_subscribed } = req.validatedBody
+        const { firstname, lastname, gender, middle_initial, phone_number, current_address, course, department, year_level, disability, disability_specification, is_beneficiary, is_subscribed } = req.validatedBody
         const accountId = req.user.account_id
 
         const { CampusUsers, Volunteer, Course, Department, YearLevel, StrandCourse } = models
@@ -47,34 +47,27 @@ export const updateUserProfile = async (req, res) => {
 
         if(!campusUserData) { return res.json({ message: 'Campus user profile not found' }) }
 
-        // Handle course updates based on department type
         let courseUpdate = null
         if (department === 'Senior High Department') {
-            // Update strand course
             courseUpdate = await StrandCourse.update(
                 { name: course }, 
-                { where: { strand_course_id: campusUserData.strand_course_id } }, 
-                { transaction: t }
-            )
+                { where: { strand_course_id: campusUserData.strand_course_id }, transaction: t }            )
         } else {
-            // Update regular course
             courseUpdate = await Course.update(
                 { course_name: course }, 
-                { where: { course_id: campusUserData.course_id } }, 
-                { transaction: t }
+                { where: { course_id: campusUserData.course_id }, transaction: t }
             )
         }
 
         const [departmentUpdate] = await Department.findOrCreate({ 
-            where: { department_id: campusUserData.department_id }, 
+            where: { department_name: department }, 
             defaults: { department_name: department }, 
             transaction: t
         })
         
         const ylUpdate = await YearLevel.update(
             { year_level: year_level }, 
-            { where: { yl_id: campusUserData.yl_id } }, 
-            { transaction: t }
+            { where: { yl_id: campusUserData.yl_id }, transaction: t }
         )
 
         const updateCampusUserInfo = await campusUserData.update({
@@ -86,17 +79,23 @@ export const updateUserProfile = async (req, res) => {
             current_address,
             disability,
             disability_specification,
+            department_id: departmentUpdate.department_id,
+            course_id: courseUpdate.course_id,
+            strand_course_id: courseUpdate.strand_course_id,
+            yl_id: ylUpdate.yl_id,
         }, { transaction: t })
 
-        const updateSubscription = await Volunteer.update({
-            is_subscribed,
-            is_beneficiary: req.validatedBody.is_beneficiary || false
-        }, { where: { campus_user_id: campusUserData.campus_user_id }, transaction: t })
-
-        if(!updateCampusUserInfo || !updateSubscription || !courseUpdate || !departmentUpdate || !ylUpdate) {
+        if(!updateCampusUserInfo) {
             await t.rollback()
             return res.json({ message: 'Failed to update profile' })
         }
+        
+        console.log('updateCampusUserInfo: ', updateCampusUserInfo)
+
+        await Volunteer.update({
+            is_subscribed,
+            is_beneficiary: is_beneficiary || false
+        }, { where: { campus_user_id: campusUserData.campus_user_id }, transaction: t })
 
         await t.commit()
         return res.json({ success: true, message: 'Profile updated successfully' })

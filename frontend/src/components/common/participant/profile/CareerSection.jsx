@@ -34,7 +34,6 @@ const CareerSection = ({ watch, register, errors }) => {
             <div className="grid sm:grid-cols-3 md:grid-cols-3 gap-6">
                 <FormField label="Department" error={errors?.department?.message}>
                 <select
-                    name="department"
                     {...register('department')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     <option value="">{'Department'}</option>
