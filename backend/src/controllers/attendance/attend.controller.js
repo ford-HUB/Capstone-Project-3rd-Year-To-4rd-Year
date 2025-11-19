@@ -317,11 +317,11 @@ export const attendanceLog = async (req, res) => {
             }
 
             // Map participant details based on type
-            if (record.participant_type === 'volunteer' && record.Volunteer?.CampusUsers) {
+            if (record.participant_type === 'volunteer' && record.Volunteer?.CampusUser) {
                 formatted.participantDetails = {
-                    participant_name: `${record.Volunteer.CampusUsers.firstname} ${record.Volunteer.CampusUsers.lastname}`,
-                    participant_type: record.Volunteer.CampusUsers.type || 'Student',
-                    participant_id: record.Volunteer.CampusUsers.campus_user_id
+                    participant_name: `${record.Volunteer.CampusUser.firstname} ${record.Volunteer.CampusUser.lastname}`,
+                    participant_type: `${record.Volunteer.CampusUser.type.charAt(0).toUpperCase() + record.Volunteer.CampusUser.type.slice(1)}`,
+                    participant_id: record.Volunteer.CampusUser.campus_user_id
                 }
             } else if (record.participant_type === 'staff' && record.Staff) {
                 formatted.participantDetails = {
@@ -599,11 +599,11 @@ export const attendanceRecords = async (req, res) => {
             }
 
             // Handle volunteer/student participants
-            if(attendance.participant_type === 'volunteer' && attendance.Volunteer?.CampusUsers) {
+            if(attendance.participant_type === 'volunteer' && attendance.Volunteer?.CampusUser) {
                 attendanceData.participantDetails = {
-                    participant_name: `${attendance.Volunteer.CampusUsers.firstname} ${attendance.Volunteer.CampusUsers.lastname}`,
-                    participant_type: attendance.Volunteer.CampusUsers.type || 'Student',
-                    participant_id: attendance.Volunteer.CampusUsers.campus_user_id
+                    participant_name: `${attendance.Volunteer.CampusUser.firstname} ${attendance.Volunteer.CampusUser.lastname}`,
+                    participant_type: `Volunteer ${attendance.Volunteer.CampusUser.type.charAt(0).toUpperCase() + attendance.Volunteer.CampusUser.type.slice(1)}`,
+                    participant_id: attendance.Volunteer.CampusUser.campus_user_id
                 }
             }
             // Handle staff participants

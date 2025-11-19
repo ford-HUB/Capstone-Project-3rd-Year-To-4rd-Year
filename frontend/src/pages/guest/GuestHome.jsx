@@ -1,534 +1,729 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { asset } from '../../assets/asset';
+import TestimonialsModal from '../../components/modal/TestimonialsModal';
 
 const GuestHome = () => {
+  const carouselImages = [
+    { src: asset.groupImage, alt: 'UCLM CARES Group' },
+    { src: asset.impactPic1, alt: 'Community Impact' },
+    { src: asset.impactPic2, alt: 'Community Programs' },
+    { src: asset.impactPic3, alt: 'Extension Services' },
+    { src: asset.cleanupDrive, alt: 'Community Activities' },
+    { src: asset.brg, alt: 'Barangay Activities' },
+  ].filter(img => img.src); 
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isTestimonialsModalOpen, setIsTestimonialsModalOpen] = useState(false);
+
+  // Auto-play carousel
+  useEffect(() => {
+    setIsInitialLoad(false);
+    
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % carouselImages.length);
+    }, 6000); 
+    return () => clearInterval(interval);
+  }, [carouselImages.length]);
+
+  useEffect(() => {
+    if (isTestimonialsModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isTestimonialsModalOpen]);
+
+  const fadeVariants = {
+    enter: {
+      opacity: 0,
+    },
+    center: {
+      opacity: 1,
+    },
+    exit: {
+      opacity: 0,
+    },
+  };
+
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
-      <div className="homeContainer flex h-screen w-full relative overflow-hidden">
-        {/* Background Image */}
-        <div className="backgroundContainer absolute inset-0">
+      <div className="homeContainer flex h-screen w-full relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-gray-50">
+        <motion.div 
+          className="absolute inset-0 opacity-30"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.3 }}
+          transition={{ duration: 1.5 }}
+        >
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.1),transparent_50%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(37,99,235,0.1),transparent_50%)]" />
+        </motion.div>
+
+        <motion.div 
+          className="backgroundContainer absolute inset-0"
+          initial={{ opacity: 0, scale: 1.1 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+        >
           <img
             src={asset.backgroundV2}
             alt="UCLM Cover"
-            className="object-cover h-full w-full opacity-60"
+            className="object-cover h-full w-full opacity-40"
           />
-        </div>
+          <div className="absolute inset-0 bg-gradient-to-r from-white/80 via-white/60 to-transparent" />
+        </motion.div>
 
-        <div className="content flex justify-between items-center w-full h-full relative px-16 z-10">
-          <div className="leftContent relative text-left max-w-2xl flex-shrink-0">
-            <h1 className="text-[52px] font-bold leading-snug text-gray-800 drop-shadow-md">
-              Welcome to <span className="text-blue-500">UCLM</span> Community Awareness,
-              Relations and Extension Services
-              <span className="inline-flex items-center px-2">
-                <img className="w-16 h-16" src={asset.uclmLogo} alt="UCLM Logo" />
-              </span>
-              <span className="inline-flex items-center">
-                <img className="w-16 h-16" src={asset.logo} alt="UC CARES Logo" />
-              </span>
-            </h1>
-          </div>
+        <div className="content flex flex-col lg:flex-row justify-between items-center w-full h-full relative px-6 md:px-12 lg:px-16 z-10 gap-6 lg:gap-12">
+          <motion.div 
+            className="leftContent relative text-left max-w-2xl flex-shrink-0 w-full lg:w-auto"
+            initial={{ opacity: 0, x: -80, y: 20 }}
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
+          >
+            <motion.div
+              className="inline-block mb-4 px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
+              Community Extension Services
+            </motion.div>
 
-          {/* Right Content */}
-          <div className="rightContent relative px-8 flex justify-center items-center">
-            <div className="containerImage p-6 bg-white drop-shadow-md flex justify-center items-center rounded-md">
-              <img
-                src={asset.groupImage}
-                alt="Group"
-                className="rounded-md max-h-[400px] object-contain"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-gray-100 py-16 px-4 relative z-10">
-        <div className="max-w-4xl mx-auto relative">
-          <div className="space-y-16 relative z-10">
-            <div className="relative bg-white shadow-lg rounded-xl p-10 min-h-240 flex flex-col justify-start overflow-hidden">
-              <h1 className="text-4xl font-bold mb-4 relative z-10 text-center">
-                <span className="text-black">UCLM CARES</span>
-              </h1>
-              <p className="text-lg text-black mb-2 relative z-10 text-center">
-                by: Dr. Richie L. Montebon
-              </p>
-              <p className="text-lg text-black leading-relaxed mt-4 relative z-10 indent-8 text-justify">
-                The Community Awareness, Relations, and Extension Services (CARES) program of the University of Cebu Lapu Lapu and Mandaue Campus is a comprehensive initiative aimed at fostering a strong and mutually beneficial relationship between the university and its adopted community. The program recognizes the importance of community engagement and seeks to address the needs and aspirations of the local community through various activities and initiatives.
-              </p>
-              <p className="text-lg text-black leading-relaxed mt-4 relative z-10 indent-8 text-justify">
-                The Core functions of the CARES program are to raise awareness, build relationships, and provide meaningful extension services to the adopted community among the students, faculty, staff, and alumni members about the social, economic, and environmental issues faced by the adopted community. The CARES program promotes collaboration and partnerships with local government units, non-governmental organizations, and other stakeholders. By working together, the university and the community can leverage their resources, expertise, and knowledge to create sustainable, impactful initiatives that address community needs.
-              </p>
-              <p className="text-lg text-black leading-relaxed mt-4 relative z-10 indent-8 text-justify">
-                Moreover, the CARES program emphasizes extension services, wherein the university provides expertise and resources to support community development projects. These include offering literacy programs, technical training, conducting research studies, and providing seminars and capacity-building programs. By sharing knowledge and skills, the university contributes to the advancement of the adopted community and helps create a more inclusive and prosperous society.
-              </p>
-              <p className="text-lg text-black leading-relaxed mt-4 relative z-10 indent-8 text-justify">
-                Overall, the Community Awareness, Relations, and Extension Services (CARES) program of the University of Cebu Lapu Lapu and Mandaue Campus demonstrates the institution's commitment to social responsibility and community engagement. It catalyzes positive change by fostering awareness, building relationships, and providing meaningful extension services to the adopted community. Through this program, the university aims to develop socially conscious graduates who are equipped with the skills and mindset to contribute to the betterment of society.
-              </p>
-              
-              <div className="absolute bottom-0 left-0 right-0 mt-8">
-              <svg className="w-full h-28" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                <path 
-                  d="M0,40 C300,100 900,0 1200,60 L1200,120 L0,120 Z" 
-                  fill="#FFBF00" 
+            <motion.h1 
+              className="text-4xl md:text-5xl lg:text-[56px] font-extrabold leading-tight text-gray-900 mb-6"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+            >
+              Welcome to{' '}
+              <motion.span 
+                className="text-blue-600 relative inline-block"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.7, type: "spring" }}
+              >
+                UCLM
+                <motion.span
+                  className="absolute -bottom-2 left-0 w-full h-1 bg-blue-500 rounded-full"
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ duration: 0.5, delay: 1 }}
                 />
-                <path 
-                  d="M0,70 C400,140 800,20 1200,90 L1200,120 L0,120 Z" 
-                  fill="#001F5B" 
-                />
-              </svg>
-            </div>
-            </div>
-
-            <div className="relative bg-white shadow-lg rounded-xl p-10 min-h-200 overflow-hidden">
-              <div className="w-full">
-                <h3 className="text-xl font-semibold mb-6 text-black text-center">
-                  Community Awareness, Relations &<br />
-                  Extension Services (UCLM CARES)
-                </h3>
-                
-                <div className="space-y-6">
-                  <div>
-                    <h4 className="text-xl font-bold text-black mb-3 text-center">Vision</h4>
-                    <p className="text-lg text-black leading-relaxed text-center">
-                      University of Cebu fosters a visible community extension program that gives hope and transforms lives.
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <h4 className="text-xl font-bold text-black mb-3 text-center">Mission</h4>
-                    <p className="text-lg text-black leading-relaxed text-center">
-                      Carry out integrated and sustainable extension programs responsive to social, economic and environmental needs
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <h4 className="text-xl font-bold text-black mb-3 text-center">Objectives</h4>
-                    <p className="text-lg text-black mb-3 leading-relaxed">
-                      In the pursuit of its mission, UC CARES is committed to:
-                    </p>
-                    <ul className="space-y-2 text-lg text-black">
-                      <li className="flex items-start gap-2">
-                        <span className="text-black mt-1">•</span>
-                        <span>Maintain harmonious relations with the partner and wider communities.</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-black mt-1">•</span>
-                        <span>Enhance instruction through research-based extension programs;</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-black mt-1">•</span>
-                        <span>Promote coherence of extension program among the different campuses and sectors of the school and those of the partner communities through appropriate mobilization and sharing of resources; and</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-black mt-1">•</span>
-                        <span>Create opportunities in the service programs for:</span>
-                      </li>
-                    </ul>
-                    <ul className="ml-6 space-y-1 text-lg text-black">
-                      <li className="flex items-start gap-2">
-                        <span className="text-black mt-1">-</span>
-                        <span>involvement of the faculty, students, support staff and alumni;</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-black mt-1">-</span>
-                        <span>empowerment of people to take actions on social, economic and environmental issues; and</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-black mt-1">-</span>
-                        <span>collaboration in community developmental programs and promotion of people's welfare agenda.</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="absolute bottom-0 left-0 right-0 mt-8">
-              <svg className="w-full h-28" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                <path 
-                  d="M0,40 C300,100 900,0 1200,60 L1200,120 L0,120 Z" 
-                  fill="#FFBF00" 
-                />
-                <path 
-                  d="M0,70 C400,140 800,20 1200,90 L1200,120 L0,120 Z" 
-                  fill="#001F5B" 
-                />
-              </svg>
-            </div>
-            </div>
-
-            <div className="relative bg-white shadow-lg rounded-xl p-10 min-h-230 flex flex-col overflow-hidden">
-              <h2 className="text-2xl font-bold text-black mb-8 text-center">UCLM-CARES Organizational Chart</h2>
-              
-              <div className="flex-1 flex flex-col items-center">
-                <div className="w-full max-w-4xl">
-                  <img 
-                    src={asset.uclmcaresRawChart} 
-                    alt="UCLM-CARES Organizational Chart"
-                    className="w-[60%] h-[60%] rounded-lg mx-auto"
-                  />
-                </div>
-              </div>
-              
-              <div className="absolute bottom-0 left-0 right-0 mt-8">
-                <svg className="w-full h-28" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                  <path 
-                    d="M0,40 C300,100 900,0 1200,60 L1200,120 L0,120 Z" 
-                    fill="#FFBF00" 
-                  />
-                  <path 
-                    d="M0,70 C400,140 800,20 1200,90 L1200,120 L0,120 Z" 
-                    fill="#001F5B" 
-                  />
-                </svg>
-              </div>
-            </div>
-
-            <div className="relative bg-white shadow-lg rounded-xl p-10 min-h-225 flex flex-col overflow-hidden">
-            <div className="flex-1 flex flex-col items-center">
-              <div className="w-full max-w-4xl">
-                <img 
-                  src={asset.kani} 
-                  alt="kani paps"
-                  className="w-[70%] h-[70%] rounded-lg mx-auto"
-                />
-                </div>
-              </div>
-            <div className="absolute bottom-0 left-0 right-0 mt-8">
-              <svg className="w-full h-28" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                <path 
-                  d="M0,40 C300,100 900,0 1200,60 L1200,120 L0,120 Z" 
-                  fill="#FFBF00" 
-                />
-                <path 
-                  d="M0,70 C400,140 800,20 1200,90 L1200,120 L0,120 Z" 
-                  fill="#001F5B" 
-                />
-              </svg>
-            </div>
-          </div>
-
-          <div className="relative bg-white shadow-lg rounded-xl p-10 min-h-200 flex flex-col overflow-hidden">
-            <h2 className="text-2xl font-bold text-black mb-8 text-center">
-              University of Cebu Lapu-Lapu and Mandaue <br />
-              Community Awareness, Relations & <br />
-              Extension Services (UCLM CARES) <br />
-            </h2>    
-
-            <div>
-              <h4 className="text-xl font-bold text-black mb-3 text-center">Extension Creed</h4>
-              <p className="text-lg text-black leading-relaxed text-center">
-              By: Dr. Y.C. James Yen
-              </p>
-            </div>
-            <div>
-              <p className="text-lg text-black leading-relaxed text-center">
-                <br />Go to the people, <br /> 
-                Live with the people, <br />
-                Learn from them, <br />
-                Plan with them, <br />
-                Work with them, <br />
-                Start with what they know. <br /> <br />
-
-                Build on what they have, <br />
-                Teach by example, learn by doing, <br />
-                Not a showcase but a pattern, <br />
-                Not odds and ends but a system, <br />
-                Not piece meal but integrated approach, <br />
-                Not to conform but to transform, <br />
-                Not relief but release.
-
-
-              </p>
-            </div>
-
-            <div className="absolute bottom-0 left-0 right-0 mt-8">
-              <svg className="w-full h-28" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                <path 
-                  d="M0,40 C300,100 900,0 1200,60 L1200,120 L0,120 Z" 
-                  fill="#FFBF00" 
-                />
-                <path 
-                  d="M0,70 C400,140 800,20 1200,90 L1200,120 L0,120 Z" 
-                  fill="#001F5B" 
-                />
-              </svg>
-            </div>
-          </div>
-
-          <div className="relative bg-white shadow-lg rounded-xl p-10 min-h-378 flex flex-col overflow-hidden">
-            <div>
-              <h2 className="text-2xl font-bold text-black mb-0 text-center">
-                LIST OF CARES COORDINATORS
-              </h2>
-              <p className="text-lg text-black leading-relaxed text-center">
-                (School Year 2024-2025)
-              </p>
-            </div>
-
-            <div>
-              <p className="text-lg text-black leading-relaxed text-center">
-              <br />The names listed here under are the Program CARES Coordinators of the <br />
-                University of Cebu – Lapu Lapu and Mandaue Campus, who are appointed by their <br />
-                respective Deans/Chairpersons and Principals as well as the list of their respective <br />
-                departmental programs. As follows:  
-              </p>
-            </div>
-
-            <div className="flex-1 flex flex-col items-center">
-              <div className="w-190">
-                <table className="w-full table-fixed border-collapse border border-gray-300 text-center">
-                  <thead>
-                    <tr className="bg-blue-900 text-white">
-                      <th className="w-2/5 border border-black px-4 py-3 font-bold text-lg text-center align-middle">
-                        Department
-                      </th>
-                      <th className="w-1/3 border border-black px-4 py-3 font-bold text-lg text-center align-middle">
-                        Coordinator
-                      </th>
-                      <th className="w-1/3 border border-black px-4 py-3 font-bold text-m text-center align-middle">
-                        ASSISTANT COORDINATORS
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="border border-black px-4 py-4">
-                        <p className="text-base text-black">Basic Education (Grade School)</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black">Ms. Lalaine B. Abing</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black">Ms. Irene Lecomis</p>
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td className="border border-black px-4 py-4">
-                        <p className="text-base text-black">Basic Education (Junior High School)</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black">Ms. Janine Caseylyn D. Cantago</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black">Ms. Esther Aligado</p>
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td className="border border-black px-4 py-4">
-                        <p className="text-base text-black">Senior High School Department</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black">Mr. Alfie Tandog</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black">Ms. Rayjean May C. Jerusalem</p>
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td className="border border-black px-4 py-4">
-                        <p className="text-base text-black">College of Teacher Education (BSED)</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black">Mr. Gendolf L. Niepes</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black"></p>
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td className="border border-black px-4 py-4">
-                        <p className="text-base text-black">College of Teacher Education (BEED)</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black">Mr. Vernel A. Garma</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black"></p>
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td className="border border-black px-4 py-4">
-                        <p className="text-base text-black">College of Business and Accountancy</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black">Mr. June Ace P. Navarro</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black">Dr. Jophelyn C. Gamaya</p>
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td className="border border-black px-4 py-4">
-                        <p className="text-base text-black">College of Customs Administration</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black">Mr. Kent P. Cosido </p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black">Ms. Justine Marie Nicole R. Bani</p>
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td className="border border-black px-4 py-4">
-                        <p className="text-base text-black">College of Computer Studies</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black">Ms. Jesieca C. Reyes</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black">Ms. Christine Gepiga</p>
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td className="border border-black px-4 py-4">
-                        <p className="text-base text-black">College of Criminology</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black">Ms. Grace E. Colonia</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black">Mr. Mark Boize Cantillep</p>
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td className="border border-black px-4 py-4">
-                        <p className="text-base text-black">College of Engineering</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black">Engr. Jean Careen M. Engkong</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black">Engr. Marvin V. Bubuli</p>
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td className="border border-black px-4 py-4">
-                        <p className="text-base text-black">College of Hospitality & Tourism Mgt.</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black">Ms. Margarette A. Taoc</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black"></p>
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td className="border border-black px-4 py-4">
-                        <p className="text-base text-black">College of Nursing</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black">Ms. Rose Delia P. Ocariza</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black"></p>
-                      </td>
-                    </tr> 
-
-                    <tr>
-                      <td className="border border-black px-4 py-4">
-                        <p className="text-base text-black">College of Maritime Engineering</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black">Engr. John E. Intong</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black"></p>
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td className="border border-black px-4 py-4">
-                        <p className="text-base text-black">College of Maritime Transportation</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black">Capt. Arnel Pangatungan</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center">
-                        <p className="text-base text-black">Capt. Mario Gabuya</p>
-                      </td>
-                    </tr>  
-
-                    <tr>
-                      <td className="border border-black px-4 py-4">
-                        <p className="text-base text-black">Non-Teaching Division</p>
-                      </td>
-                      <td className="border border-black px-6 py-4 align-middle text-center w-2/3" colSpan="2">
-                        <p className="text-base text-black">
-                          1st Sem Ms. Synde B. Esgana <br />
-                          2nd Sem Ms. Kimberlaine T. Endorte
-                        </p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
+              </motion.span>
+              <br />
+              <span className="text-gray-700">Community Awareness,</span>
+              <br />
+              <span className="text-gray-700">Relations & Extension Services</span>
+            </motion.h1>
             
+            <motion.div 
+              className="flex items-center gap-4 mt-6 mb-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.9 }}
+            >
+              <motion.div
+                className="inline-flex items-center bg-white/60 rounded-full shadow-lg backdrop-blur-md border border-gray-200"
+                whileHover={{ scale: 1.1, rotate: 5, y: -5 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400 }}
+              >
+                <img 
+                  className="w-16 h-16 object-contain" 
+                  src={asset.uclmLogo} 
+                  alt="UCLM Logo" 
+                />
+              </motion.div>
+              <motion.div
+                className="inline-flex items-center bg-white/60 rounded-full shadow-lg backdrop-blur-md border border-gray-200"
+                whileHover={{ scale: 1.1, rotate: -5, y: -5 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400 }}
+              >
+                <img 
+                  className="w-16 h-16 object-contain" 
+                  src={asset.logo} 
+                  alt="UC CARES Logo" 
+                />
+              </motion.div>
+            </motion.div>
 
-            <div className="absolute bottom-0 left-0 right-0 mt-8">
-              <svg className="w-full h-28" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                <path 
-                  d="M0,40 C300,100 900,0 1200,60 L1200,120 L0,120 Z" 
-                  fill="#FFBF00" 
-                />
-                <path 
-                  d="M0,70 C400,140 800,20 1200,90 L1200,120 L0,120 Z" 
-                  fill="#001F5B" 
-                />
-              </svg>
+            <motion.p
+              className="text-lg md:text-xl text-gray-600 leading-relaxed max-w-xl"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 1.1 }}
+            >
+              Empowering communities through awareness, building relationships, and providing meaningful extension services that create lasting positive impact.
+            </motion.p>
+
+            <motion.div
+              className="flex gap-4 mt-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 1.2 }}
+            >
+              <motion.button
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow-lg"
+                whileHover={{ scale: 1.05, boxShadow: "0 10px 25px rgba(37, 99, 235, 0.4)" }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400 }}
+              >
+                Learn More
+              </motion.button>
+              <motion.button
+                onClick={() => window.location.href = '/'}
+                className="px-6 py-3 bg-white text-blue-600 rounded-lg font-semibold shadow-lg border-2 border-blue-600"
+                whileHover={{ scale: 1.05, backgroundColor: "#f3f4f6" }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400 }}
+              >
+                Get Involved
+              </motion.button>
+            </motion.div>
+          </motion.div>
+
+          <motion.div 
+            className="rightContent relative w-full lg:w-1/2 flex justify-center items-center"
+            initial={{ opacity: 0, x: 80, scale: 0.9 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
+          >
+            <div className="relative w-full max-w-lg" style={{ height: '500px' }}>
+              {/* Carousel Container */}
+              <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl bg-white/10 backdrop-blur-md border border-white/20" style={{ minHeight: '500px' }}>
+                {carouselImages.length > 0 && (
+                  <AnimatePresence initial={false}>
+                    <motion.div
+                      key={currentIndex}
+                      variants={fadeVariants}
+                      initial={isInitialLoad ? "center" : "enter"}
+                      animate="center"
+                      exit="exit"
+                      transition={{
+                        opacity: { duration: 1.5, ease: "easeInOut" },
+                      }}
+                      className="absolute inset-0 flex items-center justify-center"
+                    >
+                      <img
+                        src={carouselImages[currentIndex]?.src || asset.groupImage}
+                        alt={carouselImages[currentIndex]?.alt || 'UCLM CARES'}
+                        className="w-full h-full object-cover"
+                        style={{ minHeight: '500px', display: 'block' }}
+                        loading="eager"
+                        onLoad={() => {
+                          if (isInitialLoad) {
+                            setIsInitialLoad(false);
+                          }
+                        }}
+                        onError={(e) => {
+                          console.error('Image failed to load:', carouselImages[currentIndex]?.src);
+                          // Fallback to group image
+                          if (e.target.src !== asset.groupImage) {
+                            e.target.src = asset.groupImage;
+                          }
+                        }}
+                      />
+                    </motion.div>
+                  </AnimatePresence>
+                )}
+
+                {/* Image Counter */}
+                <div className="absolute top-4 right-4 z-20 px-3 py-1.5 bg-black/50 backdrop-blur-sm rounded-full text-white text-sm font-medium">
+                  {currentIndex + 1} / {carouselImages.length}
+                </div>
+              </div>
             </div>
-          </div>
-
-          <div className="relative bg-white shadow-lg rounded-xl p-10 min-h-[750px] flex flex-col items-center overflow-hidden">
-            <h2 className="text-2xl font-bold text-black mb-8 text-center">
-              UCLM CARES Partners
-            </h2>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-10 place-items-center mb-24 w-full max-w-5xl">
-              <img src={asset.one} alt="Partner 1" className="object-contain" />
-              <img src={asset.two} alt="Partner 2" className=" object-contain" />
-              <img src={asset.three} alt="Partner 3" className="object-contain" />
-              <img src={asset.four} alt="Partner 4" className="object-contain" />
-
-              <img src={asset.five} alt="Partner 5" className="object-contain" />
-              <img src={asset.six} alt="Partner 6" className="object-contain" />
-              <img src={asset.seven} alt="Partner 7" className="object-contain" />
-              <img src={asset.eight} alt="Partner 8" className="object-contain" />
-
-              <img src={asset.nine} alt="Partner 9" className="object-contain" />
-              <img src={asset.ten} alt="Partner 10" className="object-contain" />
-              <img src={asset.eleven} alt="Partner 11" className="object-contain" />
-              <img src={asset.twelve} alt="Partner 12" className="object-contain" />
-            </div>
-
-            <div className="absolute bottom-0 left-0 right-0">
-              <svg className="w-full h-28" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                <path
-                  d="M0,40 C300,100 900,0 1200,60 L1200,120 L0,120 Z"
-                  fill="#FFBF00"
-                />
-                <path
-                  d="M0,70 C400,140 800,20 1200,90 L1200,120 L0,120 Z"
-                  fill="#001F5B"
-                />
-              </svg>
-          </div>
+          </motion.div>
         </div>
+      </div>
 
+      <div className="bg-gradient-to-b from-gray-50 to-white py-16 overflow-hidden relative z-10">
+        <div className="mb-10">
+          <h2 className="text-3xl font-bold text-black text-center mb-2">
+            UCLM CARES Partners
+          </h2>
+          <p className="text-gray-600 text-center text-sm">Our trusted community partners</p>
+        </div>
+        
+        <div className="relative w-full overflow-hidden">
+          <motion.div
+            className="flex gap-12 items-center"
+            animate={{
+              x: ['0%', '-50%'],
+            }}
+            transition={{
+              x: {
+                repeat: Infinity,
+                repeatType: "loop",
+                duration: 40,
+                ease: "linear",
+              },
+            }}
+            style={{
+              width: 'fit-content',
+            }}
+          >
+            {[
+              asset.one,
+              asset.two,
+              asset.three,
+              asset.four,
+              asset.five,
+              asset.six,
+              asset.seven,
+              asset.eight,
+              asset.nine,
+              asset.ten,
+              asset.eleven,
+              asset.twelve,
+            ].map((imgSrc, index) => (
+              <div
+                key={`first-${index}`}
+                className="flex-shrink-0 w-48 h-32 flex items-center justify-center px-4"
+              >
+                <img
+                  src={imgSrc}
+                  alt={`Partner ${index + 1}`}
+                  className="max-w-full max-h-full object-contain grayscale hover:grayscale-0 transition-all duration-300 hover:scale-110 opacity-80 hover:opacity-100"
+                />
+              </div>
+            ))}
+            
+            {[
+              asset.one,
+              asset.two,
+              asset.three,
+              asset.four,
+              asset.five,
+              asset.six,
+              asset.seven,
+              asset.eight,
+              asset.nine,
+              asset.ten,
+              asset.eleven,
+              asset.twelve,
+            ].map((imgSrc, index) => (
+              <div
+                key={`second-${index}`}
+                className="flex-shrink-0 w-48 h-32 flex items-center justify-center px-4"
+              >
+                <img
+                  src={imgSrc}
+                  alt={`Partner ${index + 1}`}
+                  className="max-w-full max-h-full object-contain grayscale hover:grayscale-0 transition-all duration-300 hover:scale-110 opacity-80 hover:opacity-100"
+                />
+              </div>
+            ))}
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Testimonials Section - Footer */}
+      <div className="bg-gradient-to-b from-gray-50 to-gray-100 py-12 px-4 relative z-10">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-10"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+              What People Say
+            </h2>
+            <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
+              Hear from our community members, partners, and beneficiaries about their experiences with UCLM CARES
+            </p>
+          </motion.div>
+
+          {/* Statistics Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10 max-w-3xl mx-auto">
+            {/* Overall Star Rating */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white"
+            >
+              <div className="flex flex-col items-center justify-center">
+                <div className="mb-3">
+                  <svg className="w-12 h-12 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-center mb-1">
+                    <span className="text-4xl font-bold mr-2">4.9</span>
+                    <div className="flex text-yellow-300 text-lg">
+                      <span>★</span>
+                      <span>★</span>
+                      <span>★</span>
+                      <span>★</span>
+                      <span>★</span>
+                    </div>
+                  </div>
+                  <p className="text-blue-100 text-base font-medium">Overall Rating</p>
+                  <p className="text-blue-200 text-xs mt-1">Based on 500+ reviews</p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Beneficiary Count */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white"
+            >
+              <div className="flex flex-col items-center justify-center">
+                <div className="mb-3">
+                  <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                <div className="text-center">
+                  <div className="mb-1">
+                    <span className="text-4xl font-bold">2,500+</span>
+                  </div>
+                  <p className="text-green-100 text-base font-medium">Beneficiaries Served</p>
+                  <p className="text-green-200 text-xs mt-1">Across multiple communities</p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Testimonial 1 */}
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300"
+            >
+              <div className="flex items-center mb-3">
+                <div className="flex text-yellow-400 text-base">
+                  {'★★★★★'.split('').map((star, i) => (
+                    <span key={i}>{star}</span>
+                  ))}
+                </div>
+              </div>
+              <p className="text-gray-700 mb-4 text-sm leading-relaxed italic">
+                "UCLM CARES has transformed our community through their dedicated extension services. The programs have empowered our youth and created lasting positive change."
+              </p>
+              <div className="flex items-center">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-blue-600 font-bold text-sm">JM</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 text-sm">Juan Martinez</h4>
+                  <p className="text-xs text-gray-600">Community Leader</p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Testimonial 2 */}
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300"
+            >
+              <div className="flex items-center mb-3">
+                <div className="flex text-yellow-400 text-base">
+                  {'★★★★★'.split('').map((star, i) => (
+                    <span key={i}>{star}</span>
+                  ))}
+                </div>
+              </div>
+              <p className="text-gray-700 mb-4 text-sm leading-relaxed italic">
+                "As a student volunteer, I've learned so much about community service and social responsibility. UCLM CARES has shaped me into a better person and citizen."
+              </p>
+              <div className="flex items-center">
+                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-green-600 font-bold text-sm">SM</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 text-sm">Sarah Mendoza</h4>
+                  <p className="text-xs text-gray-600">Student Volunteer</p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Testimonial 3 */}
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300"
+            >
+              <div className="flex items-center mb-3">
+                <div className="flex text-yellow-400 text-base">
+                  {'★★★★★'.split('').map((star, i) => (
+                    <span key={i}>{star}</span>
+                  ))}
+                </div>
+              </div>
+              <p className="text-gray-700 mb-4 text-sm leading-relaxed italic">
+                "The partnership with UCLM CARES has been invaluable. Their commitment to community development and their professional approach to extension services is truly commendable."
+              </p>
+              <div className="flex items-center">
+                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-purple-600 font-bold text-sm">RC</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 text-sm">Roberto Cruz</h4>
+                  <p className="text-xs text-gray-600">Partner Organization</p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Testimonial 4 */}
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300"
+            >
+              <div className="flex items-center mb-3">
+                <div className="flex text-yellow-400 text-base">
+                  {'★★★★★'.split('').map((star, i) => (
+                    <span key={i}>{star}</span>
+                  ))}
+                </div>
+              </div>
+              <p className="text-gray-700 mb-4 text-sm leading-relaxed italic">
+                "The literacy programs and capacity-building workshops have made a significant impact in our barangay. We are grateful for UCLM CARES' continuous support."
+              </p>
+              <div className="flex items-center">
+                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-orange-600 font-bold text-sm">ML</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 text-sm">Maria Lopez</h4>
+                  <p className="text-xs text-gray-600">Barangay Official</p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Testimonial 5 */}
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300"
+            >
+              <div className="flex items-center mb-3">
+                <div className="flex text-yellow-400 text-base">
+                  {'★★★★★'.split('').map((star, i) => (
+                    <span key={i}>{star}</span>
+                  ))}
+                </div>
+              </div>
+              <p className="text-gray-700 mb-4 text-sm leading-relaxed italic">
+                "Being part of UCLM CARES activities has been life-changing. The sense of community and the opportunity to give back has enriched my life in ways I never imagined."
+              </p>
+              <div className="flex items-center">
+                <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-pink-600 font-bold text-sm">AT</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 text-sm">Ana Torres</h4>
+                  <p className="text-xs text-gray-600">Alumni Volunteer</p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Testimonial 6 */}
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300"
+            >
+              <div className="flex items-center mb-3">
+                <div className="flex text-yellow-400 text-base">
+                  {'★★★★★'.split('').map((star, i) => (
+                    <span key={i}>{star}</span>
+                  ))}
+                </div>
+              </div>
+              <p className="text-gray-700 mb-4 text-sm leading-relaxed italic">
+                "The research-based extension programs have provided us with valuable insights and solutions to our community challenges. UCLM CARES is truly making a difference."
+              </p>
+              <div className="flex items-center">
+                <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-teal-600 font-bold text-sm">DR</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 text-sm">Dr. Ricardo Santos</h4>
+                  <p className="text-xs text-gray-600">Community Beneficiary</p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Show More Button */}
+          <div className="flex justify-center mt-8">
+            <motion.button
+              onClick={() => setIsTestimonialsModalOpen(true)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow-lg transition-colors duration-300 flex items-center gap-2"
+            >
+              <span>View All Testimonials</span>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </motion.button>
           </div>
         </div>
       </div>
+
+      {/* Footer Section */}
+      <footer className="bg-gradient-to-b from-gray-900 to-gray-800 text-white py-12 px-4 relative z-10">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+            {/* About Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="space-y-4"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <img 
+                  src={asset.logo} 
+                  alt="UCLM CARES Logo" 
+                  className="w-12 h-12 object-contain"
+                />
+                <h3 className="text-2xl font-bold">UCLM CARES</h3>
+              </div>
+              <p className="text-gray-300 text-sm leading-relaxed">
+                Community Awareness, Relations, and Extension Services. Empowering communities through awareness, relationships, and meaningful extension services.
+              </p>
+              <div className="flex items-center gap-2 pt-2">
+                <img 
+                  src={asset.uclmLogo} 
+                  alt="UCLM Logo" 
+                  className="w-8 h-8 object-contain opacity-80"
+                />
+                <span className="text-gray-400 text-xs">University of Cebu Lapu-Lapu and Mandaue</span>
+              </div>
+            </motion.div>
+
+            {/* Contact Information */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="space-y-4"
+            >
+              <h4 className="text-lg font-semibold mb-4">Contact Us</h4>
+              <ul className="space-y-3 text-sm text-gray-300">
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span>Lapu-Lapu City, Cebu, Philippines</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <span>support@uclmcares.online</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                  <span>+63 091 9011 0935</span>
+                </li>
+              </ul>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="space-y-4"
+            >
+              <h4 className="text-lg font-semibold mb-4">Follow Us</h4>
+              <div className="flex gap-4 mb-6">
+                <motion.a
+                  href="https://www.facebook.com/uclmcares"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.1, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors"
+                >
+                  <img src={asset.facebookWB} alt="Facebook" className="w-6 h-6 object-contain" />
+                </motion.a>
+              </div>
+              <div>
+                <h5 className="text-sm font-semibold mb-2">Get Involved</h5>
+                <p className="text-gray-300 text-xs mb-3">
+                  Join us in making a difference in our communities.
+                </p>
+                <motion.button
+                  onClick={() => window.location.href = '/'}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm font-semibold transition-colors"
+                >
+                  Volunteer Now
+                </motion.button>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-gray-700 my-8"></div>
+
+          {/* Copyright Section */}
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
+            <div className="text-center md:text-left">
+              <p>&copy; {new Date().getFullYear()} UCLM CARES. All rights reserved.</p>
+            </div>
+            <div className="flex flex-wrap justify-center md:justify-end gap-4">
+              <a href="/privacy" className="hover:text-white transition-colors">
+                Privacy Policy
+              </a>
+              <span className="text-gray-600">|</span>
+              <a href="/terms" className="hover:text-white transition-colors">
+                Terms of Service
+              </a>
+              <span className="text-gray-600">|</span>
+              <a href="/data-deletion" className="hover:text-white transition-colors">
+                Data Deletion
+              </a>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* Testimonials Modal */}
+      <TestimonialsModal 
+        isOpen={isTestimonialsModalOpen} 
+        onClose={() => setIsTestimonialsModalOpen(false)} 
+      />
     </div>
   );
 };

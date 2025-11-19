@@ -80,8 +80,8 @@ cron.schedule('0 */5 * * * *', async () => {
                 }
 
                 // Get participant details
-                const participantEmail = eventRegisteredParticipant?.Volunteer?.CampusUsers?.Account.email;
-                const participantName = `${eventRegisteredParticipant?.Volunteer?.CampusUsers?.firstname} ${eventRegisteredParticipant?.Volunteer?.CampusUsers?.lastname}`;
+                const participantEmail = eventRegisteredParticipant?.Volunteer?.CampusUser?.Account.email;
+                const participantName = `${eventRegisteredParticipant?.Volunteer?.CampusUser?.firstname} ${eventRegisteredParticipant?.Volunteer?.CampusUser?.lastname}`;
                 const eventName = attendance.Event.title;
                 const googleFormLink = eventFormLinkRecord.form_link;
 

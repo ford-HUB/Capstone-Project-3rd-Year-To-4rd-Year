@@ -22,7 +22,7 @@ import { useEventStore as useEventDirectorStore } from '../../store/director/use
 import CancelModal from './CancelModal.jsx';
 import RemoveParticipantModal from './RemoveParticipantModal.jsx';
 
-const JoinEventModal = ({ event, onClose, onRemoveParticipant }) => {
+const JoinEventModal = ({ event, onClose }) => {
     const { authenticatedManagement } = useAuthManagamentStore()
     const { authenticatedDirector } = useAuthDirectorStore()
 
@@ -313,7 +313,7 @@ const JoinEventModal = ({ event, onClose, onRemoveParticipant }) => {
                                         className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group">
                                         <div className="flex items-center gap-3">
                                             <img
-                                                src={participant?.details?.image_url || '/default-avatar.png'}
+                                                src={"https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"}
                                                 alt={participant?.details?.firstname}
                                                 className="w-10 h-10 rounded-full object-cover"
                                             />

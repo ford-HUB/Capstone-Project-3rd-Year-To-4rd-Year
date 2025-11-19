@@ -117,10 +117,10 @@ const EvaluationSubmissionsModal = ({ isOpen, onClose, event, allEvaluations = f
                                             </div>
                                             <div>
                                                 <h4 className="font-medium text-gray-900">
-                                                    {evaluation.Volunteer?.CampusUsers?.firstname || ''} {evaluation.Volunteer?.CampusUsers?.lastname || ''}
+                                                    {evaluation.Volunteer?.CampusUser?.firstname || ''} {evaluation.Volunteer?.CampusUser?.lastname || ''}
                                                 </h4>
                                                 <p className="text-sm text-gray-600">
-                                                    {evaluation.Volunteer?.CampusUsers?.Account?.email || evaluation.Volunteer?.CampusUsers?.email || ''}
+                                                    {evaluation.Volunteer?.CampusUser?.Account?.email || evaluation.Volunteer?.CampusUser?.email || ''}
                                                 </p>
                                             </div>
                                         </div>

@@ -18,7 +18,8 @@ const MainLayout = () => {
                 const guestMatchedPath = matchPath('/home/guest/:id', location.pathname) ||
                     matchPath('/accomplishments/guest/:id', location.pathname) ||
                     matchPath('/programs/guest/:id', location.pathname) ||
-                    matchPath('/upcomingEvents/guest/:id', location.pathname)
+                    matchPath('/upcomingEvents/guest/:id', location.pathname) ||
+                    matchPath('/about-us/guest/:id', location.pathname)
 
                 // optional chaining for not throwing any errors
                 // insteed it throw the undefine or null

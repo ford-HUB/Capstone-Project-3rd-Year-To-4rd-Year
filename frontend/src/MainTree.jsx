@@ -91,6 +91,7 @@ import OverviewPage from './pages/common/OverviewPage.jsx'
 import Privacy from './pages/common/Privacy.jsx'
 import Terms from './pages/common/Terms.jsx'
 import DataDeletion from './pages/common/DataDeletion.jsx'
+import AboutUs from './pages/guest/AboutUs.jsx'
 
 
 const MainTree = [
@@ -127,6 +128,14 @@ const MainTree = [
         element:
             <ProtectedGuest>
                 <Accomplishments />
+            </ProtectedGuest>,
+        navbar: 'guest'
+    },
+    {
+        path: '/about-us/guest/:id',
+        element:
+            <ProtectedGuest>
+                <AboutUs />
             </ProtectedGuest>,
         navbar: 'guest'
     },

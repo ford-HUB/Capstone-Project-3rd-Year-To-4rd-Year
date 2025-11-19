@@ -240,13 +240,13 @@ export const generateCertificateBatch = async (event, category, department, batc
 
                 let participant = null;
 
-                if (att.participant_type === 'volunteer' && att.Volunteer?.CampusUsers) {
-                    const account = await Accounts.findOne({ where: { account_id: att?.Volunteer.CampusUsers.account_id } })
+                if (att.participant_type === 'volunteer' && att.Volunteer?.CampusUser) {
+                    const account = await Accounts.findOne({ where: { account_id: att?.Volunteer.CampusUser.account_id } })
                     participant = {
                         id: att.participant_id, // Use attendance participant_id
                         email: account.email,
-                        name: `${att.Volunteer.CampusUsers.firstname} ${att.Volunteer.CampusUsers.lastname}`,
-                        type: att.Volunteer.CampusUsers.type || 'Student',
+                        name: `${att.Volunteer.CampusUser.firstname} ${att.Volunteer.CampusUser.lastname}`,
+                        type: `Volunteer ${att.Volunteer.CampusUser.type.charAt(0).toUpperCase() + att.Volunteer.CampusUser.type.slice(1)}`,
                     }
                 } else if (att.participant_type === 'staff' && att.Staff) {
                     const account = await Accounts.findOne({ where: { account_id: att?.Staff.account_id } })
@@ -283,7 +283,7 @@ export const generateCertificateBatch = async (event, category, department, batc
                 }
 
                 if (!participant) {
-                    console.log(`⚠️  [${batchId}] Event ${event.event_id}: Skipping attendance ${att.attendance_id} - no valid participant data`);
+                    console.log(` [${batchId}] Event ${event.event_id}: Skipping attendance ${att.attendance_id} - no valid participant data`);
                     skippedCount++;
                     continue;
                 }
@@ -311,21 +311,16 @@ export const generateCertificateBatch = async (event, category, department, batc
                     isDirector: participant.type === 'Director'
                 };
 
-                // Compile certificate HTML
                 const compiledHtml = Handlebars.compile(certificateTemplate.html_raw_template);
                 const certificateHTML = compiledHtml(data_attachment);
 
-                // Sanitize participant name: only letters, numbers, and underscores
                 const safeName = participant.name.replace(/\W+/g, '_'); 
 
-                // Cloudinary public_id should NOT include the file extension
                 const fileName = `certificate_${safeName}_${Date.now()}`;
 
-                // Export certificate
                 const imgCertificate = await exportToPng({ htmlCertificate: certificateHTML, fileName });
                 const pdfCertificate = await exportToPdf({ htmlCertificate: certificateHTML, fileName });
 
-                // Save to DB
                 const certificate = await Certificate.create({
                     participant_id: participant.id,
                     participant_type: att.participant_type,
@@ -406,183 +401,3 @@ export const generateCertificateBatch = async (event, category, department, batc
         return { success: false, message: 'Internal Server Error', data: null };
     }
 };
-
-// export const generateCertificate = async (event, category, department) => {
-//     try {
-//         const {
-//             Certificate,
-//             Category,
-//             Attendance,
-//             Certificate_Template,
-//             Event,
-//             Student,
-//             Volunteer,
-//             Staff,
-//             Coordinator,
-//             Director,
-//         } = models;
-
-
-//         if (!event) {
-//             return { success: false, message: 'Event not found', data: null };
-//         }
-
-//         if (!category) {
-//             return { success: false, message: 'No category found for this event', data: null };
-//         }
-
-//         // Fetch certificate template for the category
-//         const certificateTemplate = await Certificate_Template.findOne({
-//             where: { category_id: category.category_id }
-//         });
-
-
-//         if (!certificateTemplate) {
-//             return { success: false, message: 'No template found for this event category', data: category };
-//         }
-
-//         // Fetch participants who completed attendance
-//         const completedParticipants = await Attendance.findAll({
-//             where: {
-//                 event_id: event.event_id,
-//                 time_in: { [Op.ne]: null },
-//                 time_out: { [Op.ne]: null },
-//             },
-//             include: [
-//                 { 
-//                     model: Volunteer,
-//                     required: false,
-//                     include: [Student] // need to strict get those who done evaluation
-//                 },
-//                 { model: Staff, required: false },
-//                 { model: Coordinator, required: false },
-//                 { model: Director, required: false },
-//             ],
-//         });
-
-//         if (!completedParticipants.length) {
-//             return { success: true, message: 'No participants completed attendance', data: [] };
-//         }
-
-//         // --- SIGNATORIES ---
-//         const directorDataInfo = await Director.findOne({ order: [['createdAt', 'DESC']] });
-//         let coordinatorDataInfo = await Coordinator.findOne({
-//             where: { department_id: department.department_id },
-//             order: [['createdAt', 'DESC']]
-//         });
-
-//         if (!coordinatorDataInfo) {
-//             coordinatorDataInfo = await Staff.findOne({ order: [['createdAt', 'DESC']] });
-//         }
-        
-//         const generatedCertificates = [];
-
-//         // Generate certificates
-//         for (const att of completedParticipants) {
-//             let participant = null;
-
-//             if (att.participant_type === 'volunteer' && att.Volunteer?.Student) {
-//                 participant = {
-//                     id: att.Volunteer.Student.student_id,
-//                     name: `${att.Volunteer.Student.firstname} ${att.Volunteer.Student.lastname}`,
-//                     type: 'Student',
-//                 }
-//             } else if (att.participant_type === 'staff' && att.Staff) {
-//                 participant = {
-//                     id: att.Staff.staff_id,
-//                     name: `${att.Staff.firstname} ${att.Staff.lastname}`,
-//                     type: 'Staff',
-//                 }
-//             } else if (att.participant_type === 'coordinator' && att.Coordinator) {
-//                 participant = {
-//                     id: att.Coordinator.coordinator_id,
-//                     name: `${att.Coordinator.firstname} ${att.Coordinator.lastname}`,
-//                     type: 'Coordinator',
-//                 }
-//             } else if (att.participant_type === 'director' && att.Director) {
-//                 participant = {
-//                     id: att.Director.director_id,
-//                     name: `${att.Director.firstname} ${att.Director.lastname}`,
-//                     type: 'Director',
-//                 }
-//             }
-
-//             if (!participant) continue;
-
-//             const issuedDate = dayjs();
-//             const certId = uuidV4();
-
-//             const data_attachment = {
-//                 participant_name: participant.name,
-//                 event_title: event.title,
-//                 category_name: category.name,
-//                 issued_date: issuedDate.format('YYYY-MM-DD'),
-//                 cert_uuid: certId,
-
-//                 director_name: directorDataInfo ? `${directorDataInfo.firstname} ${directorDataInfo.lastname}`: '',
-//                 director_signatory_img: directorDataInfo.signature_img || '',
-
-//                 additional_signatory_name: coordinatorDataInfo ? `${coordinatorDataInfo.firstname} ${coordinatorDataInfo.lastname}`: `${coordinatorDataInfo.firstname} ${coordinatorDataInfo.lastname}`,
-//                 additional_signatory_img: coordinatorDataInfo.signature_img || '',
-//                 additional_signatory_role: coordinatorDataInfo ? `Coordinator`: 'Staff'
-//             };
-
-//             // Compile certificate HTML
-//             const compiledHtml = Handlebars.compile(certificateTemplate.html_raw_template);
-//             const certificateHTML = compiledHtml(data_attachment);
-
-//             // Sanitize participant name: only letters, numbers, and underscores
-//             const safeName = participant.name.replace(/\W+/g, '_'); 
-
-//             // Cloudinary public_id should NOT include the file extension
-//             const fileName = `certificate_${safeName}_${Date.now()}`;
-
-//             // Export certificate
-//             const imgCertificate = await exportToPng({ htmlCertificate: certificateHTML, fileName });
-//             const pdfCertificate = await exportToPdf({ htmlCertificate: certificateHTML, fileName });
-
-//             // Save to DB
-//             const certificate = await Certificate.create({
-//                 participant_id: participant.id,
-//                 participant_type: att.participant_type,
-//                 event_id: event.event_id,
-//                 ct_id: certificateTemplate.ct_id,
-//                 issued_date: issuedDate.toDate(),
-//                 cert_uid: certId,
-//                 img_url: imgCertificate,
-//                 pdf_url: pdfCertificate,
-//                 director_id: directorDataInfo.director_id,
-//                 additional_signatory_id: coordinatorDataInfo ? coordinatorDataInfo.coordinator_id : coordinatorDataInfo.staff_id,
-//                 cert_title: event.title,
-//             });
-
-//             // Create notification for the participant
-//             try {
-//                 await createCertificateNotification({
-//                     certificate_id: certificate.certificate_id,
-//                     event_title: event.title,
-//                     participant_id: participant.id,
-//                     participant_name: participant.name
-//                 });
-//             } catch (notifError) {
-//                 console.error(`⚠️ Failed to create notification for ${participant.name}:`, notifError.message);
-//             }
-
-//             generatedCertificates.push({
-//                 participant: participant.name,
-//                 participant_type: att.participant_type,
-//                 pdf: pdfCertificate
-//             });
-//         }
-
-//         return {
-//             success: true,
-//             message: `Certificates generated for ${generatedCertificates.length} participants`,
-//             count: generatedCertificates.length,
-//             data: generatedCertificates,
-//         };
-//     } catch (error) {
-//         console.error('generateCertificate Error:', error);
-//         return { success: false, message: 'Internal Server Error', data: null };
-//     }
-// };

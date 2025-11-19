@@ -13,7 +13,6 @@ const Navbar = ({ idRoute }) => {
 
   const openToggle = () => {
     setToggle(true)
-    setBurger(false)
   }
   const closeToggle = () => {
     setToggle(false)
@@ -40,6 +39,7 @@ const Navbar = ({ idRoute }) => {
           <Link to={`/programs/guest/${idRoute}`} className={`px-5 ${ isActive(`/programs/guest/${idRoute}`)? `text-blue-600` : `hover:text-blue-600 transition-colors duration-300` }`} >Programs</Link>
           <Link to={`/upcomingEvents/guest/${idRoute}`} className={`px-3 ${ isActive(`/upcomingEvents/guest/${idRoute}`) ? `text-blue-600` : `hover:text-blue-600 transition-colors duration-300` }`} >Up Coming Events</Link>
           <Link to={`/accomplishments/guest/${idRoute}`} className={`px-5 ${ isActive(`/accomplishments/guest/${idRoute}`)? `text-blue-600` : `hover:text-blue-600 transition-colors duration-300` }`} >Accomplishments</Link>
+          <Link to={`/about-us/guest/${idRoute}`} className={`px-5 ${ isActive(`/about-us/guest/${idRoute}`)? `text-blue-600` : `hover:text-blue-600 transition-colors duration-300` }`} >About Us</Link>
         </div>
 
         <div className="sideContainer flex justify-end items-center text-md/6 text-white gap-2">
@@ -61,6 +61,7 @@ const Navbar = ({ idRoute }) => {
             <Link to={`/programs/guest/${idRoute}`} className={`${ isActive(`/programs/guest/${idRoute}`)? `text-blue-600` : `hover:text-blue-600 transition-colors duration-300` }`} >Programs</Link>
             <Link to={`/upcomingEvents/guest/${idRoute}`} className={`${ isActive(`/upcomingEvents/guest/${idRoute}`) ? `text-blue-600` : `hover:text-blue-600 transition-colors duration-300` }`} >Up Coming Events</Link>
             <Link to={`/accomplishments/guest/${idRoute}`} className={`${ isActive(`/accomplishments/guest/${idRoute}`)? `text-blue-600` : `hover:text-blue-600 transition-colors duration-300` }`} >Accomplishments</Link>
+            <Link to={`/about-us/guest/${idRoute}`} className={`${ isActive(`/about-us/guest/${idRoute}`)? `text-blue-600` : `hover:text-blue-600 transition-colors duration-300` }`} >About Us</Link>
         </div>
       </aside>
 

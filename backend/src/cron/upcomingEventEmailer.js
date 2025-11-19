@@ -82,7 +82,7 @@ cron.schedule('0 0 * * *', async () => {
         const toEmails = subscribers
             .map((v) => {
                 // Depending on Sequelize naming, Account may appear as Accounts or Account
-                const accountObj = v.CampusUsers?.Accounts || v.CampusUsers?.Account || null;
+                const accountObj = v.CampusUser?.Account || null;
                 return accountObj?.email || null;
             })
             .filter(Boolean);

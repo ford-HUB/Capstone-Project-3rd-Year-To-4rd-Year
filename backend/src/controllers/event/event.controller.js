@@ -354,7 +354,6 @@ export const listEvent = async (req, res) => {
             
             case 'coordinator':
             case 'assistant_coordinator':
-                // Return all events - filtering will be done in frontend
                 events = await Event.findAll({
                     attributes: [
                         'event_id', 'title', 'description', 'event_started', 'event_ended', 
@@ -422,24 +421,24 @@ export const getParticipantEvent = async (req, res) => {
                         if (volunteer) {
                             participantData = {
                                 volunteer_id: volunteer.volunteer_id,
-                                type: volunteer.CampusUsers?.type || "student",
-                                details: volunteer.CampusUsers
+                                type: volunteer.CampusUser?.type || "student",
+                                details: volunteer.CampusUser
                                     ? {
-                                        campus_user_id: volunteer.CampusUsers.campus_user_id,
-                                        school_number: volunteer.CampusUsers.school_number,
-                                        firstname: volunteer.CampusUsers.firstname,
-                                        lastname: volunteer.CampusUsers.lastname,
-                                        gender: volunteer.CampusUsers.gender?.trim(),
-                                        middle_initial: volunteer.CampusUsers.middle_initial,
-                                        age: volunteer.CampusUsers.age,
-                                        disability: volunteer.CampusUsers.disability,
-                                        phone_number: volunteer.CampusUsers.phone_number,
-                                        current_address: volunteer.CampusUsers.current_address,
+                                        campus_user_id: volunteer.CampusUser.campus_user_id,
+                                        school_number: volunteer.CampusUser.school_number,
+                                        firstname: volunteer.CampusUser.firstname,
+                                        lastname: volunteer.CampusUser.lastname,
+                                        gender: volunteer.CampusUser.gender?.trim(),
+                                        middle_initial: volunteer.CampusUser.middle_initial,
+                                        age: volunteer.CampusUser.age,
+                                        disability: volunteer.CampusUser.disability,
+                                        phone_number: volunteer.CampusUser.phone_number,
+                                        current_address: volunteer.CampusUser.current_address,
                                         image_url: volunteer.profile_image
                                     }
                                     : {},
                                 academic_info: {
-                                    department: volunteer?.CampusUsers?.Department?.department_name,
+                                    department: volunteer?.CampusUser?.Department?.department_name,
                                 },
                                 volunteer_info: {
                                     interested_events: volunteer.interested_events,
@@ -744,10 +743,10 @@ export const removeEventRegistration = async (req, res) => {
                     },
                     transaction: t
                 })
-                if (volunteer?.CampusUsers) {
-                    participantData = volunteer.CampusUsers
-                    participantEmail = volunteer.CampusUsers.Account?.email
-                    participantName = `${volunteer.CampusUsers.firstname} ${volunteer.CampusUsers.lastname}`
+                if (volunteer?.CampusUser) {
+                    participantData = volunteer.CampusUser
+                    participantEmail = volunteer.CampusUser.Account?.email
+                    participantName = `${volunteer.CampusUser.firstname} ${volunteer.CampusUser.lastname}`
                 }
                 break
             }

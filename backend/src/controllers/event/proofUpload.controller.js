@@ -58,7 +58,6 @@ export const uploadEventProof = async (req, res) => {
 
         if (!registration) { return res.json({ message: 'Event registration not found' }) }
 
-        // Get image URLs from CloudinaryStorage (already uploaded by multer middleware)
         const imageUrls = imageFiles.map(file => file.path);
 
         // Update registration with proof data
