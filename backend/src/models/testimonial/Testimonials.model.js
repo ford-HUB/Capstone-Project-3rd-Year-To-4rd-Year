@@ -10,24 +10,14 @@ Testimonials.init({
         autoIncrement: true 
     },
 
+    sender_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+
     rating: {
         type: DataTypes.NUMBER,
         allowNull: false
-    },
-
-    name: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-
-    role: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-
-    initials: {
-        type: DataTypes.STRING,
-        allowNull: true
     },
 
     message: {

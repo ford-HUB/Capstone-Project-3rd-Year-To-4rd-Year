@@ -315,6 +315,9 @@ Donations.belongsTo(Event, { foreignKey: 'event_id', onDelete: "CASCADE", hooks:
 Accounts.hasMany(Donations, { foreignKey: 'account_id', onDelete: "CASCADE", hooks: true })
 Donations.belongsTo(Accounts, { foreignKey: 'account_id', onDelete: "CASCADE", hooks: true })
 
+Beneficiary.hasMany(Testimonials, { foreignKey: 'sender_id', onDelete: "CASCADE", hooks: true })
+Testimonials.belongsTo(Beneficiary, { foreignKey: 'sender_id', constraints: false, onDelete: "CASCADE", hooks: true })
+
 
 const models = {
     sequelize: db,

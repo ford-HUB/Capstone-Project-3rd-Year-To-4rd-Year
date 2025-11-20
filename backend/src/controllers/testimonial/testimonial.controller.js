@@ -20,28 +20,9 @@ export const createTestimonial = async (req, res) => {
             });
         }
 
-        const name = beneficiary.organization_name 
-            || `${beneficiary.firstname} ${beneficiary.lastname}`;
-
-        const role = beneficiary.organization_name 
-            || 'Community Beneficiary';
-
-        const generatedInitials = generateInitials(beneficiary);
-
-        const testimonial = await Testimonials.create({
-            rating,
-            name,
-            role,
-            initials: generatedInitials,
-            message,
-            approved: false,
-            featured: false
-        });
-
         return res.json({
             success: true,
             message: 'Thank you! Your testimonial has been submitted successfully.',
-            testimonial
         });
 
     } catch (error) {
