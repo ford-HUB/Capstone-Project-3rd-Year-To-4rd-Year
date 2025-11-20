@@ -37,7 +37,7 @@ server.listen(PORT, () => {
     console.log(`server running at http://localhost:${PORT}`)
     testConnection()
     updateSchemaChanges()
-    dropTables()
+    // dropTables()
     // simpleTest()
     // debugEmailSetup()
 })

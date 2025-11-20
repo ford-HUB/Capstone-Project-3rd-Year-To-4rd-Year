@@ -319,6 +319,7 @@ Beneficiary.hasMany(Testimonials, { foreignKey: 'sender_id', onDelete: "CASCADE"
 Testimonials.belongsTo(Beneficiary, { foreignKey: 'sender_id', constraints: false, onDelete: "CASCADE", hooks: true })
 
 
+
 const models = {
     sequelize: db,
     Director,
