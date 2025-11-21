@@ -8,13 +8,29 @@ export const ListUsers = async (req, res) => {
     try {
         const { Accounts, Role, Department, CampusUsers, Coordinator, Staff, Course, YearLevel, Beneficiary, Donor } = models;
 
+        // Debug logging
+        console.log('ListUsers - Director account_id:', req.user?.account_id);
+        console.log('ListUsers - Director role:', req.user?.Role?.name);
+
+        // First, let's check total account count for debugging
+        const totalAccounts = await Accounts.count();
+        console.log('ListUsers - Total accounts in database:', totalAccounts);
+        
+        // Check accounts excluding director
+        const accountsExcludingDirector = await Accounts.count({
+            where: { account_id: { [Op.ne]: req.user.account_id } }
+        });
+        console.log('ListUsers - Accounts excluding director:', accountsExcludingDirector);
+
         const getList = await Accounts.findAll({
             attributes: ['account_id', 'email', 'is_active', 'is_deactivated', 'createdAt', 'updatedAt', 'activeAt'],
             where: { account_id: { [Op.ne]: req.user.account_id } },
+            distinct: true, // Avoid duplicate rows when using multiple optional includes
             include: [
                 {
                     model: Role,
-                    attributes: ['role_id', 'name']
+                    attributes: ['role_id', 'name'],
+                    required: true
                 },
                 {
                     model: CampusUsers,
@@ -63,6 +79,21 @@ export const ListUsers = async (req, res) => {
             ],
             order: [['is_active', 'DESC'], ['account_id', 'ASC']]
         });
+
+        // Debug logging
+        console.log('ListUsers - Total accounts found:', getList.length);
+        if (getList.length > 0) {
+            console.log('ListUsers - Sample account:', {
+                account_id: getList[0].account_id,
+                email: getList[0].email,
+                hasRole: !!getList[0].Role,
+                hasCampusUsers: !!getList[0].CampusUsers,
+                hasStaff: !!getList[0].Staff,
+                hasCoordinator: !!getList[0].Coordinator,
+                hasBeneficiary: !!getList[0].Beneficiary,
+                hasDonor: !!getList[0].Donor
+            });
+        }
 
         if (getList.length === 0) {
             return res.status(200).json({ success: true, list: [], message: 'List Currently Empty' });
@@ -161,6 +192,7 @@ export const ListUsers = async (req, res) => {
 
     } catch (error) {
         console.error('List Users Failed:', error.message);
+        console.error('List Users Error Stack:', error.stack);
         res.status(500).json({ 
             success: false,
             message: 'Internal Server Error',
