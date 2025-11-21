@@ -446,37 +446,30 @@ export const logParticipantActivity = async (account_id, action, module, descrip
 
 export const logBeneficiaryActivity = async (account_id, action, module, description, ip_address = null, user_agent = null) => {
     try {
-        const userInfo = await getUserIdFromAccount(account_id, 'beneficiary');
-        if (!userInfo.success || !userInfo.user_id) {
-            console.error(`Failed to get beneficiary user_id for account_id ${account_id}:`, userInfo.error);
-            return;
+        const beneficiaryInfo = await getUserIdFromAccount(account_id, 'beneficiary');
+        if (beneficiaryInfo.success && beneficiaryInfo.user_id) {
+            const beneficiaryExists = await Beneficiary.findOne({
+                where: { beneficiary_id: beneficiaryInfo.user_id },
+                attributes: ['beneficiary_id']
+            });
+
+            if (!beneficiaryExists) {
+                console.error(`Beneficiary with beneficiary_id ${beneficiaryInfo.user_id} not found for account_id ${account_id}`);
+                return;
+            }
+
+            await createActivityLog({
+                user_id: beneficiaryInfo.user_id,
+                role: 'beneficiary',
+                action,
+                module,
+                description,
+                ip_address,
+                user_agent
+            });
         }
-
-        const beneficiaryExists = await Beneficiary.findOne({
-            where: { beneficiary_id: userInfo.user_id },
-            attributes: ['beneficiary_id']
-        });
-
-        if (!beneficiaryExists) {
-            console.error(`Beneficiary with beneficiary_id ${userInfo.user_id} not found for account_id ${account_id}`);
-            return;
-        }
-
-        await createActivityLog({
-            user_id: userInfo.user_id,
-            role: 'beneficiary',
-            action,
-            module,
-            description,
-            ip_address,
-            user_agent
-        });
     } catch (error) {
-        if (error.name === 'SequelizeForeignKeyConstraintError') {
-            console.error(`Foreign key constraint error for beneficiary activity log - account_id: ${account_id}, user_id might not exist in beneficiary table`);
-        } else {
-            console.error('Failed to create activity log:', error.message);
-        }
+        console.error('Failed to create activity log:', error.message);
     }
 };
 
