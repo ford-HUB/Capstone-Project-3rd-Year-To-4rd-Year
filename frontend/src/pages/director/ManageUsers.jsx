@@ -192,8 +192,8 @@ const ManageUsers = () => {
             }
             
             let department = "";
-            if (Array.isArray(user.departments) && user.departments.length > 0) {
-                department = user.departments[0]?.department_name || "";
+            if (Array.isArray(user.department) && user.departments.length > 0) {
+                department = user.department_name || "";
             } else if (user.departments && typeof user.departments === 'object') {
                 department = user.departments?.department_name || "";
             }

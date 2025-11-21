@@ -5,9 +5,6 @@ import { removeNotification } from "../../socket.js";
 
 const { EventRegistration, Event, Beneficiary, Notification, Accounts } = models;
 
-/**
- * Get all pending beneficiary registrations
- */
 export const getPendingRegistrations = async (req, res) => {
     try {
         
@@ -38,7 +35,6 @@ export const getPendingRegistrations = async (req, res) => {
             order: [['createdAt', 'DESC']]
         });
 
-        // Transform the data to clean, consistent structure
         const transformedRegistrations = pendingRegistrations.map(registration => {
             const registrationData = {
                 event_registration_id: registration.event_registration_id,
@@ -64,7 +60,6 @@ export const getPendingRegistrations = async (req, res) => {
                 beneficiary: null
             };
 
-            // Transform Event data
             if (registration.Event) {
                 registrationData.event = {
                     event_id: registration.Event.event_id,
@@ -76,7 +71,6 @@ export const getPendingRegistrations = async (req, res) => {
                 };
             }
 
-            // Transform Beneficiary data
             if (registration.Beneficiary) {
                 registrationData.beneficiary = {
                     beneficiary_id: registration.Beneficiary.beneficiary_id,
@@ -91,7 +85,6 @@ export const getPendingRegistrations = async (req, res) => {
                     account: null
                 };
 
-                // Transform Account data
                 if (registration.Beneficiary.Account) {
                     registrationData.beneficiary.account = {
                         email: registration.Beneficiary.Account.email
@@ -101,9 +94,6 @@ export const getPendingRegistrations = async (req, res) => {
 
             return registrationData;
         });
-
-        console.log(`[Director Pending] Found ${pendingRegistrations ? pendingRegistrations.length : 0} pending registrations`);
-        console.log(`[Director Pending] Transformed ${transformedRegistrations.length} registrations`);
 
         res.json({
             success: true,
@@ -121,9 +111,6 @@ export const getPendingRegistrations = async (req, res) => {
     }
 };
 
-/**
- * Get all beneficiary registrations (with filters)
- */
 export const getAllRegistrations = async (req, res) => {
     try {
         const { status, event_id } = req.query;
@@ -132,15 +119,12 @@ export const getAllRegistrations = async (req, res) => {
             participant_type: 'beneficiary'
         };
 
-        // Add status filter if provided, default to 'registered' if not specified
         if (status && status !== 'all') {
             whereClause.status = status;
         } else if (!status) {
-            // Default to showing approved/registered events when no status is specified
             whereClause.status = 'registered';
         }
 
-        // Add event filter if provided
         if (event_id) {
             whereClause.event_id = event_id;
         }
@@ -169,7 +153,6 @@ export const getAllRegistrations = async (req, res) => {
             order: [['createdAt', 'DESC']]
         });
 
-        // Transform the data to clean, consistent structure
         const transformedRegistrations = allRegistrations.map(registration => {
             const registrationData = {
                 event_registration_id: registration.event_registration_id,
@@ -195,7 +178,6 @@ export const getAllRegistrations = async (req, res) => {
                 beneficiary: null
             };
 
-            // Transform Event data
             if (registration.Event) {
                 registrationData.event = {
                     event_id: registration.Event.event_id,
@@ -207,7 +189,6 @@ export const getAllRegistrations = async (req, res) => {
                 };
             }
 
-            // Transform Beneficiary data   
             if (registration.Beneficiary) {
                 registrationData.beneficiary = {
                     beneficiary_id: registration.Beneficiary.beneficiary_id,
@@ -222,7 +203,6 @@ export const getAllRegistrations = async (req, res) => {
                     account: null
                 };
 
-                // Transform Account data
                 if (registration.Beneficiary.Account) {
                     registrationData.beneficiary.account = {
                         email: registration.Beneficiary.Account.email
@@ -249,9 +229,7 @@ export const getAllRegistrations = async (req, res) => {
     }
 };
 
-/**
- * Approve a beneficiary registration
- */
+
 export const approveRegistration = async (req, res) => {
     const t = await db.transaction();
     try {

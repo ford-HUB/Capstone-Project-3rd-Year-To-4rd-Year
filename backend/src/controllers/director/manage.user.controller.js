@@ -8,24 +8,10 @@ export const ListUsers = async (req, res) => {
     try {
         const { Accounts, Role, Department, CampusUsers, Coordinator, Staff, Course, YearLevel, Beneficiary, Donor } = models;
 
-        // Debug logging
-        console.log('ListUsers - Director account_id:', req.user?.account_id);
-        console.log('ListUsers - Director role:', req.user?.Role?.name);
-
-        // First, let's check total account count for debugging
-        const totalAccounts = await Accounts.count();
-        console.log('ListUsers - Total accounts in database:', totalAccounts);
-        
-        // Check accounts excluding director
-        const accountsExcludingDirector = await Accounts.count({
-            where: { account_id: { [Op.ne]: req.user.account_id } }
-        });
-        console.log('ListUsers - Accounts excluding director:', accountsExcludingDirector);
-
         const getList = await Accounts.findAll({
             attributes: ['account_id', 'email', 'is_active', 'is_deactivated', 'createdAt', 'updatedAt', 'activeAt'],
             where: { account_id: { [Op.ne]: req.user.account_id } },
-            distinct: true, // Avoid duplicate rows when using multiple optional includes
+            distinct: true,
             include: [
                 {
                     model: Role,
@@ -80,33 +66,21 @@ export const ListUsers = async (req, res) => {
             order: [['is_active', 'DESC'], ['account_id', 'ASC']]
         });
 
-        // Debug logging
-        console.log('ListUsers - Total accounts found:', getList.length);
-        if (getList.length > 0) {
-            console.log('ListUsers - Sample account:', {
-                account_id: getList[0].account_id,
-                email: getList[0].email,
-                hasRole: !!getList[0].Role,
-                hasCampusUsers: !!getList[0].CampusUsers,
-                hasStaff: !!getList[0].Staff,
-                hasCoordinator: !!getList[0].Coordinator,
-                hasBeneficiary: !!getList[0].Beneficiary,
-                hasDonor: !!getList[0].Donor
-            });
-        }
 
         if (getList.length === 0) {
             return res.status(200).json({ success: true, list: [], message: 'List Currently Empty' });
         }
 
-        // Get active users from socket
         const activeUsers = getActiveUsers();
         const activeUserIds = new Set(activeUsers.map(user => user.userId));
 
         const transformedList = getList.map(account => {
-            let userType = 'director';
+            // Determine user type based on which model exists or role name
+            let userType = account.Role?.name || 'unknown';
+            
+            // Override type based on specific models if they exist
             if (account.CampusUsers) {
-                userType = account.CampusUsers.type || 'student';
+                userType = account.CampusUsers.type || 'volunteer';
             } else if (account.Staff) {
                 userType = 'staff';
             } else if (account.Coordinator) {
@@ -142,7 +116,7 @@ export const ListUsers = async (req, res) => {
                     school_image_id: account.CampusUsers.school_image_id,
                     type: account.CampusUsers.type
                 };
-                userData.departments = account.CampusUsers.Department || [];
+                userData.departments = account.CampusUsers.Department
             } 
             else if (account.Staff) {
                 userData.details = {
