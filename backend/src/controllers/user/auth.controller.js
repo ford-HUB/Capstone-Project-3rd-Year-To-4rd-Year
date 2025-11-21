@@ -551,12 +551,15 @@ export const logout = async (req, res) => {
     try {
         const { Accounts } = models;
         const accountId = req.user.account_id;
-        const role = req.user.Role.name.toLowerCase();
-
-        if (role === 'beneficiary') {
-            await logBeneficiaryActivity(accountId, 'access', 'account', 'Successfully logged out from the system', req.ip || req.connection.remoteAddress, req.get('user-agent'));
-        } else {
-            await logParticipantActivity(accountId, 'access', 'account', 'Successfully logged out from the system', req.ip || req.connection.remoteAddress, req.get('user-agent'));
+        const role = req.user.Role.name
+        try {
+            if (role === 'beneficiary') {
+                await logBeneficiaryActivity(accountId, 'access', 'account', 'Successfully logged out from the system', req.ip || req.connection.remoteAddress, req.get('user-agent'));
+            } else {
+                await logParticipantActivity(accountId, 'access', 'account', 'Successfully logged out from the system', req.ip || req.connection.remoteAddress, req.get('user-agent'));
+            }
+        } catch (logError) {
+            console.error('Activity log failed during logout (non-critical):', logError.message);
         }
 
         clearJwtCookie(res);
