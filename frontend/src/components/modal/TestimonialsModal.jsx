@@ -8,7 +8,6 @@ import { getBeneficiaryName, getBeneficiaryInitials, renderStars } from '../../u
 const TestimonialsModal = ({ isOpen, onClose }) => {
   const { 
     allTestimonials, 
-    statistics, 
     isLoading, 
     getTestimonialsStatistics 
   } = useTestimonialStore();
@@ -62,62 +61,6 @@ const TestimonialsModal = ({ isOpen, onClose }) => {
 
               {/* Modal Content - Scrollable */}
               <div className="overflow-y-auto flex-1 p-6">
-                {/* Statistics Section */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                  {/* Overall Rating */}
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.6, delay: 0.1 }}
-                    className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white"
-                  >
-                    <div className="flex flex-col items-center justify-center">
-                      <div className="mb-3">
-                        <svg className="w-12 h-12 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                      </div>
-                      <div className="text-center">
-                        <div className="flex items-center justify-center mb-1">
-                          <span className="text-4xl font-bold mr-2">{statistics.averageRating || 0}</span>
-                          <div className="flex text-yellow-300 text-lg">
-                            <span>★</span>
-                            <span>★</span>
-                            <span>★</span>
-                            <span>★</span>
-                            <span>★</span>
-                          </div>
-                        </div>
-                        <p className="text-blue-100 text-base font-medium">Overall Rating</p>
-                        <p className="text-blue-200 text-xs mt-1">Based on {statistics.totalCount || 0} {statistics.totalCount === 1 ? 'review' : 'reviews'}</p>
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  {/* Beneficiary Count */}
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
-                    className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white"
-                  >
-                    <div className="flex flex-col items-center justify-center">
-                      <div className="mb-3">
-                        <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                      </div>
-                      <div className="text-center">
-                        <div className="mb-1">
-                          <span className="text-4xl font-bold">{statistics.beneficiariesServed || 0}+</span>
-                        </div>
-                        <p className="text-green-100 text-base font-medium">Beneficiaries Served</p>
-                        <p className="text-green-200 text-xs mt-1">Across multiple communities</p>
-                      </div>
-                    </div>
-                  </motion.div>
-                </div>
-
                 {/* Testimonials Grid */}
                 {isLoading ? (
                   <div className="flex justify-center items-center py-20">
