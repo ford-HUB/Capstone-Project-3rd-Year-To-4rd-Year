@@ -1,5 +1,5 @@
 import React from "react";
-import { Calendar, LibraryBig, FileVolume, LayoutDashboard, ChevronDown, CircleUser, Database, Users, FileCogIcon, FileUser, HandCoins, StickyNote, CreditCard, Pickaxe } from "lucide-react";
+import { Calendar, LibraryBig, FileVolume, Inbox, LayoutDashboard, ChevronDown, CircleUser, Database, Users, FileCogIcon, FileUser, HandCoins, StickyNote, CreditCard, Pickaxe } from "lucide-react";
 import MenuItem from "../common/MenuItem";
 import ExpandableMenuItem from "../common/ExpandableMenuItem";
 import '../../styles/scrollbar.css'
@@ -15,6 +15,7 @@ const DirectorSidebarPanel = ({ sidebarCollapsed }) => {
   const [formBuilderExpanded, setFormBuilderExpanded] = React.useState(false)
   const [dFExpanded, setDFExpanded] = React.useState(false);
   const [feedbackExpanded, setFeedbackExpanded] = React.useState(false)
+  const [testimonialExpanded, setTestimonialExpanded] = React.useState(false)
   const [drExpanded, setDrExpanded] = React.useState(false)
 
   return (
@@ -201,6 +202,35 @@ const DirectorSidebarPanel = ({ sidebarCollapsed }) => {
                     Forms
                 </NavLink>
 
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <ExpandableMenuItem 
+              icon={Inbox} 
+              label="Manage Testimonials" 
+              expanded={testimonialExpanded}
+              onToggle={() => setTestimonialExpanded(!testimonialExpanded)}
+              collapsed={sidebarCollapsed}/>
+
+              <div className={`mt-2.5 ml-10 text-sm bg-white overflow-hidden transition-all duration-300 ease-in-out
+              ${testimonialExpanded && !sidebarCollapsed ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
+
+                <NavLink to="/director/testimonials/submitted" end className={({ isActive }) => {
+                  return `block px-3 py-2 rounded-md hover:bg-gray-50
+                  ${isActive ? 'text-blue-600 bg-gray-50 rounded-md': 'text-gray-800'}`
+                }}
+                >
+                    Pending Testimonials
+                </NavLink>
+
+                <NavLink to="/director/testimonials" end className={({ isActive }) => {
+                  return `block px-3 py-2 rounded-md hover:bg-gray-50
+                  ${isActive ? 'text-blue-600 bg-gray-50 rounded-md': 'text-gray-800'}`
+                }}
+                >
+                    All Testimonial Records
+                </NavLink>
               </div>
             </div>
 

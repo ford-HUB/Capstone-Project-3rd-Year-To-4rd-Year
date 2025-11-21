@@ -4,7 +4,6 @@ import http from 'http'
 import { initSocket } from './socket.js'
 import { testConnection, dropTables, updateSchemaChanges } from './config/db.js'
 
-// Import the cron job to start it
 import './cron/realtimeStatus.js'
 import './cron/notificationPusher.js'
 import './cron/certificateGenerator.js'
