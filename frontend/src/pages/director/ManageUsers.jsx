@@ -80,7 +80,6 @@ const ManageUsers = () => {
     React.useEffect(() => {
         let isMounted = true
 
-        if(getAllUsers.length > 0 ) return
 
         const checkLatest = async () => {
             try {
@@ -104,7 +103,7 @@ const ManageUsers = () => {
         return () => {
             isMounted = false;
         };
-    }, [getAllUsers, getTrashUsers, listUsers?.length, trashUsers?.length, showTrash])
+    }, [showTrash]) // Removed function dependencies and length checks to prevent infinite loops
 
     React.useEffect(() => {
         const initializeSocketAndTracking = async () => {
@@ -139,7 +138,7 @@ const ManageUsers = () => {
                 stopActivityTracking(activityCallback);
             }
         };
-    }, [initializeActivityTracking, stopActivityTracking])
+    }, []) // Run only once on mount - Zustand functions are stable
 
     React.useEffect(() => {
         const updateActiveCount = async () => {
@@ -155,7 +154,7 @@ const ManageUsers = () => {
         const interval = setInterval(updateActiveCount, 30000);
 
         return () => clearInterval(interval);
-    }, [getActiveUsersCount])
+    }, []) // Run once on mount, then interval handles updates
 
     React.useEffect(() => {
         const refreshInterval = setInterval(async () => {
@@ -167,7 +166,7 @@ const ManageUsers = () => {
         }, 60000);
 
         return () => clearInterval(refreshInterval);
-    }, [refreshUserList])
+    }, []) // Run once on mount, interval handles periodic refresh
 
     React.useEffect(() => {
         const updateActivity = async () => {
@@ -181,13 +180,15 @@ const ManageUsers = () => {
         const activityInterval = setInterval(updateActivity, 60000);
 
         return () => clearInterval(activityInterval);
-    }, [updateUserActivity])
+    }, []) // Run once on mount, interval handles periodic updates
     
     const filteredUsers = (listUsers || [])
         .map(user => {
             let name = user.email.split('@')[0];
             if (user.details && user.details.firstname && user.details.lastname) {
                 name = `${user.details.firstname} ${user.details.lastname}`;
+            } else if (user.details && user.details.fullname) {
+                name = user.details.fullname;
             }
             
             let department = "";

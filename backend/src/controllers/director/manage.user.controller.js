@@ -6,7 +6,7 @@ import { getActiveUsers } from "../../socket.js";
 
 export const ListUsers = async (req, res) => {
     try {
-        const { Accounts, Role, Department, CampusUsers, Coordinator, Staff, Course, YearLevel } = models;
+        const { Accounts, Role, Department, CampusUsers, Coordinator, Staff, Course, YearLevel, Beneficiary, Donor } = models;
 
         const getList = await Accounts.findAll({
             attributes: ['account_id', 'email', 'is_active', 'is_deactivated', 'createdAt', 'updatedAt', 'activeAt'],
@@ -49,6 +49,16 @@ export const ListUsers = async (req, res) => {
                         attributes: ['department_id', 'department_name']
                       }
                     ], attributes: ['firstname','lastname','phone_number', 'profile_image', 'signature_img']
+                },
+                {
+                    model: Beneficiary,
+                    required: false,
+                    attributes: ['beneficiary_id', 'firstname', 'lastname', 'middle_initial', 'gender', 'age', 'phone_number', 'current_address', 'organization_name']
+                },
+                {
+                    model: Donor,
+                    required: false,
+                    attributes: ['donor_id', 'fullname', 'profile_image', 'is_verified', 'auth_provider']
                 }
             ],
             order: [['is_active', 'DESC'], ['account_id', 'ASC']]
@@ -63,12 +73,25 @@ export const ListUsers = async (req, res) => {
         const activeUserIds = new Set(activeUsers.map(user => user.userId));
 
         const transformedList = getList.map(account => {
+            let userType = 'director';
+            if (account.CampusUsers) {
+                userType = account.CampusUsers.type || 'student';
+            } else if (account.Staff) {
+                userType = 'staff';
+            } else if (account.Coordinator) {
+                userType = 'coordinator';
+            } else if (account.Beneficiary) {
+                userType = 'beneficiary';
+            } else if (account.Donor) {
+                userType = 'donor';
+            }
+
             const userData = {
                 id: account.account_id,
                 email: account.email,
                 role: account.Role,
                 status: account.is_deactivated ? 'deactivated': account.is_active ? 'active' : 'inactive',
-                type: account.CampusUsers ? (account.CampusUsers.type || 'student') : account.Staff ? 'staff' : account.Coordinator ? 'coordinator' : 'director',
+                type: userType,
                 details: null,
                 departments: [],
                 createdAt: account.createdAt,
@@ -109,6 +132,26 @@ export const ListUsers = async (req, res) => {
                     signature_img: account.Coordinator.signature_img
                 };
                 userData.departments = account.Coordinator.Department || [];
+            }
+            else if (account.Beneficiary) {
+                userData.details = {
+                    firstname: account.Beneficiary.firstname,
+                    lastname: account.Beneficiary.lastname,
+                    middle_initial: account.Beneficiary.middle_initial,
+                    gender: account.Beneficiary.gender,
+                    age: account.Beneficiary.age,
+                    phone_number: account.Beneficiary.phone_number,
+                    current_address: account.Beneficiary.current_address,
+                    organization_name: account.Beneficiary.organization_name
+                };
+            }
+            else if (account.Donor) {
+                userData.details = {
+                    fullname: account.Donor.fullname,
+                    profile_image: account.Donor.profile_image,
+                    is_verified: account.Donor.is_verified,
+                    auth_provider: account.Donor.auth_provider
+                };
             }
 
             return userData;
