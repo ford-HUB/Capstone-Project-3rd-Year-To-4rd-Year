@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Star, CheckCircle, Clock, User, Building2, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { Star, CheckCircle, Clock, User, Building2, ChevronLeft, ChevronRight, Loader2, Trash2 } from 'lucide-react';
 import { usePendingTestimonialsStore } from '../../store/director/usePendingTestimonialsStore';
 
 const PendingTestimonials = () => {
@@ -8,8 +8,10 @@ const PendingTestimonials = () => {
         pagination, 
         isLoading, 
         isApproving,
+        isDeleting,
         getPendingTestimonials, 
-        approveTestimonial 
+        approveTestimonial,
+        deleteTestimonial
     } = usePendingTestimonialsStore();
 
     useEffect(() => {
@@ -116,27 +118,52 @@ const PendingTestimonials = () => {
                                             </p>
                                         </div>
 
-                                        <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                                            <span className="text-xs text-gray-500">
-                                                {formatDate(testimonial.createdAt)}
-                                            </span>
-                                            <button
-                                                onClick={() => approveTestimonial(testimonial.testimonial_id)}
-                                                disabled={isApproving === testimonial.testimonial_id}
-                                                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                                            >
-                                                {isApproving === testimonial.testimonial_id ? (
-                                                    <>
-                                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                                        Approving...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <CheckCircle className="w-4 h-4" />
-                                                        Approve
-                                                    </>
-                                                )}
-                                            </button>
+                                        <div className="pt-4 border-t border-gray-200">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <span className="text-xs text-gray-500">
+                                                    {formatDate(testimonial.createdAt)}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => {
+                                                        if (window.confirm('Are you sure you want to delete this testimonial? This action cannot be undone.')) {
+                                                            deleteTestimonial(testimonial.testimonial_id);
+                                                        }
+                                                    }}
+                                                    disabled={isDeleting === testimonial.testimonial_id || isApproving === testimonial.testimonial_id}
+                                                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex-1"
+                                                >
+                                                    {isDeleting === testimonial.testimonial_id ? (
+                                                        <>
+                                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                                            Deleting...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Trash2 className="w-4 h-4" />
+                                                            Delete
+                                                        </>
+                                                    )}
+                                                </button>
+                                                <button
+                                                    onClick={() => approveTestimonial(testimonial.testimonial_id)}
+                                                    disabled={isApproving === testimonial.testimonial_id || isDeleting === testimonial.testimonial_id}
+                                                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex-1"
+                                                >
+                                                    {isApproving === testimonial.testimonial_id ? (
+                                                        <>
+                                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                                            Approving...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <CheckCircle className="w-4 h-4" />
+                                                            Approve
+                                                        </>
+                                                    )}
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}

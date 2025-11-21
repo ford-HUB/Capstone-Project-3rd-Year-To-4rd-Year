@@ -209,3 +209,32 @@ export const approveTestimonial = async (req, res) => {
     }
 };
 
+export const deleteTestimonial = async (req, res) => {
+    try {
+        const { testimonial_id } = req.params;
+
+        const testimonial = await Testimonials.findByPk(testimonial_id);
+
+        if (!testimonial) {
+            return res.status(404).json({
+                success: false,
+                message: 'Testimonial not found'
+            });
+        }
+
+        await testimonial.destroy();
+
+        return res.json({
+            success: true,
+            message: 'Testimonial deleted successfully'
+        });
+
+    } catch (error) {
+        console.error('Delete testimonial failed:', error);
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Internal Server Error'
+        });
+    }
+};
+

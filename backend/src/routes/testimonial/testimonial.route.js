@@ -2,7 +2,7 @@ import express from "express";
 import { guard } from "../../middleware/guard.js";
 import { validateRequest } from "../../middleware/validateRequest.middleware.js";
 import { createTestimonialSchema } from "../../validators/testimonial.validator.js";
-import { createTestimonial, getTestimonials, getPendingTestimonials, approveTestimonial } from "../../controllers/testimonial/testimonial.controller.js";
+import { createTestimonial, getTestimonials, getPendingTestimonials, approveTestimonial, deleteTestimonial } from "../../controllers/testimonial/testimonial.controller.js";
 
 const testimonialRouter = express.Router();
 
@@ -15,6 +15,7 @@ testimonialRouter.get('/', getTestimonials);
 // Director routes
 testimonialRouter.get('/pending', guard('director'), getPendingTestimonials);
 testimonialRouter.patch('/:testimonial_id/approve', guard('director'), approveTestimonial);
+testimonialRouter.delete('/:testimonial_id/delete', guard('director'), deleteTestimonial);
 
 export default testimonialRouter;
 

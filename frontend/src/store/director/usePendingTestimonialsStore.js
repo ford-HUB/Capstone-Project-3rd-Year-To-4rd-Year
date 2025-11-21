@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import toast from "react-hot-toast";
-import { getPendingTestimonials as getPendingTestimonialsService, approveTestimonial as approveTestimonialService } from "../../services/director/testimonialService.js";
+import { getPendingTestimonials as getPendingTestimonialsService, approveTestimonial as approveTestimonialService, deleteTestimonial as deleteTestimonialService } from "../../services/director/testimonialService.js";
 
 export const usePendingTestimonialsStore = create((set) => ({
     testimonials: [],
@@ -12,6 +12,7 @@ export const usePendingTestimonialsStore = create((set) => ({
     },
     isLoading: false,
     isApproving: null,
+    isDeleting: null,
     error: null,
 
     getPendingTestimonials: async (page = 1, limit = 10) => {
@@ -87,6 +88,38 @@ export const usePendingTestimonialsStore = create((set) => ({
         }
     },
 
+    deleteTestimonial: async (testimonialId) => {
+        set({ isDeleting: testimonialId });
+        try {
+            const response = await deleteTestimonialService(testimonialId);
+            
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to delete testimonial');
+            }
+
+            // Remove the deleted testimonial from the list
+            set(state => ({
+                testimonials: state.testimonials.filter(
+                    testimonial => testimonial.testimonial_id !== testimonialId
+                ),
+                pagination: {
+                    ...state.pagination,
+                    totalItems: state.pagination.totalItems - 1
+                },
+                isDeleting: null
+            }));
+
+            toast.success('Testimonial deleted successfully');
+            return true;
+
+        } catch (error) {
+            console.error('Delete testimonial failed:', error.message);
+            set({ isDeleting: null });
+            toast.error(error.response?.data?.message || 'Failed to delete testimonial');
+            return false;
+        }
+    },
+
     clearError: () => set({ error: null }),
 
     reset: () => set({ 
@@ -99,6 +132,7 @@ export const usePendingTestimonialsStore = create((set) => ({
         },
         isLoading: false,
         isApproving: null,
+        isDeleting: null,
         error: null 
     })
 }));
