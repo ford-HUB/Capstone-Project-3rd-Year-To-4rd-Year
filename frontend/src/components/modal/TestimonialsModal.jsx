@@ -109,10 +109,10 @@ const TestimonialsModal = ({ isOpen, onClose }) => {
                       </div>
                       <div className="text-center">
                         <div className="mb-1">
-                          <span className="text-4xl font-bold">{statistics.totalCount || 0}</span>
+                          <span className="text-4xl font-bold">{statistics.beneficiariesServed || 0}+</span>
                         </div>
-                        <p className="text-green-100 text-base font-medium">Testimonials</p>
-                        <p className="text-green-200 text-xs mt-1">From our community</p>
+                        <p className="text-green-100 text-base font-medium">Beneficiaries Served</p>
+                        <p className="text-green-200 text-xs mt-1">Across multiple communities</p>
                       </div>
                     </div>
                   </motion.div>

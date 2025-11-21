@@ -14,3 +14,8 @@ export const getTestimonialsStatistics = async () => {
     return response.data;
 };
 
+export const getBeneficiariesServedCount = async () => {
+    const response = await apiInstance.get('/api/testimonial/statistics/beneficiaries-served');
+    return response.data;
+};
+

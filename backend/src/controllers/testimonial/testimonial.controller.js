@@ -1,6 +1,7 @@
 import models from "../../models/index.js";
+import { Op } from "sequelize";
 
-const { Testimonials, Beneficiary } = models;
+const { Testimonials, Beneficiary, Event, EventRegistration } = models;
 
 export const createTestimonial = async (req, res) => {
     try {
@@ -329,6 +330,46 @@ export const toggleFeatured = async (req, res) => {
 
     } catch (error) {
         console.error('Toggle featured failed:', error);
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Internal Server Error'
+        });
+    }
+};
+
+export const getBeneficiariesServedCount = async (req, res) => {
+    try {
+        // Count distinct beneficiaries from completed events where beneficiary_applicable is true
+        const beneficiariesServed = await EventRegistration.findAll({
+            attributes: [
+                [models.sequelize.fn('COUNT', models.sequelize.fn('DISTINCT', models.sequelize.col('EventRegistration.participant_id'))), 'count']
+            ],
+            include: [
+                {
+                    model: Event,
+                    required: true,
+                    where: {
+                        status: 'Completed',
+                        beneficiary_applicable: true
+                    },
+                    attributes: []
+                }
+            ],
+            where: {
+                participant_type: 'beneficiary'
+            },
+            raw: true
+        });
+
+        const count = beneficiariesServed[0]?.count || 0;
+
+        return res.json({
+            success: true,
+            count: parseInt(count)
+        });
+
+    } catch (error) {
+        console.error('Get beneficiaries served count failed:', error);
         return res.status(500).json({
             success: false,
             message: error.message || 'Internal Server Error'

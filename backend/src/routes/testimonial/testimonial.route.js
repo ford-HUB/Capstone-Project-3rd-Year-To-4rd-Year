@@ -2,15 +2,16 @@ import express from "express";
 import { guard } from "../../middleware/guard.js";
 import { validateRequest } from "../../middleware/validateRequest.middleware.js";
 import { createTestimonialSchema } from "../../validators/testimonial.validator.js";
-import { createTestimonial, getTestimonials, getPendingTestimonials, getAllApprovedTestimonials, approveTestimonial, deleteTestimonial, toggleFeatured } from "../../controllers/testimonial/testimonial.controller.js";
+import { createTestimonial, getTestimonials, getPendingTestimonials, getAllApprovedTestimonials, approveTestimonial, deleteTestimonial, toggleFeatured, getBeneficiariesServedCount } from "../../controllers/testimonial/testimonial.controller.js";
 
 const testimonialRouter = express.Router();
 
 // Beneficiary routes
 testimonialRouter.post('/create', guard('beneficiary'), validateRequest(createTestimonialSchema), createTestimonial);
 
-// Public/Admin routes
+// Public
 testimonialRouter.get('/', getTestimonials);
+testimonialRouter.get('/statistics/beneficiaries-served', getBeneficiariesServedCount);
 
 // Director routes
 testimonialRouter.get('/pending', guard('director'), getPendingTestimonials);

@@ -407,11 +407,11 @@ const GuestHome = () => {
                   </svg>
                 </div>
                 <div className="text-center">
-                  <div className="mb-1">
-                    <span className="text-4xl font-bold">2,500+</span>
-                  </div>
-                  <p className="text-green-100 text-base font-medium">Beneficiaries Served</p>
-                  <p className="text-green-200 text-xs mt-1">Across multiple communities</p>
+                        <div className="mb-1">
+                          <span className="text-4xl font-bold">{statistics.beneficiariesServed || 0}+</span>
+                        </div>
+                        <p className="text-green-100 text-base font-medium">Beneficiaries Served</p>
+                        <p className="text-green-200 text-xs mt-1">Across multiple communities</p>
                 </div>
               </div>
             </motion.div>
