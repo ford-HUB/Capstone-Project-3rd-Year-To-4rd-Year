@@ -80,7 +80,6 @@ const MyLogs = () => {
                         </div>
                     ) : (
                         <div className="relative">
-                            {/* Timeline line */}
                             <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-200"></div>
 
                             <div className="space-y-8">
@@ -92,13 +91,11 @@ const MyLogs = () => {
 
                                     return (
                                         <div key={groupIndex} className="relative pl-20">
-                                            {/* Timeline dot */}
                                             <div className="absolute left-6 top-2 w-4 h-4 bg-white border-2 border-blue-600 rounded-full z-10 flex items-center justify-center">
                                                 <div className={`w-2 h-2 ${statusColor} rounded-full`}></div>
                                             </div>
 
-                                            {/* Main Event */}
-                                            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 mb-4">
+                                            <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
                                                 <div className="flex items-start gap-4">
                                                     {/* Icon */}
                                                     <div className={`p-2 rounded-lg ${
@@ -124,7 +121,14 @@ const MyLogs = () => {
                                                                 <div className="text-xs text-gray-500">{time}</div>
                                                             </div>
                                                         </div>
-                                                        <p className="text-sm text-gray-600">{logGroup.mainEvent.description}</p>
+                                                        <div className="flex items-start gap-2">
+                                                            <StatusIcon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
+                                                                logGroup.mainEvent.status === 'success' ? 'text-green-500' :
+                                                                logGroup.mainEvent.status === 'failure' ? 'text-red-500' :
+                                                                'text-blue-500'
+                                                            }`} />
+                                                            <p className="text-sm text-gray-600">{logGroup.mainEvent.description}</p>
+                                                        </div>
                                                     </div>
                                                 </div>
 
