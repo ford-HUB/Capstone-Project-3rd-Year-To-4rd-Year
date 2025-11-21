@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Star, CheckCircle, Clock, User, Building2, ChevronLeft, ChevronRight, Loader2, Trash2 } from 'lucide-react';
 import { usePendingTestimonialsStore } from '../../store/director/usePendingTestimonialsStore';
+import TestimonialActionModal from '../../components/modal/v2/director/TestimonialActionModal';
 
 const PendingTestimonials = () => {
     const { 
@@ -14,6 +15,10 @@ const PendingTestimonials = () => {
         deleteTestimonial
     } = usePendingTestimonialsStore();
 
+    const [showModal, setShowModal] = useState(false);
+    const [selectedTestimonial, setSelectedTestimonial] = useState(null);
+    const [modalActionType, setModalActionType] = useState('approve'); // 'approve' or 'delete'
+
     useEffect(() => {
         getPendingTestimonials(1, 10);
     }, [getPendingTestimonials]);
@@ -21,6 +26,43 @@ const PendingTestimonials = () => {
     const handlePageChange = (newPage) => {
         if (newPage >= 1 && newPage <= pagination.totalPages) {
             getPendingTestimonials(newPage, 10);
+        }
+    };
+
+    const handleApproveClick = (testimonial) => {
+        setSelectedTestimonial(testimonial);
+        setModalActionType('approve');
+        setShowModal(true);
+    };
+
+    const handleDeleteClick = (testimonial) => {
+        setSelectedTestimonial(testimonial);
+        setModalActionType('delete');
+        setShowModal(true);
+    };
+
+    const handleConfirm = async (testimonialId) => {
+        let success = false;
+        if (modalActionType === 'approve') {
+            success = await approveTestimonial(testimonialId);
+        } else if (modalActionType === 'delete') {
+            success = await deleteTestimonial(testimonialId);
+        }
+        
+        if (success) {
+            setShowModal(false);
+            setSelectedTestimonial(null);
+        }
+    };
+
+    const handleCloseModal = () => {
+        const isCurrentlyProcessing = modalActionType === 'approve' 
+            ? (isApproving && selectedTestimonial && isApproving === selectedTestimonial.testimonial_id)
+            : (isDeleting && selectedTestimonial && isDeleting === selectedTestimonial.testimonial_id);
+        
+        if (!isCurrentlyProcessing) {
+            setShowModal(false);
+            setSelectedTestimonial(null);
         }
     };
 
@@ -126,42 +168,20 @@ const PendingTestimonials = () => {
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <button
-                                                    onClick={() => {
-                                                        if (window.confirm('Are you sure you want to delete this testimonial? This action cannot be undone.')) {
-                                                            deleteTestimonial(testimonial.testimonial_id);
-                                                        }
-                                                    }}
+                                                    onClick={() => handleDeleteClick(testimonial)}
                                                     disabled={isDeleting === testimonial.testimonial_id || isApproving === testimonial.testimonial_id}
                                                     className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex-1"
                                                 >
-                                                    {isDeleting === testimonial.testimonial_id ? (
-                                                        <>
-                                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                                            Deleting...
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Trash2 className="w-4 h-4" />
-                                                            Delete
-                                                        </>
-                                                    )}
+                                                    <Trash2 className="w-4 h-4" />
+                                                    Delete
                                                 </button>
                                                 <button
-                                                    onClick={() => approveTestimonial(testimonial.testimonial_id)}
+                                                    onClick={() => handleApproveClick(testimonial)}
                                                     disabled={isApproving === testimonial.testimonial_id || isDeleting === testimonial.testimonial_id}
                                                     className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex-1"
                                                 >
-                                                    {isApproving === testimonial.testimonial_id ? (
-                                                        <>
-                                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                                            Approving...
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <CheckCircle className="w-4 h-4" />
-                                                            Approve
-                                                        </>
-                                                    )}
+                                                    <CheckCircle className="w-4 h-4" />
+                                                    Approve
                                                 </button>
                                             </div>
                                         </div>
@@ -229,6 +249,20 @@ const PendingTestimonials = () => {
                     )}
                 </div>
             </div>
+
+            {/* Modal */}
+            <TestimonialActionModal
+                open={showModal}
+                setOpen={handleCloseModal}
+                testimonial={selectedTestimonial}
+                onConfirm={handleConfirm}
+                isLoading={
+                    modalActionType === 'approve'
+                        ? (selectedTestimonial && isApproving === selectedTestimonial.testimonial_id)
+                        : (selectedTestimonial && isDeleting === selectedTestimonial.testimonial_id)
+                }
+                actionType={modalActionType}
+            />
         </div>
     );
 };

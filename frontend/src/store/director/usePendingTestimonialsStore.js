@@ -97,7 +97,6 @@ export const usePendingTestimonialsStore = create((set) => ({
                 throw new Error(response.message || 'Failed to delete testimonial');
             }
 
-            // Remove the deleted testimonial from the list
             set(state => ({
                 testimonials: state.testimonials.filter(
                     testimonial => testimonial.testimonial_id !== testimonialId
