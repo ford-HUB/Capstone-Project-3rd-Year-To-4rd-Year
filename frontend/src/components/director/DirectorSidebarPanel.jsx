@@ -17,6 +17,7 @@ const DirectorSidebarPanel = ({ sidebarCollapsed }) => {
   const [feedbackExpanded, setFeedbackExpanded] = React.useState(false)
   const [testimonialExpanded, setTestimonialExpanded] = React.useState(false)
   const [drExpanded, setDrExpanded] = React.useState(false)
+  const [activityLogExpanded, setActivityLogExpanded] = React.useState(false)
 
   return (
     <>
@@ -267,6 +268,35 @@ const DirectorSidebarPanel = ({ sidebarCollapsed }) => {
                 }}
                 >
                   Submitted Documents
+                </NavLink>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <ExpandableMenuItem 
+              icon={Inbox} 
+              label="Activity Logs" 
+              expanded={activityLogExpanded}
+              onToggle={() => setActivityLogExpanded(!activityLogExpanded)}
+              collapsed={sidebarCollapsed}/>
+
+              <div className={`mt-2.5 ml-10 text-sm bg-white overflow-hidden transition-all duration-300 ease-in-out
+              ${activityLogExpanded && !sidebarCollapsed ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
+
+                <NavLink to="/director/my-logs/record" end className={({ isActive }) => {
+                  return `block px-3 py-2 rounded-md hover:bg-gray-50
+                  ${isActive ? 'text-blue-600 bg-gray-50 rounded-md': 'text-gray-800'}`
+                }}
+                >
+                    My Logs
+                </NavLink>
+
+                <NavLink to="/director/all-users-logs/recorded" end className={({ isActive }) => {
+                  return `block px-3 py-2 rounded-md hover:bg-gray-50
+                  ${isActive ? 'text-blue-600 bg-gray-50 rounded-md': 'text-gray-800'}`
+                }}
+                >
+                    All Users Logs
                 </NavLink>
               </div>
             </div>

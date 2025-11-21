@@ -51,6 +51,7 @@ import Payments from './donations/Payments.model.js';
 import EventGoodsType from './donations/EventGoodsType.model.js';
 import LinkedPaymentAccounts from './LinkedPaymentAccounts.model.js';
 import Testimonials from './testimonial/Testimonials.model.js';
+import ActivityLog from './ActivityLog.model.js';
 
 
 
@@ -318,6 +319,23 @@ Donations.belongsTo(Accounts, { foreignKey: 'account_id', onDelete: "CASCADE", h
 Beneficiary.hasMany(Testimonials, { foreignKey: 'sender_id', onDelete: "CASCADE", hooks: true })
 Testimonials.belongsTo(Beneficiary, { foreignKey: 'sender_id', constraints: false, onDelete: "CASCADE", hooks: true })
 
+Director.hasMany(ActivityLog, { foreignKey: 'user_id', onDelete: "CASCADE", hooks: true })
+ActivityLog.belongsTo(Director, { foreignKey: 'user_id', constraints: false, onDelete : "CASCADE", hooks: true })
+
+Staff.hasMany(ActivityLog, { foreignKey: 'user_id', onDelete: "CASCADE", hooks: true })
+ActivityLog.belongsTo(Staff, { foreignKey: 'user_id', constraints: false, onDelete : "CASCADE", hooks: true })
+
+Coordinator.hasMany(ActivityLog, { foreignKey: 'user_id', onDelete: "CASCADE", hooks: true })
+ActivityLog.belongsTo(Coordinator, { foreignKey: 'user_id', constraints: false, onDelete : "CASCADE", hooks: true })
+
+Volunteer.hasMany(ActivityLog, { foreignKey: 'user_id', onDelete: "CASCADE", hooks: true })
+ActivityLog.belongsTo(Volunteer, { foreignKey: 'user_id', constraints: false, onDelete : "CASCADE", hooks: true })
+
+Beneficiary.hasMany(ActivityLog, { foreignKey: 'user_id', onDelete: "CASCADE", hooks: true })
+ActivityLog.belongsTo(Beneficiary, { foreignKey: 'user_id', constraints: false, onDelete : "CASCADE", hooks: true })
+
+Donor.hasMany(ActivityLog, { foreignKey: 'user_id', onDelete: "CASCADE", hooks: true })
+ActivityLog.belongsTo(Donor, { foreignKey: 'user_id', constraints: false, onDelete : "CASCADE", hooks: true })
 
 
 const models = {
@@ -333,6 +351,7 @@ const models = {
     Volunteer,
     Attendance,
     AccountUpdateLog,
+    ActivityLog,
     EventQRCode,
     EventEvaluation,
     MatchedEvent,
