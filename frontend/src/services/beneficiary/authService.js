@@ -22,7 +22,7 @@ export const beneficiaryLogin = async (formData) => {
 export const beneficiaryLogout = async () => {
     try {
         console.log('[Beneficiary Auth Service] Making logout request...');
-        const response = await apiInstance.post('/api/user-auth/user-logout');
+        const response = await apiInstance.post('/api/user-auth/logout');
         console.log('[Beneficiary Auth Service] Logout response:', response.data);
         return {
             success: response.data.success,
