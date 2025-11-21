@@ -17,12 +17,10 @@ export const login = async (req, res) => {
         })
 
         if(!isEmailValid) { 
-            await logActivity(0, 'director', 'access', 'account', `Failed login attempt with email: ${email} - Invalid credentials`, req.ip || req.connection.remoteAddress, req.get('user-agent'));
             return res.json({ message: 'Invalid Credentials' }) 
         }
     
         if(['volunteer', 'staff', 'coordinator', 'assistant_coordinator', 'donor'].includes(isEmailValid.Role.name)) {
-            await logActivity(0, 'director', 'access', 'account', `Failed login attempt with email: ${email} - Invalid role`, req.ip || req.connection.remoteAddress, req.get('user-agent'));
             return res.json({ message: 'Invalid Credentials' }) 
         }
 

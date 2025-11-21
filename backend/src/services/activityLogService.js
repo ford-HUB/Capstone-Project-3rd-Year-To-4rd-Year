@@ -279,7 +279,17 @@ export const formatDateKey = (date) => {
 export const logDirectorActivity = async (account_id, action, module, description, ip_address = null, user_agent = null) => {
     try {
         const directorInfo = await getUserIdFromAccount(account_id, 'director');
-        if (directorInfo.success) {
+        if (directorInfo.success && directorInfo.user_id) {
+            const directorExists = await Director.findOne({
+                where: { director_id: directorInfo.user_id },
+                attributes: ['director_id']
+            });
+
+            if (!directorExists) {
+                console.error(`Director with director_id ${directorInfo.user_id} not found for account_id ${account_id}`);
+                return;
+            }
+
             await createActivityLog({
                 user_id: directorInfo.user_id,
                 role: 'director',
@@ -291,7 +301,6 @@ export const logDirectorActivity = async (account_id, action, module, descriptio
             });
         }
     } catch (error) {
-        // Silent fail - logging errors shouldn't break main functionality
         console.error('Failed to create activity log:', error.message);
     }
 };
@@ -299,9 +308,62 @@ export const logDirectorActivity = async (account_id, action, module, descriptio
 
 export const logActivity = async (user_id, role, action, module, description, ip_address = null, user_agent = null) => {
     try {
+        if (!user_id || user_id === 0) {
+            console.error('Cannot log activity: Invalid user_id provided');
+            return;
+        }
+
+        const roleLower = role.toLowerCase();
+        let userExists = false;
+
+        switch (roleLower) {
+            case 'director':
+                userExists = await Director.findOne({
+                    where: { director_id: user_id },
+                    attributes: ['director_id']
+                });
+                break;
+            case 'staff':
+                userExists = await Staff.findOne({
+                    where: { staff_id: user_id },
+                    attributes: ['staff_id']
+                });
+                break;
+            case 'coordinator':
+            case 'assistant_coordinator':
+                userExists = await Coordinator.findOne({
+                    where: { coordinator_id: user_id },
+                    attributes: ['coordinator_id']
+                });
+                break;
+            case 'volunteer':
+                userExists = await Volunteer.findOne({
+                    where: { volunteer_id: user_id },
+                    attributes: ['volunteer_id']
+                });
+                break;
+            case 'beneficiary':
+                userExists = await Beneficiary.findOne({
+                    where: { beneficiary_id: user_id },
+                    attributes: ['beneficiary_id']
+                });
+                break;
+            case 'donor':
+                userExists = await Donor.findOne({
+                    where: { donor_id: user_id },
+                    attributes: ['donor_id']
+                });
+                break;
+        }
+
+        if (!userExists) {
+            console.error(`${role} with id ${user_id} not found - skipping activity log`);
+            return;
+        }
+
         await createActivityLog({
             user_id,
-            role,
+            role: roleLower,
             action,
             module,
             description,
@@ -309,7 +371,6 @@ export const logActivity = async (user_id, role, action, module, description, ip
             user_agent
         });
     } catch (error) {
-        // Silent fail - logging errors shouldn't break main functionality
         console.error('Failed to create activity log:', error.message);
     }
 };
@@ -317,10 +378,30 @@ export const logActivity = async (user_id, role, action, module, description, ip
 export const logManagementActivity = async (account_id, role, action, module, description, ip_address = null, user_agent = null) => {
     try {
         const userInfo = await getUserIdFromAccount(account_id, role);
-        if (userInfo.success) {
+        if (userInfo.success && userInfo.user_id) {
+            const roleLower = role.toLowerCase();
+            let userExists = false;
+
+            if (roleLower === 'staff') {
+                userExists = await Staff.findOne({
+                    where: { staff_id: userInfo.user_id },
+                    attributes: ['staff_id']
+                });
+            } else if (roleLower === 'coordinator' || roleLower === 'assistant_coordinator') {
+                userExists = await Coordinator.findOne({
+                    where: { coordinator_id: userInfo.user_id },
+                    attributes: ['coordinator_id']
+                });
+            }
+
+            if (!userExists) {
+                console.error(`${role} with id ${userInfo.user_id} not found for account_id ${account_id}`);
+                return;
+            }
+
             await createActivityLog({
                 user_id: userInfo.user_id,
-                role: role.toLowerCase(),
+                role: roleLower,
                 action,
                 module,
                 description,
@@ -336,7 +417,17 @@ export const logManagementActivity = async (account_id, role, action, module, de
 export const logParticipantActivity = async (account_id, action, module, description, ip_address = null, user_agent = null) => {
     try {
         const userInfo = await getUserIdFromAccount(account_id, 'volunteer');
-        if (userInfo.success) {
+        if (userInfo.success && userInfo.user_id) {
+            const volunteerExists = await Volunteer.findOne({
+                where: { volunteer_id: userInfo.user_id },
+                attributes: ['volunteer_id']
+            });
+
+            if (!volunteerExists) {
+                console.error(`Volunteer with volunteer_id ${userInfo.user_id} not found for account_id ${account_id}`);
+                return;
+            }
+
             await createActivityLog({
                 user_id: userInfo.user_id,
                 role: 'volunteer',
@@ -355,7 +446,17 @@ export const logParticipantActivity = async (account_id, action, module, descrip
 export const logBeneficiaryActivity = async (account_id, action, module, description, ip_address = null, user_agent = null) => {
     try {
         const userInfo = await getUserIdFromAccount(account_id, 'beneficiary');
-        if (userInfo.success) {
+        if (userInfo.success && userInfo.user_id) {
+            const beneficiaryExists = await Beneficiary.findOne({
+                where: { beneficiary_id: userInfo.user_id },
+                attributes: ['beneficiary_id']
+            });
+
+            if (!beneficiaryExists) {
+                console.error(`Beneficiary with beneficiary_id ${userInfo.user_id} not found for account_id ${account_id}`);
+                return;
+            }
+
             await createActivityLog({
                 user_id: userInfo.user_id,
                 role: 'beneficiary',
@@ -374,7 +475,17 @@ export const logBeneficiaryActivity = async (account_id, action, module, descrip
 export const logDonorActivity = async (account_id, action, module, description, ip_address = null, user_agent = null) => {
     try {
         const userInfo = await getUserIdFromAccount(account_id, 'donor');
-        if (userInfo.success) {
+        if (userInfo.success && userInfo.user_id) {
+            const donorExists = await Donor.findOne({
+                where: { donor_id: userInfo.user_id },
+                attributes: ['donor_id']
+            });
+
+            if (!donorExists) {
+                console.error(`Donor with donor_id ${userInfo.user_id} not found for account_id ${account_id}`);
+                return;
+            }
+
             await createActivityLog({
                 user_id: userInfo.user_id,
                 role: 'donor',
