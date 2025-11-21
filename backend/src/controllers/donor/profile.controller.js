@@ -1,4 +1,5 @@
 import models from "../../models/index.js"
+import { logDonorActivity } from "../../services/activityLogService.js";
 import bcrypt from 'bcrypt'
 
 export const getProfile = async (req, res) => {
@@ -67,6 +68,8 @@ export const updateProfile = async (req, res) => {
                 message: 'Donor profile not found'
             })
         }
+
+        await logDonorActivity(req.user.account_id, 'update', 'profile', 'Updated donor profile information', req.ip || req.connection.remoteAddress, req.get('user-agent'));
 
         res.json({
             success: true,
@@ -213,6 +216,8 @@ export const changePassword = async (req, res) => {
             { password: hashedNewPassword },
             { where: { account_id: req.user.account_id } }
         )
+
+        await logDonorActivity(req.user.account_id, 'change', 'password', 'Successfully changed account password', req.ip || req.connection.remoteAddress, req.get('user-agent'));
 
         res.json({
             success: true,

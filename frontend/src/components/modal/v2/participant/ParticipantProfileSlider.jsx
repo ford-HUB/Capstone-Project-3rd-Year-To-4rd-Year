@@ -121,6 +121,10 @@ const ParticipantProfileSlider = ({ open, setOpen, userData }) => {
                                 name: 'Participation History',
                                 path: '/participant/participation-history',
                             },
+                            {
+                                name: 'My Activity Logs',
+                                path: '/participant/my-activity-logd'
+                            }
                         ].map((item, _i) => (
                             <NavLink
                                 to={item.path}

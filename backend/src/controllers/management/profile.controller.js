@@ -1,5 +1,6 @@
 import models from "../../models/index.js";
 import bcrypt from 'bcrypt'
+import { logManagementActivity } from "../../services/activityLogService.js";
 
 export const getCurrentProfile = async (req, res) => {
     try {
@@ -55,6 +56,7 @@ export const createOrUpdateInfo = async (req, res) => {
         }
       })
 
+      const isNewCoordinator = !coordinatorPk;
       await Coordinator.upsert({
         coordinator_id: coordinatorPk?.coordinator_id,
         account_id: accountId,
@@ -68,9 +70,21 @@ export const createOrUpdateInfo = async (req, res) => {
         bio: bio
       })
 
+      // Log activity
+      await logManagementActivity(
+        accountId,
+        roleType.toLowerCase(),
+        isNewCoordinator ? 'create' : 'update',
+        'profile',
+        isNewCoordinator ? 'Created coordinator profile information' : 'Updated coordinator profile information',
+        req.ip || req.connection.remoteAddress,
+        req.get('user-agent')
+      );
+
       return res.json({ success: true, message: 'Information successfully created' })
     }
 
+    const isNewStaff = !staffPk;
     await Staff.upsert({
       staff_id: staffPk?.staff_id,
       account_id: accountId,
@@ -82,6 +96,17 @@ export const createOrUpdateInfo = async (req, res) => {
       phone_number: phone_number === '' ? null : phone_number,
       bio: bio
     })
+
+    // Log activity
+    await logManagementActivity(
+      accountId,
+      roleType.toLowerCase(),
+      isNewStaff ? 'create' : 'update',
+      'profile',
+      isNewStaff ? 'Created staff profile information' : 'Updated staff profile information',
+      req.ip || req.connection.remoteAddress,
+      req.get('user-agent')
+    );
 
     return res.json({ success: true, message: 'Information successfully created' })
 
@@ -109,6 +134,9 @@ export const createOrUpdateAddress = async (req, res) => {
         },{ where: { account_id: accountId } }
       )
 
+      // Log activity
+      await logManagementActivity(accountId, roleType.toLowerCase(), 'update', 'profile', 'Updated address information', req.ip || req.connection.remoteAddress, req.get('user-agent'));
+
       return res.json({ success: true, message: 'address successfully added' })
     }
 
@@ -120,6 +148,9 @@ export const createOrUpdateAddress = async (req, res) => {
         brgy: brgy
       },{ where: { account_id: accountId } }
     )
+
+    // Log activity
+    await logManagementActivity(accountId, roleType.toLowerCase(), 'update', 'profile', 'Updated address information', req.ip || req.connection.remoteAddress, req.get('user-agent'));
 
     return res.json({ success: true, message: 'address successfully added' })
 
@@ -151,6 +182,10 @@ export const updateAccountEmailAvatar = async (req, res) => {
       )
 
       if(!updateAvatar) { return res.json({ message: 'avatar failed to upload' }) }
+
+      // Log activity
+      await logManagementActivity(accountId, roleType.toLowerCase(), 'update', 'profile', email ? 'Updated profile email and avatar' : 'Updated profile avatar', req.ip || req.connection.remoteAddress, req.get('user-agent'));
+
       return res.json({ success: true, message: 'account successfully updated' })
     }
 
@@ -160,6 +195,10 @@ export const updateAccountEmailAvatar = async (req, res) => {
     )
 
     if(!updateAvatar) { return res.json({ success: false, message: 'avatar failed to upload' }) }
+
+    // Log activity
+    await logManagementActivity(accountId, roleType.toLowerCase(), 'update', 'profile', email ? 'Updated profile email and avatar' : 'Updated profile avatar', req.ip || req.connection.remoteAddress, req.get('user-agent'));
+
     return res.json({ success: true, message: 'account successfully updated' })
 
   } catch (error) {
@@ -188,6 +227,10 @@ export const updatePassword = async (req, res) => {
 
     if(!updatePassword) { return res.json({ success: false, message: 'password failed to change' }) }
 
+    // Log activity
+    const roleType = req.user.Role.name.toLowerCase();
+    await logManagementActivity(accountId, roleType, 'change', 'password', 'Successfully changed account password', req.ip || req.connection.remoteAddress, req.get('user-agent'));
+
     return res.json({ success: true, message: 'password successfully changed' })
 
   } catch (error) {
@@ -210,6 +253,10 @@ export const updateSignature = async (req, res) => {
       )
 
       if(!updateSignature) { return res.json({ success: false, message: 'signature failed to upload' }) }
+
+      // Log activity
+      await logManagementActivity(accountId, roleType.toLowerCase(), 'update', 'profile', 'Successfully updated signature image', req.ip || req.connection.remoteAddress, req.get('user-agent'));
+
       return res.json({ success: true, message: 'signature successfully uploaded' })
     }
 
@@ -219,6 +266,10 @@ export const updateSignature = async (req, res) => {
     )
 
     if(!updateSignature) { return res.json({ success: false, message: 'signature failed to upload' }) }
+
+    // Log activity
+    await logManagementActivity(accountId, roleType.toLowerCase(), 'update', 'profile', 'Successfully updated signature image', req.ip || req.connection.remoteAddress, req.get('user-agent'));
+
     return res.json({ success: true, message: 'signature successfully uploaded' })
 
   } catch (error) {

@@ -5,6 +5,7 @@ import { generateToken } from "../../utils/generateToken.js"
 import { clearJwtCookie } from "../../utils/clearJwtCookie.js"
 import { decrypt } from "../../utils/crypto.js"
 import { sendMail } from "../../services/mailService.js"
+import { logDonorActivity } from "../../services/activityLogService.js";
 import bcrypt from 'bcrypt'
 
 const FRONTEND_URL = process.env.NODE_ENV === 'development'
@@ -112,7 +113,8 @@ export const logout = async (req, res) => {
         const { Accounts } = models;
         const accountId = req.user.account_id;
 
-        // Set user as inactive - await to ensure it completes before OAuth logout
+        await logDonorActivity(accountId, 'access', 'account', 'Successfully logged out from the system', req.ip || req.connection.remoteAddress, req.get('user-agent'));
+
         await Accounts.update({ is_active: false }, { where: { account_id: accountId } });
 
         req.logout(() => {

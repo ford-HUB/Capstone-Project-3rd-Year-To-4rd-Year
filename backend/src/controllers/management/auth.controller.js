@@ -4,6 +4,7 @@ import { db } from "../../config/db.js"
 import { generateToken } from "../../utils/generateToken.js"
 import { clearJwtCookie } from "../../utils/clearJwtCookie.js"
 import { createNotification } from "../../services/notificationService.js"
+import { logManagementActivity, logActivity } from "../../services/activityLogService.js"
 
 
 export const setUpAccount = async (req, res) => {
@@ -117,6 +118,10 @@ export const logout = async (req, res) => {
     try {
         const { Accounts } = models;
         const accountId = req.user.account_id;
+        const role = req.user.Role.name.toLowerCase();
+
+        // Log logout activity before clearing session
+        await logManagementActivity(accountId, role, 'access', 'account', 'Successfully logged out from the system', req.ip || req.connection.remoteAddress, req.get('user-agent'));
 
         // Clear the JWT cookie
         clearJwtCookie(res);

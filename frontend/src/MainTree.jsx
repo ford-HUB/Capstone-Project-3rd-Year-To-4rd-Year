@@ -91,6 +91,11 @@ import OverviewPage from './pages/common/OverviewPage.jsx'
 import PendingTestimonials from './pages/director/PendingTestimonials.jsx'
 import AllTestimonials from './pages/director/AllTestimonials.jsx'
 import MyLogs from './pages/director/MyLogs.jsx'
+import AllUsersLogs from './pages/director/AllUsersLogs.jsx'
+import ManagementMyLogs from './pages/management/MyLogs.jsx'
+import ParticipantMyLogs from './pages/participant/MyLogs.jsx'
+import BeneficiaryMyLogs from './pages/beneficiary/MyLogs.jsx'
+import DonorMyLogs from './pages/donor/MyLogs.jsx'
 import Privacy from './pages/common/Privacy.jsx'
 import Terms from './pages/common/Terms.jsx'
 import DataDeletion from './pages/common/DataDeletion.jsx'
@@ -241,6 +246,10 @@ const MainTree = [
             {
                 path: 'certificate-viewer',
                 element: <CertificateViewer />
+            },
+            {
+                path: 'my-activity-logs',
+                element: <ParticipantMyLogs />
             }
         ]
     },
@@ -271,6 +280,10 @@ const MainTree = [
             {
                 path: 'attendance-scanner',
                 element: <AttendanceScanner/>
+            },
+            {
+                path: 'my-activity-logs',
+                element: <BeneficiaryMyLogs />
             }
         ]
     },
@@ -310,6 +323,10 @@ const MainTree = [
                 path: 'receipts',
                 element: <ReceiptsInvoices />
             },
+            {
+                path: 'my-activity-logs',
+                element: <DonorMyLogs />
+            }
         ]
     },
 
@@ -458,6 +475,10 @@ const MainTree = [
                 path: 'my-logs/record',
                 element: <MyLogs />
             },
+            {
+                path: 'all-users-logs/recorded',
+                element: <AllUsersLogs />
+            },
 
         ]
     },
@@ -490,6 +511,10 @@ const MainTree = [
             {
                 path: 'profile',
                 element: <ManagementProfile />
+            },
+            {
+                path: 'my-logs',
+                element: <ManagementMyLogs />
             },
             {
                 path: 'map',

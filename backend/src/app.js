@@ -47,6 +47,11 @@ import statisticsRouter from './routes/director/statistics.route.js'
 import guestEventRouter from './routes/guest/event.route.js'
 import testimonialRouter from './routes/testimonial/testimonial.route.js'
 import activityLogRouter from './routes/director/activityLog.route.js'
+import allUsersActivityLogRouter from './routes/director/allUsersActivityLog.route.js'
+import managementActivityLogRouter from './routes/management/activityLog.route.js'
+import participantActivityLogRouter from './routes/user/activityLog.route.js'
+import beneficiaryActivityLogRouter from './routes/beneficiary/activityLog.route.js'
+import donorActivityLogRouter from './routes/donor/activityLog.route.js'
 
 
 // @ Middleware
@@ -154,6 +159,11 @@ app.use('/api/v1/payment', paymentRouter)
 app.use('/api/guest', guestEventRouter)
 app.use('/api/testimonial', testimonialRouter)
 app.use('/api/director/activity-log', activityLogRouter)
+app.use('/api/director/all-users-activity-log', allUsersActivityLogRouter)
+app.use('/api/management/activity-log', managementActivityLogRouter)
+app.use('/api/profile/activity-log', participantActivityLogRouter)
+app.use('/api/beneficiary/activity-log', beneficiaryActivityLogRouter)
+app.use('/api/donor/activity-log', donorActivityLogRouter)
 
 app.get('/health', (req, res) => {
     res.json({ success: true, status: 'Health check is OK', timestamp: new Date() })

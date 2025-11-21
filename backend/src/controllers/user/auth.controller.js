@@ -7,6 +7,7 @@ import { generateToken } from "../../utils/generateToken.js";
 import { clearJwtCookie } from "../../utils/clearJwtCookie.js";
 import { decrypt } from "../../utils/crypto.js";
 import { emitUserActivityUpdate } from "../../socket.js";
+import { logParticipantActivity, logBeneficiaryActivity } from "../../services/activityLogService.js";
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -550,14 +551,18 @@ export const logout = async (req, res) => {
     try {
         const { Accounts } = models;
         const accountId = req.user.account_id;
+        const role = req.user.Role.name.toLowerCase();
 
-        // Clear the JWT cookie
+        if (role === 'beneficiary') {
+            await logBeneficiaryActivity(accountId, 'access', 'account', 'Successfully logged out from the system', req.ip || req.connection.remoteAddress, req.get('user-agent'));
+        } else {
+            await logParticipantActivity(accountId, 'access', 'account', 'Successfully logged out from the system', req.ip || req.connection.remoteAddress, req.get('user-agent'));
+        }
+
         clearJwtCookie(res);
 
-        // Set user as inactive
         await Accounts.update({ is_active: false }, { where: { account_id: accountId } });
 
-        // Emit socket event for user logout
         try {
             emitUserActivityUpdate(accountId, "offline", {
                 logoutTime: new Date()

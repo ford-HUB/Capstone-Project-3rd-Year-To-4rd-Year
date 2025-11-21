@@ -92,6 +92,7 @@ export const getActivityLogsByAccount = async (account_id, role, options = {}) =
             'director': { model: Director, idField: 'director_id' },
             'staff': { model: Staff, idField: 'staff_id' },
             'coordinator': { model: Coordinator, idField: 'coordinator_id' },
+            'assistant_coordinator': { model: Coordinator, idField: 'coordinator_id' },
             'volunteer': { model: Volunteer, idField: 'volunteer_id' },
             'beneficiary': { model: Beneficiary, idField: 'beneficiary_id' },
             'donor': { model: Donor, idField: 'donor_id' }
@@ -150,7 +151,8 @@ export const groupLogsForTimeline = (logs) => {
             timestamp: log.createdAt,
             icon: getEventIcon(log.module, log.action),
             status: determineStatus(log.description),
-            activity_log_id: log.activity_log_id
+            activity_log_id: log.activity_log_id,
+            role: log.role || null
         };
 
         const subEvents = [];
@@ -312,6 +314,134 @@ export const logActivity = async (user_id, role, action, module, description, ip
     }
 };
 
+export const logManagementActivity = async (account_id, role, action, module, description, ip_address = null, user_agent = null) => {
+    try {
+        const userInfo = await getUserIdFromAccount(account_id, role);
+        if (userInfo.success) {
+            await createActivityLog({
+                user_id: userInfo.user_id,
+                role: role.toLowerCase(),
+                action,
+                module,
+                description,
+                ip_address,
+                user_agent
+            });
+        }
+    } catch (error) {
+        console.error('Failed to create activity log:', error.message);
+    }
+};
+
+export const logParticipantActivity = async (account_id, action, module, description, ip_address = null, user_agent = null) => {
+    try {
+        const userInfo = await getUserIdFromAccount(account_id, 'volunteer');
+        if (userInfo.success) {
+            await createActivityLog({
+                user_id: userInfo.user_id,
+                role: 'volunteer',
+                action,
+                module,
+                description,
+                ip_address,
+                user_agent
+            });
+        }
+    } catch (error) {
+        console.error('Failed to create activity log:', error.message);
+    }
+};
+
+export const logBeneficiaryActivity = async (account_id, action, module, description, ip_address = null, user_agent = null) => {
+    try {
+        const userInfo = await getUserIdFromAccount(account_id, 'beneficiary');
+        if (userInfo.success) {
+            await createActivityLog({
+                user_id: userInfo.user_id,
+                role: 'beneficiary',
+                action,
+                module,
+                description,
+                ip_address,
+                user_agent
+            });
+        }
+    } catch (error) {
+        console.error('Failed to create activity log:', error.message);
+    }
+};
+
+export const logDonorActivity = async (account_id, action, module, description, ip_address = null, user_agent = null) => {
+    try {
+        const userInfo = await getUserIdFromAccount(account_id, 'donor');
+        if (userInfo.success) {
+            await createActivityLog({
+                user_id: userInfo.user_id,
+                role: 'donor',
+                action,
+                module,
+                description,
+                ip_address,
+                user_agent
+            });
+        }
+    } catch (error) {
+        console.error('Failed to create activity log:', error.message);
+    }
+};
+
+export const getAllUsersActivityLogs = async (options = {}) => {
+    try {
+        const {
+            limit = null,
+            offset = 0,
+            order = 'DESC',
+            roles = ['staff', 'coordinator', 'assistant_coordinator', 'volunteer', 'beneficiary', 'donor']
+        } = options;
+
+        const queryOptions = {
+            where: {
+                role: {
+                    [Op.in]: roles
+                }
+            },
+            order: [['createdAt', order]],
+            attributes: [
+                'activity_log_id',
+                'user_id',
+                'role',
+                'action',
+                'module',
+                'description',
+                'ip_address',
+                'user_agent',
+                'createdAt',
+                'updatedAt'
+            ]
+        };
+
+        if (limit) {
+            queryOptions.limit = limit;
+            queryOptions.offset = offset;
+        }
+
+        const logs = await ActivityLog.findAll(queryOptions);
+
+        return {
+            success: true,
+            logs: logs.map(log => log.toJSON()),
+            total: logs.length
+        };
+    } catch (error) {
+        console.error('Get all users activity logs failed:', error);
+        return {
+            success: false,
+            error: error.message,
+            logs: []
+        };
+    }
+};
+
 
 export const getUserIdFromAccount = async (account_id, role) => {
     try {
@@ -319,6 +449,7 @@ export const getUserIdFromAccount = async (account_id, role) => {
             'director': { model: Director, idField: 'director_id' },
             'staff': { model: Staff, idField: 'staff_id' },
             'coordinator': { model: Coordinator, idField: 'coordinator_id' },
+            'assistant_coordinator': { model: Coordinator, idField: 'coordinator_id' },
             'volunteer': { model: Volunteer, idField: 'volunteer_id' },
             'beneficiary': { model: Beneficiary, idField: 'beneficiary_id' },
             'donor': { model: Donor, idField: 'donor_id' }

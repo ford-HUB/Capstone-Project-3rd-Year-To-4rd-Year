@@ -3,6 +3,7 @@ import models from "../../models/index.js";
 import { sendMail } from "../../services/mailService.js";
 import { generateUniqueCode } from "../../utils/generateUniqueCode.js";
 import { runMatchingAI } from "../../services/matchingService.js";
+import { logParticipantActivity } from "../../services/activityLogService.js";
 import bcrypt from 'bcrypt'
 
 export const currentUserProfile = async (req, res) => {
@@ -98,6 +99,9 @@ export const updateUserProfile = async (req, res) => {
         }, { where: { campus_user_id: campusUserData.campus_user_id }, transaction: t })
 
         await t.commit()
+
+        await logParticipantActivity(accountId, 'update', 'profile', 'Updated profile information', req.ip || req.connection.remoteAddress, req.get('user-agent'));
+
         return res.json({ success: true, message: 'Profile updated successfully' })
 
     } catch (error) {
@@ -144,6 +148,8 @@ export const updateEmailAccount = async (req, res) => {
         // if(!newEmailUpdated) { return res.json({ message: 'new email not successfully created' }) }
 
         if(!newVerficationCode) { return res.json({ message: 'verification code failed to process' }) }
+
+        await logParticipantActivity(account_id, 'update', 'account', `Updated account email to ${confirmedEmail}`, req.ip || req.connection.remoteAddress, req.get('user-agent'));
 
         return res.json({ success: true, message: "New OTP sent to your email", otp_expiration: FIVE_MINUTES })
 
@@ -202,6 +208,8 @@ export const changeParticipantPassword = async (req, res) => {
 
         await account.update({ password: hashedNewPassword }, { transaction: t })
         await t.commit()
+
+        await logParticipantActivity(accountId, 'change', 'password', 'Successfully changed account password', req.ip || req.connection.remoteAddress, req.get('user-agent'));
 
         return res.json({ success: true, message: 'Password changed successfully' })
 

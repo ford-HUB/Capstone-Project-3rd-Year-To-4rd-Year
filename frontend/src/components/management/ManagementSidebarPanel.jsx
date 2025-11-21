@@ -1,5 +1,5 @@
 import React from "react";
-import { Calendar, Pickaxe, LayoutDashboard, ChevronDown, CircleUser, Database, Users, FileCogIcon, FileUser, HandCoins, StickyNote } from "lucide-react";
+import { Calendar, Pickaxe, LayoutDashboard, ChevronDown, CircleUser, Database, Users, FileCogIcon, FileUser, HandCoins, StickyNote, Inbox } from "lucide-react";
 import MenuItem from "../common/MenuItem";
 import ExpandableMenuItem from "../common/ExpandableMenuItem";
 import '../../styles/scrollbar.css'
@@ -70,8 +70,8 @@ const ManagementSidebarPanel = ({ sidebarCollapsed }) => {
         </div>
 
           <div className="space-y-4">
-            {/* <MenuItem icon={Calendar} label="Calendar" route={'/management/calendar'} collapsed={sidebarCollapsed} />             */}
             <MenuItem icon={CircleUser} label="User Profile" route={'/management/profile'} collapsed={sidebarCollapsed} />
+            <MenuItem icon={Inbox} label="My Logs" route={'/management/my-logs'} collapsed={sidebarCollapsed} />
 
             <div className="mt-4">
               <ExpandableMenuItem 
@@ -83,13 +83,6 @@ const ManagementSidebarPanel = ({ sidebarCollapsed }) => {
               />
               <div className={`mt-2.5 ml-10 text-sm bg-white overflow-hidden transition-all duration-300 ease-in-out
               ${eventExpanded && !sidebarCollapsed ? 'max-h-40 opacity-100 ' : 'max-h-0 opacity-0'}`}>
-                {/* <NavLink to="/management/map" end className={({ isActive }) => {
-                  return `block px-3 py-2 rounded-md hover:bg-gray-50
-                  ${isActive ? 'text-blue-600 bg-gray-50 rounded-md': 'text-gray-800'}`
-                }}
-                >
-                  Map
-                </NavLink> */}
 
                 <NavLink to="/management/event-list" end className={({ isActive }) => {
                   return `block px-3 py-2 rounded-md hover:bg-gray-50

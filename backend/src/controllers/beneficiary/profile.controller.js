@@ -2,6 +2,7 @@ import models from "../../models/index.js";
 import { db } from "../../config/db.js";
 import { generateUniqueCode } from "../../utils/generateUniqueCode.js";
 import { sendMail } from "../../services/mailService.js";
+import { logBeneficiaryActivity } from "../../services/activityLogService.js";
 import bcrypt from 'bcrypt';
 
 export const getBeneficiaryProfile = async (req, res) => {
@@ -122,6 +123,8 @@ export const updateBeneficiaryProfile = async (req, res) => {
 
         await t.commit();
 
+        await logBeneficiaryActivity(account_id, 'update', 'profile', 'Updated beneficiary profile information', req.ip || req.connection.remoteAddress, req.get('user-agent'));
+
         return res.json({ success: true, message: 'Profile updated successfully', data: updatedBeneficiary });
 
     } catch (error) {
@@ -167,6 +170,8 @@ export const uploadBeneficiaryProfileImage = async (req, res) => {
         }, { transaction: t });
 
         await t.commit();
+
+        await logBeneficiaryActivity(account_id, 'update', 'profile', 'Updated profile image', req.ip || req.connection.remoteAddress, req.get('user-agent'));
 
         return res.json({ success: true, message: 'Profile image updated successfully', data: { profile_image: req.file.path } })
 
@@ -219,6 +224,8 @@ export const updateBeneficiaryEmail = async (req, res) => {
 
         if(!newVerficationCode) { return res.json({ message: 'verification code failed to process' }) }
 
+        await logBeneficiaryActivity(account_id, 'update', 'account', `Updated account email to ${confirmedEmail}`, req.ip || req.connection.remoteAddress, req.get('user-agent'));
+
         return res.json({ success: true, message: "New OTP sent to your email", otp_expiration: FIVE_MINUTES })
 
     } catch (error) {
@@ -227,9 +234,6 @@ export const updateBeneficiaryEmail = async (req, res) => {
     }
 }
 
-/**
- * Change beneficiary password
- */
 export const changeBeneficiaryPassword = async (req, res) => {
     const t = await db.transaction();
     try {
@@ -279,6 +283,8 @@ export const changeBeneficiaryPassword = async (req, res) => {
 
         await t.commit();
 
+        await logBeneficiaryActivity(account_id, 'change', 'password', 'Successfully changed account password', req.ip || req.connection.remoteAddress, req.get('user-agent'));
+
         return res.json({
             success: true,
             message: 'Password changed successfully'
@@ -294,9 +300,6 @@ export const changeBeneficiaryPassword = async (req, res) => {
     }
 };
 
-/**
- * Delete beneficiary profile
- */
 export const deleteBeneficiaryProfile = async (req, res) => {
     const t = await db.transaction();
     try {

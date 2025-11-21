@@ -4,10 +4,11 @@ import express from "express";
 import { guard } from "../../middleware/guard.js";
 
 // @ Controllers
-import { getMyActivityLogs } from "../../controllers/director/activityLog.controller.js";
+import { getMyActivityLogs } from "../../controllers/user/activityLog.controller.js";
 
 const activityLogRouter = express.Router();
 
-activityLogRouter.get('/my-logs', guard('director'), getMyActivityLogs);
+activityLogRouter.get('/my-logs', guard('volunteer'), getMyActivityLogs);
 
 export default activityLogRouter;
+
