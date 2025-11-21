@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { asset } from '../../assets/asset';
 import TestimonialsModal from '../../components/modal/TestimonialsModal';
+import { useTestimonialStore } from '../../store/guest/useTestimonialStore';
+import { TESTIMONIAL_COLOR_CLASSES } from '../../constants';
+import { getBeneficiaryName, getBeneficiaryInitials, renderStars } from '../../utils/testimonialUtils';
 
 const GuestHome = () => {
   const carouselImages = [
@@ -15,6 +18,14 @@ const GuestHome = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isTestimonialsModalOpen, setIsTestimonialsModalOpen] = useState(false);
+  
+  const { 
+    featuredTestimonials, 
+    statistics, 
+    isLoading, 
+    getFeaturedTestimonials, 
+    getTestimonialsStatistics 
+  } = useTestimonialStore();
 
   // Auto-play carousel
   useEffect(() => {
@@ -38,6 +49,11 @@ const GuestHome = () => {
     };
   }, [isTestimonialsModalOpen]);
 
+  useEffect(() => {
+    getFeaturedTestimonials();
+    getTestimonialsStatistics();
+  }, [getFeaturedTestimonials, getTestimonialsStatistics]);
+
   const fadeVariants = {
     enter: {
       opacity: 0,
@@ -49,6 +65,8 @@ const GuestHome = () => {
       opacity: 0,
     },
   };
+
+
 
   return (
     <div className="min-h-screen">
@@ -359,7 +377,7 @@ const GuestHome = () => {
                 </div>
                 <div className="text-center">
                   <div className="flex items-center justify-center mb-1">
-                    <span className="text-4xl font-bold mr-2">4.9</span>
+                    <span className="text-4xl font-bold mr-2">{statistics.averageRating || 0}</span>
                     <div className="flex text-yellow-300 text-lg">
                       <span>★</span>
                       <span>★</span>
@@ -369,7 +387,7 @@ const GuestHome = () => {
                     </div>
                   </div>
                   <p className="text-blue-100 text-base font-medium">Overall Rating</p>
-                  <p className="text-blue-200 text-xs mt-1">Based on 500+ reviews</p>
+                  <p className="text-blue-200 text-xs mt-1">Based on {statistics.totalCount || 0} {statistics.totalCount === 1 ? 'review' : 'reviews'}</p>
                 </div>
               </div>
             </motion.div>
@@ -399,181 +417,48 @@ const GuestHome = () => {
             </motion.div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Testimonial 1 */}
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300"
-            >
-              <div className="flex items-center mb-3">
-                <div className="flex text-yellow-400 text-base">
-                  {'★★★★★'.split('').map((star, i) => (
-                    <span key={i}>{star}</span>
-                  ))}
-                </div>
-              </div>
-              <p className="text-gray-700 mb-4 text-sm leading-relaxed italic">
-                "UCLM CARES has transformed our community through their dedicated extension services. The programs have empowered our youth and created lasting positive change."
-              </p>
-              <div className="flex items-center">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                  <span className="text-blue-600 font-bold text-sm">JM</span>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 text-sm">Juan Martinez</h4>
-                  <p className="text-xs text-gray-600">Community Leader</p>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Testimonial 2 */}
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300"
-            >
-              <div className="flex items-center mb-3">
-                <div className="flex text-yellow-400 text-base">
-                  {'★★★★★'.split('').map((star, i) => (
-                    <span key={i}>{star}</span>
-                  ))}
-                </div>
-              </div>
-              <p className="text-gray-700 mb-4 text-sm leading-relaxed italic">
-                "As a student volunteer, I've learned so much about community service and social responsibility. UCLM CARES has shaped me into a better person and citizen."
-              </p>
-              <div className="flex items-center">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                  <span className="text-green-600 font-bold text-sm">SM</span>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 text-sm">Sarah Mendoza</h4>
-                  <p className="text-xs text-gray-600">Student Volunteer</p>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Testimonial 3 */}
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300"
-            >
-              <div className="flex items-center mb-3">
-                <div className="flex text-yellow-400 text-base">
-                  {'★★★★★'.split('').map((star, i) => (
-                    <span key={i}>{star}</span>
-                  ))}
-                </div>
-              </div>
-              <p className="text-gray-700 mb-4 text-sm leading-relaxed italic">
-                "The partnership with UCLM CARES has been invaluable. Their commitment to community development and their professional approach to extension services is truly commendable."
-              </p>
-              <div className="flex items-center">
-                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-3">
-                  <span className="text-purple-600 font-bold text-sm">RC</span>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 text-sm">Roberto Cruz</h4>
-                  <p className="text-xs text-gray-600">Partner Organization</p>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Testimonial 4 */}
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300"
-            >
-              <div className="flex items-center mb-3">
-                <div className="flex text-yellow-400 text-base">
-                  {'★★★★★'.split('').map((star, i) => (
-                    <span key={i}>{star}</span>
-                  ))}
-                </div>
-              </div>
-              <p className="text-gray-700 mb-4 text-sm leading-relaxed italic">
-                "The literacy programs and capacity-building workshops have made a significant impact in our barangay. We are grateful for UCLM CARES' continuous support."
-              </p>
-              <div className="flex items-center">
-                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center mr-3">
-                  <span className="text-orange-600 font-bold text-sm">ML</span>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 text-sm">Maria Lopez</h4>
-                  <p className="text-xs text-gray-600">Barangay Official</p>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Testimonial 5 */}
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300"
-            >
-              <div className="flex items-center mb-3">
-                <div className="flex text-yellow-400 text-base">
-                  {'★★★★★'.split('').map((star, i) => (
-                    <span key={i}>{star}</span>
-                  ))}
-                </div>
-              </div>
-              <p className="text-gray-700 mb-4 text-sm leading-relaxed italic">
-                "Being part of UCLM CARES activities has been life-changing. The sense of community and the opportunity to give back has enriched my life in ways I never imagined."
-              </p>
-              <div className="flex items-center">
-                <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center mr-3">
-                  <span className="text-pink-600 font-bold text-sm">AT</span>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 text-sm">Ana Torres</h4>
-                  <p className="text-xs text-gray-600">Alumni Volunteer</p>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Testimonial 6 */}
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300"
-            >
-              <div className="flex items-center mb-3">
-                <div className="flex text-yellow-400 text-base">
-                  {'★★★★★'.split('').map((star, i) => (
-                    <span key={i}>{star}</span>
-                  ))}
-                </div>
-              </div>
-              <p className="text-gray-700 mb-4 text-sm leading-relaxed italic">
-                "The research-based extension programs have provided us with valuable insights and solutions to our community challenges. UCLM CARES is truly making a difference."
-              </p>
-              <div className="flex items-center">
-                <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center mr-3">
-                  <span className="text-teal-600 font-bold text-sm">DR</span>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 text-sm">Dr. Ricardo Santos</h4>
-                  <p className="text-xs text-gray-600">Community Beneficiary</p>
-                </div>
-              </div>
-            </motion.div>
-          </div>
+          {isLoading ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+          ) : featuredTestimonials.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-gray-600">No featured testimonials available yet.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredTestimonials.slice(0, 6).map((testimonial, index) => (
+                <motion.div
+                  key={testimonial.testimonial_id}
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300"
+                >
+                  <div className="flex items-center mb-3">
+                    <div className="flex items-center gap-1">
+                      {renderStars(testimonial.rating)}
+                    </div>
+                  </div>
+                  <p className="text-gray-700 mb-4 text-sm leading-relaxed italic">
+                    "{testimonial.message}"
+                  </p>
+                  <div className="flex items-center">
+                    <div className={`w-10 h-10 ${TESTIMONIAL_COLOR_CLASSES[index % TESTIMONIAL_COLOR_CLASSES.length]} rounded-full flex items-center justify-center mr-3`}>
+                      <span className="font-bold text-sm">{getBeneficiaryInitials(testimonial.Beneficiary)}</span>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900 text-sm">{getBeneficiaryName(testimonial.Beneficiary)}</h4>
+                      <p className="text-xs text-gray-600">
+                        {testimonial.Beneficiary?.organization_name || 'Beneficiary'}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
 
           {/* Show More Button */}
           <div className="flex justify-center mt-8">

@@ -1,68 +1,25 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
+import { useTestimonialStore } from '../../store/guest/useTestimonialStore';
+import { TESTIMONIAL_COLOR_CLASSES } from '../../constants';
+import { getBeneficiaryName, getBeneficiaryInitials, renderStars } from '../../utils/testimonialUtils';
 
 const TestimonialsModal = ({ isOpen, onClose }) => {
-  // Testimonials data
-  const testimonials = [
-    {
-      id: 1,
-      quote: "UCLM CARES has transformed our community through their dedicated extension services. The programs have empowered our youth and created lasting positive change.",
-      name: "Juan Martinez",
-      role: "Community Leader",
-      initials: "JM",
-      color: "blue"
-    },
-    {
-      id: 2,
-      quote: "As a student volunteer, I've learned so much about community service and social responsibility. UCLM CARES has shaped me into a better person and citizen.",
-      name: "Sarah Mendoza",
-      role: "Student Volunteer",
-      initials: "SM",
-      color: "green"
-    },
-    {
-      id: 3,
-      quote: "The partnership with UCLM CARES has been invaluable. Their commitment to community development and their professional approach to extension services is truly commendable.",
-      name: "Roberto Cruz",
-      role: "Partner Organization",
-      initials: "RC",
-      color: "purple"
-    },
-    {
-      id: 4,
-      quote: "The literacy programs and capacity-building workshops have made a significant impact in our barangay. We are grateful for UCLM CARES' continuous support.",
-      name: "Maria Lopez",
-      role: "Barangay Official",
-      initials: "ML",
-      color: "orange"
-    },
-    {
-      id: 5,
-      quote: "Being part of UCLM CARES activities has been life-changing. The sense of community and the opportunity to give back has enriched my life in ways I never imagined.",
-      name: "Ana Torres",
-      role: "Alumni Volunteer",
-      initials: "AT",
-      color: "pink"
-    },
-    {
-      id: 6,
-      quote: "The research-based extension programs have provided us with valuable insights and solutions to our community challenges. UCLM CARES is truly making a difference.",
-      name: "Dr. Ricardo Santos",
-      role: "Community Beneficiary",
-      initials: "DR",
-      color: "teal"
-    }
-  ];
+  const { 
+    allTestimonials, 
+    statistics, 
+    isLoading, 
+    getTestimonialsStatistics 
+  } = useTestimonialStore();
 
-  const colorClasses = {
-    blue: 'bg-blue-100 text-blue-600',
-    green: 'bg-green-100 text-green-600',
-    purple: 'bg-purple-100 text-purple-600',
-    orange: 'bg-orange-100 text-orange-600',
-    pink: 'bg-pink-100 text-pink-600',
-    teal: 'bg-teal-100 text-teal-600'
-  };
+  useEffect(() => {
+    if (isOpen) {
+      getTestimonialsStatistics();
+    }
+  }, [isOpen, getTestimonialsStatistics]);
+
+
 
   return (
     <AnimatePresence>
@@ -122,7 +79,7 @@ const TestimonialsModal = ({ isOpen, onClose }) => {
                       </div>
                       <div className="text-center">
                         <div className="flex items-center justify-center mb-1">
-                          <span className="text-4xl font-bold mr-2">4.9</span>
+                          <span className="text-4xl font-bold mr-2">{statistics.averageRating || 0}</span>
                           <div className="flex text-yellow-300 text-lg">
                             <span>★</span>
                             <span>★</span>
@@ -132,7 +89,7 @@ const TestimonialsModal = ({ isOpen, onClose }) => {
                           </div>
                         </div>
                         <p className="text-blue-100 text-base font-medium">Overall Rating</p>
-                        <p className="text-blue-200 text-xs mt-1">Based on 500+ reviews</p>
+                        <p className="text-blue-200 text-xs mt-1">Based on {statistics.totalCount || 0} {statistics.totalCount === 1 ? 'review' : 'reviews'}</p>
                       </div>
                     </div>
                   </motion.div>
@@ -152,47 +109,57 @@ const TestimonialsModal = ({ isOpen, onClose }) => {
                       </div>
                       <div className="text-center">
                         <div className="mb-1">
-                          <span className="text-4xl font-bold">2,500+</span>
+                          <span className="text-4xl font-bold">{statistics.totalCount || 0}</span>
                         </div>
-                        <p className="text-green-100 text-base font-medium">Beneficiaries Served</p>
-                        <p className="text-green-200 text-xs mt-1">Across multiple communities</p>
+                        <p className="text-green-100 text-base font-medium">Testimonials</p>
+                        <p className="text-green-200 text-xs mt-1">From our community</p>
                       </div>
                     </div>
                   </motion.div>
                 </div>
 
                 {/* Testimonials Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {testimonials.map((testimonial, index) => (
-                    <motion.div
-                      key={testimonial.id}
-                      initial={{ opacity: 0, y: 50 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.6, delay: index * 0.1 }}
-                      className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 border border-gray-100"
-                    >
-                      <div className="flex items-center mb-3">
-                        <div className="flex text-yellow-400 text-base">
-                          {'★★★★★'.split('').map((star, i) => (
-                            <span key={i}>{star}</span>
-                          ))}
+                {isLoading ? (
+                  <div className="flex justify-center items-center py-20">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : allTestimonials.length === 0 ? (
+                  <div className="text-center py-20">
+                    <p className="text-gray-600">No testimonials available yet.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {allTestimonials.map((testimonial, index) => (
+                      <motion.div
+                        key={testimonial.testimonial_id}
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: index * 0.1 }}
+                        className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 border border-gray-100"
+                      >
+                        <div className="flex items-center mb-3">
+                          <div className="flex items-center gap-1">
+                            {renderStars(testimonial.rating)}
+                          </div>
                         </div>
-                      </div>
-                      <p className="text-gray-700 mb-4 text-sm leading-relaxed italic">
-                        "{testimonial.quote}"
-                      </p>
-                      <div className="flex items-center">
-                        <div className={`w-10 h-10 ${colorClasses[testimonial.color]} rounded-full flex items-center justify-center mr-3`}>
-                          <span className="font-bold text-sm">{testimonial.initials}</span>
+                        <p className="text-gray-700 mb-4 text-sm leading-relaxed italic">
+                          "{testimonial.message}"
+                        </p>
+                        <div className="flex items-center">
+                          <div className={`w-10 h-10 ${TESTIMONIAL_COLOR_CLASSES[index % TESTIMONIAL_COLOR_CLASSES.length]} rounded-full flex items-center justify-center mr-3`}>
+                            <span className="font-bold text-sm">{getBeneficiaryInitials(testimonial.Beneficiary)}</span>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-900 text-sm">{getBeneficiaryName(testimonial.Beneficiary)}</h4>
+                            <p className="text-xs text-gray-600">
+                              {testimonial.Beneficiary?.organization_name || 'Beneficiary'}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-900 text-sm">{testimonial.name}</h4>
-                          <p className="text-xs text-gray-600">{testimonial.role}</p>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
