@@ -8,6 +8,6 @@ import { getMyActivityLogs } from "../../controllers/director/activityLog.contro
 
 const activityLogRouter = express.Router();
 
-activityLogRouter.get('/my-logs', guard('director'), getMyActivityLogs);
+activityLogRouter.get('/my-logs', ...guard('director'), getMyActivityLogs);
 
 export default activityLogRouter;

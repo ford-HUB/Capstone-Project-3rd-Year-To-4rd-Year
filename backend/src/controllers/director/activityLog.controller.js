@@ -6,23 +6,18 @@ import {
 export const getMyActivityLogs = async (req, res) => {
     try {
         const accountId = req.user.account_id;
-        const role = 'director';
 
+        const role = 'director';
         const result = await getActivityLogsByAccount(accountId, role);
 
-        if (!result.success) {
-            return res.status(404).json({
-                success: false,
-                message: result.error || 'Failed to fetch activity logs'
-            });
-        }
 
-        const groupedLogs = groupLogsForTimeline(result.logs);
+
+        const groupedLogs = groupLogsForTimeline(result.logs || []);
 
         return res.json({
             success: true,
             logs: groupedLogs,
-            total: result.total,
+            total: result.total || 0,
             message: 'Activity logs retrieved successfully'
         });
 
