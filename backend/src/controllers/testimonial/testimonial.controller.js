@@ -107,6 +107,67 @@ export const getTestimonials = async (req, res) => {
     }
 };
 
+export const getAllApprovedTestimonials = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = (page - 1) * limit;
+
+        const { count, rows: testimonials } = await Testimonials.findAndCountAll({
+            where: { approved: true },
+            include: [
+                {
+                    model: Beneficiary,
+                    attributes: ['beneficiary_id', 'firstname', 'lastname', 'middle_initial', 'organization_name'],
+                    required: false
+                }
+            ],
+            order: [['createdAt', 'DESC']],
+            limit,
+            offset
+        });
+
+        const formattedTestimonials = testimonials.map(testimonial => {
+            const testimonialData = testimonial.toJSON();
+            return {
+                testimonial_id: testimonialData.testimonial_id,
+                sender_id: testimonialData.sender_id,
+                rating: testimonialData.rating,
+                message: testimonialData.message,
+                approved: testimonialData.approved,
+                featured: testimonialData.featured,
+                createdAt: testimonialData.createdAt,
+                updatedAt: testimonialData.updatedAt,
+                Beneficiary: testimonialData.Beneficiary ? {
+                    beneficiary_id: testimonialData.Beneficiary.beneficiary_id,
+                    firstname: testimonialData.Beneficiary.firstname,
+                    lastname: testimonialData.Beneficiary.lastname,
+                    middle_initial: testimonialData.Beneficiary.middle_initial,
+                    organization_name: testimonialData.Beneficiary.organization_name
+                } : null
+            };
+        });
+
+        return res.json({
+            success: true,
+            testimonials: formattedTestimonials,
+            pagination: {
+                currentPage: page,
+                totalPages: Math.ceil(count / limit),
+                totalItems: count,
+                itemsPerPage: limit
+            }
+        });
+
+    } catch (error) {
+        console.error('Get all approved testimonials failed:', error);
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Internal Server Error'
+        });
+    }
+};
+
 export const getPendingTestimonials = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
@@ -231,5 +292,47 @@ export const deleteTestimonial = async (req, res) => {
             message: error.message || 'Internal Server Error'
         });
     }
-}
+};
+
+export const toggleFeatured = async (req, res) => {
+    try {
+        const { testimonial_id } = req.params;
+        const { featured } = req.body;
+
+        const testimonial = await Testimonials.findByPk(testimonial_id);
+
+        if (!testimonial) {
+            return res.status(404).json({
+                success: false,
+                message: 'Testimonial not found'
+            });
+        }
+
+        if (!testimonial.approved) {
+            return res.status(400).json({
+                success: false,
+                message: 'Only approved testimonials can be featured'
+            });
+        }
+
+        testimonial.featured = featured === true || featured === 'true';
+        await testimonial.save();
+
+        return res.json({
+            success: true,
+            message: `Testimonial ${testimonial.featured ? 'featured' : 'unfeatured'} successfully`,
+            testimonial: {
+                testimonial_id: testimonial.testimonial_id,
+                featured: testimonial.featured
+            }
+        });
+
+    } catch (error) {
+        console.error('Toggle featured failed:', error);
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Internal Server Error'
+        });
+    }
+};
 

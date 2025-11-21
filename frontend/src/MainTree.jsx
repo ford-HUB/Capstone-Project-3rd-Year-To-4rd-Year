@@ -89,6 +89,7 @@ import InternalDonationTracking from './pages/common/InternalDonationTracking.js
 import DirectorStatistics from './pages/common/DirectorStatistics.jsx'
 import OverviewPage from './pages/common/OverviewPage.jsx'
 import PendingTestimonials from './pages/director/PendingTestimonials.jsx'
+import AllTestimonials from './pages/director/AllTestimonials.jsx'
 import Privacy from './pages/common/Privacy.jsx'
 import Terms from './pages/common/Terms.jsx'
 import DataDeletion from './pages/common/DataDeletion.jsx'
@@ -447,6 +448,10 @@ const MainTree = [
             {
                 path: 'testimonials/submitted',
                 element: <PendingTestimonials />
+            },
+            {
+                path: 'testimonials',
+                element: <AllTestimonials />
             },
 
         ]

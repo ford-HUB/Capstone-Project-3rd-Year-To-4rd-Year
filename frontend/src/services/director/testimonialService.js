@@ -17,3 +17,17 @@ export const deleteTestimonial = async (testimonial_id) => {
     return response.data;
 };
 
+export const getAllApprovedTestimonials = async (page = 1, limit = 10) => {
+    const response = await apiInstance.get('/api/testimonial/all', {
+        params: { page, limit }
+    });
+    return response.data;
+};
+
+export const toggleFeatured = async (testimonial_id, featured) => {
+    const response = await apiInstance.patch(`/api/testimonial/${testimonial_id}/featured`, {
+        featured
+    });
+    return response.data;
+};
+
