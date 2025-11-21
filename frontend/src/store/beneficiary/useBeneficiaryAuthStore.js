@@ -8,6 +8,7 @@ import {
     checkEmailForPasswordReset
 } from '../../services/beneficiary/authService.js'
 import { emitUserLogin, emitUserLogout, emitUserActivity, startActivityTracking, stopActivityTracking, initSocket, isSocketConnected, waitForSocketConnection } from '../../api/socket.js'
+import toast from 'react-hot-toast'
 
 export const useBeneficiaryAuthStore = create((set) => ({
     authenticatedUser: null,
@@ -42,6 +43,7 @@ export const useBeneficiaryAuthStore = create((set) => ({
         try {
             const response = await beneficiaryLogout()
             if(!response.success) {
+                toast.error(response.message)
                 return false
             }
 
@@ -53,6 +55,8 @@ export const useBeneficiaryAuthStore = create((set) => ({
                 console.log('Socket emit failed:', socketError.message);
             }
 
+            toast.success(response.message)
+            
             // Clear the authenticated user state
             set({ authenticatedUser: null })
             return true
