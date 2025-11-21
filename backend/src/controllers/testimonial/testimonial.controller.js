@@ -213,16 +213,11 @@ export const deleteTestimonial = async (req, res) => {
     try {
         const { testimonial_id } = req.params;
 
-        const testimonial = await Testimonials.findByPk(testimonial_id);
+        if (!testimonial_id) { return res.json({ message: 'Testimonial ID is required' });}
 
-        if (!testimonial) {
-            return res.status(404).json({
-                success: false,
-                message: 'Testimonial not found'
-            });
-        }
+        const testimonialRemoved = await Testimonials.destroy({ where: { testimonial_id: testimonial_id } });
 
-        await testimonial.destroy();
+        if (!testimonialRemoved) { return res.json({ message: 'testimonial is not successfully removed' }) }
 
         return res.json({
             success: true,
@@ -236,5 +231,5 @@ export const deleteTestimonial = async (req, res) => {
             message: error.message || 'Internal Server Error'
         });
     }
-};
+}
 

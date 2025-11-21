@@ -15,7 +15,7 @@ testimonialRouter.get('/', getTestimonials);
 // Director routes
 testimonialRouter.get('/pending', guard('director'), getPendingTestimonials);
 testimonialRouter.patch('/:testimonial_id/approve', guard('director'), approveTestimonial);
-testimonialRouter.delete('/:testimonial_id/delete', guard('director'), deleteTestimonial);
+testimonialRouter.delete('/:testimonial_id', guard('director'), deleteTestimonial);
 
 export default testimonialRouter;
 

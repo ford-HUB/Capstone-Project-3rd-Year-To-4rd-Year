@@ -94,7 +94,9 @@ export const usePendingTestimonialsStore = create((set) => ({
             const response = await deleteTestimonialService(testimonialId);
             
             if (!response.success) {
-                throw new Error(response.message || 'Failed to delete testimonial');
+                set({ isDeleting: null });
+                toast.error(response.message);
+                return false;
             }
 
             set(state => ({
@@ -108,13 +110,14 @@ export const usePendingTestimonialsStore = create((set) => ({
                 isDeleting: null
             }));
 
-            toast.success('Testimonial deleted successfully');
+            toast.success(response.message);
             return true;
 
         } catch (error) {
             console.error('Delete testimonial failed:', error.message);
+            const errorMessage = error.response?.data?.message || error.message || 'Failed to delete testimonial';
             set({ isDeleting: null });
-            toast.error(error.response?.data?.message || 'Failed to delete testimonial');
+            toast.error(errorMessage);
             return false;
         }
     },

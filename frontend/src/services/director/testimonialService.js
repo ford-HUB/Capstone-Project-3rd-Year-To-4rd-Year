@@ -13,7 +13,7 @@ export const approveTestimonial = async (testimonial_id) => {
 };
 
 export const deleteTestimonial = async (testimonial_id) => {
-    const response = await apiInstance.delete(`/api/testimonial/${testimonial_id}/delete`);
+    const response = await apiInstance.delete(`/api/testimonial/${testimonial_id}`);
     return response.data;
 };
 
