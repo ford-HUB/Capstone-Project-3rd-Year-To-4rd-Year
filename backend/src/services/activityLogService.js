@@ -273,3 +273,91 @@ export const isRelatedAction = (log1, log2) => {
 export const formatDateKey = (date) => {
     return new Date(date).toISOString().split('T')[0];
 };
+
+export const logDirectorActivity = async (account_id, action, module, description, ip_address = null, user_agent = null) => {
+    try {
+        const directorInfo = await getUserIdFromAccount(account_id, 'director');
+        if (directorInfo.success) {
+            await createActivityLog({
+                user_id: directorInfo.user_id,
+                role: 'director',
+                action,
+                module,
+                description,
+                ip_address,
+                user_agent
+            });
+        }
+    } catch (error) {
+        // Silent fail - logging errors shouldn't break main functionality
+        console.error('Failed to create activity log:', error.message);
+    }
+};
+
+
+export const logActivity = async (user_id, role, action, module, description, ip_address = null, user_agent = null) => {
+    try {
+        await createActivityLog({
+            user_id,
+            role,
+            action,
+            module,
+            description,
+            ip_address,
+            user_agent
+        });
+    } catch (error) {
+        // Silent fail - logging errors shouldn't break main functionality
+        console.error('Failed to create activity log:', error.message);
+    }
+};
+
+
+export const getUserIdFromAccount = async (account_id, role) => {
+    try {
+        const roleIdMap = {
+            'director': { model: Director, idField: 'director_id' },
+            'staff': { model: Staff, idField: 'staff_id' },
+            'coordinator': { model: Coordinator, idField: 'coordinator_id' },
+            'volunteer': { model: Volunteer, idField: 'volunteer_id' },
+            'beneficiary': { model: Beneficiary, idField: 'beneficiary_id' },
+            'donor': { model: Donor, idField: 'donor_id' }
+        };
+
+        const roleConfig = roleIdMap[role.toLowerCase()];
+        
+        if (!roleConfig) {
+            return {
+                success: false,
+                user_id: null,
+                error: `Invalid role: ${role}`
+            };
+        }
+
+        const user = await roleConfig.model.findOne({
+            where: { account_id },
+            attributes: [roleConfig.idField]
+        });
+
+        if (!user) {
+            return {
+                success: false,
+                user_id: null,
+                error: `${role} not found for account_id: ${account_id}`
+            };
+        }
+
+        return {
+            success: true,
+            user_id: user[roleConfig.idField],
+            error: null
+        };
+    } catch (error) {
+        console.error('Get user ID from account failed:', error);
+        return {
+            success: false,
+            user_id: null,
+            error: error.message
+        };
+    }
+};

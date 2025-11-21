@@ -1,5 +1,6 @@
 import { db } from "../../config/db.js";
 import models from '../../models/index.js'
+import { logDirectorActivity } from "../../services/activityLogService.js";
 
 export const registerEvent = async (req, res) => {
     const t = await db.transaction()
@@ -72,6 +73,10 @@ export const registerEvent = async (req, res) => {
         }
 
         await t.commit()
+
+        // Log activity
+        await logDirectorActivity(accountId, 'register', 'event', `Registered for event: ${selectedEvent.title}`, req.ip || req.connection.remoteAddress, req.get('user-agent'));
+
         return res.json({ success: true, message: 'You register successfully' })
 
     } catch (error) {
@@ -102,6 +107,9 @@ export const unregisterEvent = async (req, res) => {
         })
 
         if(!destroyData) { return res.json({ message: 'Your registration failed to destroy' }) }
+
+        // Log activity
+        await logDirectorActivity(req.user.account_id, 'update', 'event', `Unregistered from event: ${event.title}`, req.ip || req.connection.remoteAddress, req.get('user-agent'));
         
         return res.json({ success: true, message: 'You are no longer registered for this event' })
 

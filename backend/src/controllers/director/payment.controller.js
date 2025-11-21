@@ -1,5 +1,6 @@
 import { paymongo } from '../../config/paymongo.js';
 import models from '../../models/index.js';
+import { logDirectorActivity } from '../../services/activityLogService.js';
 
 export const connectDirectorPayment = async (req, res) => {
     try {
@@ -123,6 +124,9 @@ export const connectDirectorPayment = async (req, res) => {
             });
         }
 
+        // Log activity
+        await logDirectorActivity(req.user.account_id, 'create', 'payment', `Created payment link(s) for methods: ${paymentMethods.join(', ')}`, req.ip || req.connection.remoteAddress, req.get('user-agent'));
+
         res.json({
             success: true,
             message: 'Payment link(s) created successfully',
@@ -230,6 +234,9 @@ export const updatePaymentStatus = async (req, res) => {
         // Update the status
         await payment.update({ status });
 
+        // Log activity
+        await logDirectorActivity(req.user.account_id, 'update', 'payment', `Updated payment method status to ${status} for method: ${payment.payment_method_types?.[0] || 'unknown'}`, req.ip || req.connection.remoteAddress, req.get('user-agent'));
+
         return res.json({
             success: true,
             message: `Payment method status updated to ${status} successfully.`,
@@ -271,7 +278,11 @@ export const removePaymentMethod = async (req, res) => {
         }
 
         // Delete the payment method
+        const paymentMethodType = payment.payment_method_types?.[0] || 'unknown';
         await payment.destroy();
+
+        // Log activity
+        await logDirectorActivity(req.user.account_id, 'delete', 'payment', `Removed payment method: ${paymentMethodType}`, req.ip || req.connection.remoteAddress, req.get('user-agent'));
 
         return res.json({
             success: true,
@@ -395,6 +406,9 @@ export const updatePaymentMethod = async (req, res) => {
                 checkout_url: response.data.data.attributes.checkout_url
             });
         }
+
+        // Log activity
+        await logDirectorActivity(req.user.account_id, 'update', 'payment', `Updated payment method(s): ${paymentMethods.join(', ')}`, req.ip || req.connection.remoteAddress, req.get('user-agent'));
 
         res.json({
             success: true,

@@ -1,6 +1,7 @@
 import models from "../../models/index.js";
 import supabase from "../../config/supabase.js";
 import { sendMail } from "../../services/mailService.js";
+import { logDirectorActivity } from "../../services/activityLogService.js";
 
 const { DocumentRequestApproval, Document, Accounts, Director, Staff, Role, Coordinator, Department } = models;
 
@@ -316,6 +317,9 @@ export const createDocumentRequestApproval = async (req, res) => {
             due_date: due_date ? new Date(due_date) : null
         });
 
+        // Log activity
+        await logDirectorActivity(requested_by, 'create', 'document', `Created document request approval for document: ${document.title} (Type: ${request_type})`, req.ip || req.connection.remoteAddress, req.get('user-agent'));
+
         return res.status(201).json({
             success: true,
             message: 'Document request approval created successfully',
@@ -451,6 +455,9 @@ export const updateDocumentRequestApprovalStatus = async (req, res) => {
             // Don't fail the request if email fails
         }
 
+        // Log activity
+        await logDirectorActivity(reviewed_by, 'update', 'document', `${status === 'approved' ? 'Approved' : 'Rejected'} document request for: ${documentRequest.Document.title}${status === 'rejected' && rejection_reason ? ` (Reason: ${rejection_reason})` : ''}`, req.ip || req.connection.remoteAddress, req.get('user-agent'));
+
         return res.json({
             success: true,
             message: `Document request ${status} successfully`,
@@ -487,7 +494,11 @@ export const deleteDocumentRequestApproval = async (req, res) => {
             });
         }
 
+        const documentTitle = documentRequest.Document?.title || 'Unknown document';
         await documentRequest.destroy();
+
+        // Log activity
+        await logDirectorActivity(req.user.account_id, 'delete', 'document', `Deleted document request approval for: ${documentTitle}`, req.ip || req.connection.remoteAddress, req.get('user-agent'));
 
         return res.json({
             success: true,

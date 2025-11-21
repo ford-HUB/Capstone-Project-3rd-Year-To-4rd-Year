@@ -3,6 +3,7 @@ import { sendMail } from "../../services/mailService.js";
 import { db } from "../../config/db.js";
 import { Op } from "sequelize";
 import { getActiveUsers } from "../../socket.js";
+import { logDirectorActivity } from "../../services/activityLogService.js";
 
 export const ListUsers = async (req, res) => {
     try {
@@ -197,6 +198,16 @@ export const softDeleteUserAccount = async (req, res) => {
             // Silent fail for notification
         }
 
+        // Log activity
+        await logDirectorActivity(
+            req.user.account_id,
+            'delete',
+            'account',
+            `Successfully soft deleted user account: ${account.email}${reason ? ` (Reason: ${reason})` : ''}`,
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        );
+
         return res.json({ success: true, message: 'Account successfully soft deleted' })
 
     } catch (error) {
@@ -223,6 +234,16 @@ export const deactivateUserAccount = async (req, res) => {
             // Silent fail for notification
         }
 
+        // Log activity
+        await logDirectorActivity(
+            req.user.account_id,
+            'update',
+            'account',
+            `Successfully deactivated user account: ${account.email}${reason ? ` (Reason: ${reason})` : ''}`,
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        );
+
         return res.json({ success: true, message: 'Account successfully deactivated' })
     } catch (error) {
         res.json({ success: false, message: 'Internal Server Error' })
@@ -244,6 +265,16 @@ export const restoreUserAccount = async (req, res) => {
         } catch (err) {
             // Silent fail for notification
         }
+
+        // Log activity
+        await logDirectorActivity(
+            req.user.account_id,
+            'update',
+            'account',
+            `Successfully restored and activated user account: ${account.email}`,
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        );
 
         return res.json({ success: true, message: 'Account successfully restored and activated' })
     } catch (error) {
@@ -300,6 +331,16 @@ export const restoreSoftDeletedUser = async (req, res) => {
         } catch (err) {
             // Silent fail for notification
         }
+
+        // Log activity
+        await logDirectorActivity(
+            req.user.account_id,
+            'update',
+            'account',
+            `Successfully restored soft-deleted user account from archive: ${account.email}`,
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        );
 
         return res.json({ success: true, message: 'Account successfully restored' })
     } catch (error) {

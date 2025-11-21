@@ -3,6 +3,7 @@ import { db } from "../../config/db.js"
 import { sendMail } from "../../services/mailService.js";
 import { generateUniqueToken } from "../../utils/generatePermessionToken.js";
 import { removeNotification } from "../../socket.js";
+import { logDirectorActivity } from "../../services/activityLogService.js";
 
 export const ListApprovalRequest = async (req, res) => {
     try {
@@ -92,6 +93,9 @@ export const ApprovedRequest = async (req, res) => {
             used: false
         })
 
+        // Log activity
+        await logDirectorActivity(req.user.account_id, 'update', 'account', `Approved role request for ${requestedStaff.fullname} (${requestedStaff.requested_role})`, req.ip || req.connection.remoteAddress, req.get('user-agent'));
+
         res.json({ success: true, message: 'status successfully updated' })
 
     } catch (error) {
@@ -149,6 +153,10 @@ export const rejectRequest = async (req, res) => {
         // Note: Notification removal from frontend state is handled by the database removal above
 
         await t.commit()
+
+        // Log activity
+        await logDirectorActivity(req.user.account_id, 'update', 'account', `Rejected role request for ${isExist.fullname} (${isExist.requested_role})${reason ? ` (Reason: ${reason})` : ''}`, req.ip || req.connection.remoteAddress, req.get('user-agent'));
+
         return res.json({ success: true, message: 'Request successfully rejected' })
     } catch (error) {
         await t.rollback()
@@ -246,6 +254,9 @@ export const AcceptRejectedRequest = async (req, res) => {
             expires_at: FIVE_MINUTES,
             used: false
         })
+
+        // Log activity
+        await logDirectorActivity(req.user.account_id, 'update', 'account', `Accepted previously rejected role request for ${rejectedRequest.fullname} (${rejectedRequest.requested_role})`, req.ip || req.connection.remoteAddress, req.get('user-agent'));
 
         res.json({ success: true, message: 'Rejected request successfully approved' })
 

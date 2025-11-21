@@ -2,6 +2,7 @@ import models from "../../models/index.js";
 import { db } from "../../config/db.js";
 import { sendMail } from "../../services/mailService.js";
 import { removeNotification } from "../../socket.js";
+import { logDirectorActivity } from "../../services/activityLogService.js";
 
 const { EventRegistration, Event, Beneficiary, Notification, Accounts } = models;
 
@@ -309,6 +310,16 @@ export const approveRegistration = async (req, res) => {
 
         await t.commit();
 
+        // Log activity
+        await logDirectorActivity(
+            req.user.account_id,
+            'update',
+            'event',
+            `Approved beneficiary registration for event: ${registration.Event.title} - Beneficiary: ${registration.Beneficiary.firstname} ${registration.Beneficiary.lastname}`,
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        );
+
         res.json({
             success: true,
             message: 'Registration approved successfully'
@@ -410,6 +421,16 @@ export const declineRegistration = async (req, res) => {
         }
 
         await t.commit();
+
+        // Log activity
+        await logDirectorActivity(
+            req.user.account_id,
+            'update',
+            'event',
+            `Declined beneficiary registration for event: ${registration.Event.title} - Beneficiary: ${registration.Beneficiary.firstname} ${registration.Beneficiary.lastname}${reason ? ` (Reason: ${reason})` : ''}`,
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        );
 
         res.json({
             success: true,
