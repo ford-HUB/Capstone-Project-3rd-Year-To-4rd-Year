@@ -186,7 +186,8 @@ const ManageUsers = () => {
         .map(user => {
             let name = user.email.split('@')[0];
             if (user.details && user.details.firstname && user.details.lastname) {
-                name = `${user.details.firstname} ${user.details.lastname}`;
+                const middleInitial = user.details.middle_initial ? `${user.details.middle_initial}. ` : '';
+                name = `${user.details.firstname} ${middleInitial}${user.details.lastname}`;
             } else if (user.details && user.details.fullname) {
                 name = user.details.fullname;
             }
@@ -196,6 +197,8 @@ const ManageUsers = () => {
                 department = user.department_name || "";
             } else if (user.departments && typeof user.departments === 'object') {
                 department = user.departments?.department_name || "";
+            } else if (user.type === 'beneficiary' && user.details?.organization_name) {
+                department = user.details.organization_name;
             }
             
             let phone = "No phone";
@@ -430,7 +433,7 @@ const ManageUsers = () => {
         }
 
         // Create CSV content
-        const headers = ['Name', 'Email', 'Role', 'Status', 'Department', 'Joined Date', 'Last Active'];
+        const headers = ['Name', 'Email', 'Role', 'Status', 'Department/Organization', 'Joined Date', 'Last Active'];
         const csvContent = [
             headers.join(','),
             ...usersToExport.map(user => [
@@ -784,6 +787,10 @@ const ManageUsers = () => {
                                                                 ? 'bg-purple-100 text-purple-800'
                                                             : user.role === 'Admin'
                                                                 ? 'bg-red-100 text-red-800'
+                                                            : user.role === 'Beneficiary'
+                                                                ? 'bg-orange-100 text-orange-800'
+                                                            : user.role === 'Donor'
+                                                                ? 'bg-green-100 text-green-800'
                                                                 : 'bg-blue-100 text-blue-800'
                                                         }`}>
                                                             {user.role}

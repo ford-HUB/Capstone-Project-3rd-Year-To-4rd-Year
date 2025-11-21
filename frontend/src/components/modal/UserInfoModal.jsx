@@ -65,13 +65,15 @@ const UserInfoModal = ({ open, setOpen, userData }) => {
                                         <p className="text-gray-900">{userData.email}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <Phone className="w-5 h-5 text-gray-400" />
-                                    <div>
-                                        <p className="text-sm text-gray-500">Phone</p>
-                                        <p className="text-gray-900">{userData.phone}</p>
+                                {userData.phone && userData.phone !== 'No phone' && (
+                                    <div className="flex items-center gap-3">
+                                        <Phone className="w-5 h-5 text-gray-400" />
+                                        <div>
+                                            <p className="text-sm text-gray-500">Phone</p>
+                                            <p className="text-gray-900">{userData.phone}</p>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                                 <div className="flex items-center gap-3">
                                     <Shield className="w-5 h-5 text-gray-400" />
                                     <div>
@@ -79,12 +81,80 @@ const UserInfoModal = ({ open, setOpen, userData }) => {
                                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                                             userData.role === 'Coordinator' || userData.role === 'Event Coordinator' || userData.role === 'Director'
                                                 ? 'bg-purple-100 text-purple-800'
+                                            : userData.role === 'Admin'
+                                                ? 'bg-red-100 text-red-800'
+                                            : userData.role === 'Beneficiary'
+                                                ? 'bg-orange-100 text-orange-800'
+                                            : userData.role === 'Donor'
+                                                ? 'bg-green-100 text-green-800'
                                                 : 'bg-blue-100 text-blue-800'
                                         }`}>
                                             {userData.role}
                                         </span>
                                     </div>
                                 </div>
+                                
+                                {/* Beneficiary-specific fields */}
+                                {userData.type === 'beneficiary' && userData.details && (
+                                    <>
+                                        {userData.details.age && (
+                                            <div className="flex items-center gap-3">
+                                                <Calendar className="w-5 h-5 text-gray-400" />
+                                                <div>
+                                                    <p className="text-sm text-gray-500">Age</p>
+                                                    <p className="text-gray-900">{userData.details.age} years old</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {userData.details.gender && (
+                                            <div className="flex items-center gap-3">
+                                                <User className="w-5 h-5 text-gray-400" />
+                                                <div>
+                                                    <p className="text-sm text-gray-500">Gender</p>
+                                                    <p className="text-gray-900">{userData.details.gender === 'M' ? 'Male' : userData.details.gender === 'F' ? 'Female' : userData.details.gender}</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {userData.details.current_address && (
+                                            <div className="flex items-center gap-3">
+                                                <Building className="w-5 h-5 text-gray-400" />
+                                                <div>
+                                                    <p className="text-sm text-gray-500">Address</p>
+                                                    <p className="text-gray-900">{userData.details.current_address}</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                                
+                                {/* Donor-specific fields */}
+                                {userData.type === 'donor' && userData.details && (
+                                    <>
+                                        <div className="flex items-center gap-3">
+                                            <Shield className="w-5 h-5 text-gray-400" />
+                                            <div>
+                                                <p className="text-sm text-gray-500">Verification Status</p>
+                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                                    userData.details.is_verified
+                                                        ? 'bg-green-100 text-green-800'
+                                                        : 'bg-yellow-100 text-yellow-800'
+                                                }`}>
+                                                    {userData.details.is_verified ? 'Verified' : 'Not Verified'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        {userData.details.auth_provider && (
+                                            <div className="flex items-center gap-3">
+                                                <Shield className="w-5 h-5 text-gray-400" />
+                                                <div>
+                                                    <p className="text-sm text-gray-500">Auth Provider</p>
+                                                    <p className="text-gray-900 capitalize">{userData.details.auth_provider}</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                                
                                 {/* School ID for campus users */}
                                 {(userData.type === 'student' || userData.type === 'staff' || userData.type === 'faculty' || userData.type === 'alumni') && userData.details?.school_number && (
                                     <div className="flex items-center gap-3">
@@ -98,20 +168,42 @@ const UserInfoModal = ({ open, setOpen, userData }) => {
                             </div>
                         </div>
 
-                        {/* Department Information */}
+                        {/* Department/Organization Information */}
                         <div className="space-y-4">
                             <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                                 <Building className="w-5 h-5" />
-                                Department Information
+                                {userData.type === 'beneficiary' ? 'Organization Information' : 'Department Information'}
                             </h3>
                             <div className="space-y-3">
-                                <div className="flex items-center gap-3">
-                                    <Building className="w-5 h-5 text-gray-400" />
-                                    <div>
-                                        <p className="text-sm text-gray-500">Department</p>
-                                        <p className="text-gray-900">{userData.department || 'N/A'}</p>
+                                {userData.type === 'beneficiary' ? (
+                                    <>
+                                        {userData.details?.organization_name ? (
+                                            <div className="flex items-center gap-3">
+                                                <Building className="w-5 h-5 text-gray-400" />
+                                                <div>
+                                                    <p className="text-sm text-gray-500">Organization</p>
+                                                    <p className="text-gray-900">{userData.details.organization_name}</p>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center gap-3">
+                                                <Building className="w-5 h-5 text-gray-400" />
+                                                <div>
+                                                    <p className="text-sm text-gray-500">Organization</p>
+                                                    <p className="text-gray-500 italic">Individual Beneficiary</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    <div className="flex items-center gap-3">
+                                        <Building className="w-5 h-5 text-gray-400" />
+                                        <div>
+                                            <p className="text-sm text-gray-500">Department</p>
+                                            <p className="text-gray-900">{userData.department || 'N/A'}</p>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                                 <div className="flex items-center gap-3">
                                     <Calendar className="w-5 h-5 text-gray-400" />
                                     <div>
