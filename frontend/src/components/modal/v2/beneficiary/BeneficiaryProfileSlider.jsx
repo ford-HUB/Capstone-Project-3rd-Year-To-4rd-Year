@@ -139,6 +139,10 @@ const BeneficiaryProfileSlider = ({ open, setOpen, userData }) => {
                             {
                                 name: 'Attended Records',
                                 path: '/beneficiary/profile?tab=records',
+                            },
+                            {
+                                name: 'My Activity Log',
+                                path: '/beneficiary/my-activity-logs',
                             }
                         ].map((item, _i) => (
                             <NavLink

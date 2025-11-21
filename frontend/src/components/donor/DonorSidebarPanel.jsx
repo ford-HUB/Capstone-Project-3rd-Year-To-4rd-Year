@@ -9,7 +9,8 @@ import {
   Bell,
   TrendingUp,
   Award,
-  Calendar
+  Calendar,
+  Inbox
 } from "lucide-react";
 import MenuItem from "../common/MenuItem";
 import ExpandableMenuItem from "../common/ExpandableMenuItem";
@@ -116,7 +117,8 @@ const DonorSidebarPanel = ({ sidebarCollapsed }) => {
             setExpanded={setProfileExpanded}
             items={[
               { label: "My Profile", path: "/donor/profile" },
-              { label: "Settings", path: "/donor/settings", icon: Settings }
+              { label: "Settings", path: "/donor/settings", icon: Settings },
+              { label: "My Activity Log", path: "/donor/my-activity-logs", icon: Inbox }
             ]}
           />
         </div>
