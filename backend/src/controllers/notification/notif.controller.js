@@ -3,7 +3,7 @@ import { Op } from 'sequelize';
 
 export const getNotificationList = async (req, res) => {
     try {
-        const { Notification, Volunteer, Student, Director, Coordinator, Staff } = models
+        const { Notification, Volunteer, CampusUsers, Director, Coordinator, Staff } = models
         const { user } = req
         const roleType = user.Role?.name
 
@@ -73,9 +73,9 @@ export const getNotificationList = async (req, res) => {
                     model: Volunteer, 
                     required: false,
                     include: [{ 
-                        model: Student, 
+                        model: CampusUsers, 
                         required: false,
-                        attributes: ['student_id', 'student_number', 'firstname', 'lastname']
+                        attributes: ['campus_user_id', 'school_number', 'firstname', 'lastname']
                     }] 
                 },
                 { 
