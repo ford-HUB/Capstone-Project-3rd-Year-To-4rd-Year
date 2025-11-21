@@ -55,7 +55,7 @@ export const ListUsers = async (req, res) => {
         });
 
         if (getList.length === 0) {
-            return res.status(200).json({ message: 'List Currently Empty' });
+            return res.status(200).json({ success: true, list: [], message: 'List Currently Empty' });
         }
 
         // Get active users from socket
@@ -119,6 +119,7 @@ export const ListUsers = async (req, res) => {
     } catch (error) {
         console.error('List Users Failed:', error.message);
         res.status(500).json({ 
+            success: false,
             message: 'Internal Server Error',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
@@ -163,7 +164,7 @@ export const deactivateUserAccount = async (req, res) => {
 
         const account = await Accounts.findByPk(req.params.id)
 
-        if(!account) { return res.json({ message: 'account is not found' }) }
+        if(!account) { return res.json({ success: false, message: 'account is not found' }) }
 
         await account.update({ is_deactivated: true, is_active: false })
 
@@ -175,7 +176,7 @@ export const deactivateUserAccount = async (req, res) => {
 
         return res.json({ success: true, message: 'Account successfully deactivated' })
     } catch (error) {
-        res.json({ message: 'Internal Server Error' })
+        res.json({ success: false, message: 'Internal Server Error' })
     }
 }
 
@@ -185,7 +186,7 @@ export const restoreUserAccount = async (req, res) => {
 
         const account = await Accounts.findByPk(req.params.id)
 
-        if(!account) { return res.json({ message: 'account is not found' }) }
+        if(!account) { return res.json({ success: false, message: 'account is not found' }) }
 
         await account.update({ is_deactivated: false, is_active: true })
 
@@ -197,7 +198,7 @@ export const restoreUserAccount = async (req, res) => {
 
         return res.json({ success: true, message: 'Account successfully restored and activated' })
     } catch (error) {
-        res.json({ message: 'Internal Server Error' })
+        res.json({ success: false, message: 'Internal Server Error' })
     }
 }
 

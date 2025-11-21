@@ -1,7 +1,15 @@
 import { create } from "zustand"
-import { apiInstance } from "../../api/_base.js"
 import toast from "react-hot-toast"
-import { softDeleteUser, deactivateUser, restoreUser, getListUsers, getSoftDeletedUsers, restoreSoftDeletedUser, getActiveUsersCount, updateUserActivity } from "../../services/director/manageUserService.js"
+import { 
+    softDeleteUser as softDeleteUserService, 
+    deactivateUser as deactivateUserService, 
+    restoreUser as restoreUserService, 
+    getListUsers, 
+    getSoftDeletedUsers, 
+    restoreSoftDeletedUser, 
+    getActiveUsersCount as getActiveUsersCountService, 
+    updateUserActivity as updateUserActivityService 
+} from "../../services/director/manageUserService.js"
 import { onUserActivityUpdate, offUserActivityUpdate } from "../../api/socket.js"
 
 export const useManageUsersStore = create((set, get) => ({
@@ -13,16 +21,15 @@ export const useManageUsersStore = create((set, get) => ({
         try {
             const response = await getListUsers()
             if(!response.success) {
-                console.log(response.data.message)
+                console.log('get all users failed:', response.message)
                 set({ listUsers: null })
                 return false
             }
 
             set({ listUsers: response.list })
             return true
-
         } catch (error) {
-            console.log('get all users failed:', error.message)
+            console.log('get all users failed:', error.response?.data?.message || error.message)
             set({ listUsers: null })
             return false
         }
@@ -30,7 +37,7 @@ export const useManageUsersStore = create((set, get) => ({
 
     softDeleteUser: async (userId, reason) => {
         try {
-            const response = await softDeleteUser(userId, reason)
+            const response = await softDeleteUserService(userId, reason)
             if(!response.success) {
                 toast.error(response.message)
                 return false
@@ -38,14 +45,15 @@ export const useManageUsersStore = create((set, get) => ({
             toast.success(response.message)
             return true
         } catch (error) {
-            console.log('delete user failed:', error.message)
+            console.log('delete user failed:', error.response?.data?.message || error.message)
+            toast.error(error.response?.data?.message || error.message || 'Failed to delete user')
             return false
         }
     },
 
     deactivateUser: async (userId, reason) => {
         try {
-            const response = await deactivateUser(userId, reason)
+            const response = await deactivateUserService(userId, reason)
             if(!response.success) {
                 toast.error(response.message)
                 return false
@@ -54,13 +62,15 @@ export const useManageUsersStore = create((set, get) => ({
             toast.success(response.message)
             return true
         } catch (error) {
-            console.log('deactivate user failed: ', error.message)
+            console.log('deactivate user failed:', error.response?.data?.message || error.message)
+            toast.error(error.response?.data?.message || error.message || 'Failed to deactivate user')
+            return false
         }
     },
 
     restoreUser: async (userId) => {
         try {
-            const response = await restoreUser(userId)
+            const response = await restoreUserService(userId)
             if(!response.success) {
                 toast.error(response.message)
                 return false
@@ -69,7 +79,9 @@ export const useManageUsersStore = create((set, get) => ({
             toast.success(response.message)
             return true
         } catch (error) {
-            console.log('restore user failed: ', error.message)
+            console.log('restore user failed:', error.response?.data?.message || error.message)
+            toast.error(error.response?.data?.message || error.message || 'Failed to restore user')
+            return false
         }
     }
 
@@ -79,13 +91,14 @@ export const useManageUsersStore = create((set, get) => ({
         try {
             const response = await getSoftDeletedUsers()
             if(!response.success) {
+                console.log('get trash users failed:', response.message)
                 set({ trashUsers: null })
                 return false
             }
             set({ trashUsers: response.list })
             return true
         } catch (error) {
-            console.log('get trash users failed:', error.message)
+            console.log('get trash users failed:', error.response?.data?.message || error.message)
             set({ trashUsers: null })
             return false
         }
@@ -101,7 +114,8 @@ export const useManageUsersStore = create((set, get) => ({
             toast.success(response.message)
             return true
         } catch (error) {
-            console.log('restore soft deleted failed:', error.message)
+            console.log('restore soft deleted failed:', error.response?.data?.message || error.message)
+            toast.error(error.response?.data?.message || error.message || 'Failed to restore user')
             return false
         }
     },
@@ -164,14 +178,14 @@ export const useManageUsersStore = create((set, get) => ({
     // Get active users count from backend
     getActiveUsersCount: async () => {
         try {
-            const response = await getActiveUsersCount();
+            const response = await getActiveUsersCountService();
             if (!response.success) {
-                console.log('Failed to get active users count:', response.message);
+                console.log('Get active users count failed:', response.message);
                 return 0;
             }
             return response.activeCount;
         } catch (error) {
-            console.log('Get active users count failed:', error.message);
+            console.log('Get active users count failed:', error.response?.data?.message || error.message);
             return 0;
         }
     },
@@ -179,14 +193,14 @@ export const useManageUsersStore = create((set, get) => ({
     // Update user activity
     updateUserActivity: async () => {
         try {
-            const response = await updateUserActivity();
+            const response = await updateUserActivityService();
             if (!response.success) {
-                console.log('Failed to update user activity:', response.message);
+                console.log('Update user activity failed:', response.message);
                 return false;
             }
             return true;
         } catch (error) {
-            console.log('Update user activity failed:', error.message);
+            console.log('Update user activity failed:', error.response?.data?.message || error.message);
             return false;
         }
     },
@@ -194,11 +208,13 @@ export const useManageUsersStore = create((set, get) => ({
     // Force refresh user list
     refreshUserList: async () => {
         try {
-            await getAllUsers();
-            console.log('User list refreshed');
-            return true;
+            const success = await get().getAllUsers();
+            if (success) {
+                console.log('User list refreshed');
+            }
+            return success;
         } catch (error) {
-            console.log('Failed to refresh user list:', error.message);
+            console.log('Failed to refresh user list:', error.response?.data?.message || error.message);
             return false;
         }
     }

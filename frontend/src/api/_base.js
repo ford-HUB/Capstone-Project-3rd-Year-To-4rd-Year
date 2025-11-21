@@ -33,6 +33,8 @@ apiInstance.interceptors.request.use((config) => {
             url.includes('/api/management-profile/') ||
             url.includes('/api/director-auth/') ||
             url.includes('/api/director-') ||
+            url.includes('/api/director/') ||
+            url.includes('/api/testimonial/') ||
             url.includes('/api/beneficiary')) {
             // Return config immediately without any modifications
             return config;

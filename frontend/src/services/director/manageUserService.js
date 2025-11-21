@@ -4,7 +4,8 @@ export const getListUsers = async () => {
     const response = await apiInstance.get('/api/director-manage-user/list-users')
     return {
         success: response.data.success,
-        list: response.data.list
+        list: response.data.list,
+        message: response.data.message
     }
 }
 
@@ -38,7 +39,8 @@ export const getSoftDeletedUsers = async () => {
     const response = await apiInstance.get('/api/director-manage-user/trash')
     return {
         success: response.data.success,
-        list: response.data.list
+        list: response.data.list,
+        message: response.data.message
     }
 }
 
@@ -55,7 +57,8 @@ export const getActiveUsersCount = async () => {
     return {
         success: response.data.success,
         activeCount: response.data.activeCount,
-        activeUsers: response.data.activeUsers
+        activeUsers: response.data.activeUsers,
+        message: response.data.message
     }
 }
 
