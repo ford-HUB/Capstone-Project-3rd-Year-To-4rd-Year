@@ -27,7 +27,9 @@ const BeneficiaryProfileSlider = ({ open, setOpen, userData }) => {
         const success = await logout();
         if (!success) return;
         setShowLogoutModal(false);
-        navigate('/');
+        setTimeout(() => {
+            navigate('/');
+        }, 500);
     };
     return (
         <>

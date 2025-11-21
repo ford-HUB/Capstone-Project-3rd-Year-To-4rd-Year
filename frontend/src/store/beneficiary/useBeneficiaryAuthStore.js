@@ -47,6 +47,9 @@ export const useBeneficiaryAuthStore = create((set) => ({
                 return false
             }
 
+            // Show toast first
+            toast.success(response.message)
+
             // Stop activity tracking and emit socket event for user logout
             try {
                 stopActivityTracking();
@@ -54,16 +57,10 @@ export const useBeneficiaryAuthStore = create((set) => ({
             } catch (socketError) {
                 console.log('Socket emit failed:', socketError.message);
             }
-
-            toast.success(response.message)
             
-            // Clear the authenticated user state
-            set({ authenticatedUser: null })
             return true
         } catch (error) {
             console.log('beneficiary logout store failed: ', error.message)
-            // Clear the authenticated user state even if logout fails
-            set({ authenticatedUser: null })
             return false
         }
     },
