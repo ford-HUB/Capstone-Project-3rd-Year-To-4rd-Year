@@ -134,41 +134,38 @@ const AllTestimonials = () => {
                                                 </span>
                                             </div>
                                             <div className="flex items-center justify-between">
-                                                <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                                                    <span>Featured</span>
-                                                    <div className="relative">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={testimonial.featured}
-                                                            onChange={() => handleToggleFeatured(testimonial.testimonial_id, testimonial.featured)}
-                                                            disabled={isToggling === testimonial.testimonial_id}
-                                                            className="sr-only"
-                                                        />
-                                                        <div
-                                                            className={`w-11 h-6 rounded-full transition-colors duration-200 ease-in-out ${
+                                                <div className="flex items-center gap-3">
+                                                    <Sparkles className={`w-4 h-4 ${testimonial.featured ? 'text-yellow-500' : 'text-gray-400'}`} />
+                                                    <span className="text-sm font-medium text-gray-700">
+                                                        Featured
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    {isToggling === testimonial.testimonial_id && (
+                                                        <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                                                    )}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleToggleFeatured(testimonial.testimonial_id, testimonial.featured)}
+                                                        disabled={isToggling === testimonial.testimonial_id}
+                                                        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 ${
+                                                            testimonial.featured
+                                                                ? 'bg-yellow-500'
+                                                                : 'bg-gray-300'
+                                                        } ${isToggling === testimonial.testimonial_id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                        role="switch"
+                                                        aria-checked={testimonial.featured}
+                                                        aria-label="Toggle featured status"
+                                                    >
+                                                        <span
+                                                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
                                                                 testimonial.featured
-                                                                    ? 'bg-yellow-500'
-                                                                    : 'bg-gray-300'
-                                                            } ${isToggling === testimonial.testimonial_id ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                                                            onClick={() => {
-                                                                if (isToggling !== testimonial.testimonial_id) {
-                                                                    handleToggleFeatured(testimonial.testimonial_id, testimonial.featured);
-                                                                }
-                                                            }}
-                                                        >
-                                                            <div
-                                                                className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ease-in-out mt-0.5 ${
-                                                                    testimonial.featured
-                                                                        ? 'translate-x-5'
-                                                                        : 'translate-x-0.5'
-                                                                }`}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                </label>
-                                                {isToggling === testimonial.testimonial_id && (
-                                                    <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                                                )}
+                                                                    ? 'translate-x-5'
+                                                                    : 'translate-x-0'
+                                                            }`}
+                                                        />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
