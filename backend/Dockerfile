@@ -2,7 +2,7 @@ FROM node:18
 
 WORKDIR /src
 
-# Install Chrome dependencies for Puppeteer in a single layer
+# Install Chrome dependencies for Puppeteer
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     fonts-liberation \
@@ -29,17 +29,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# Copy package files first for better layer caching
-COPY package.json package-lock.json ./
-
-# Install dependencies (this layer will be cached if package.json doesn't change)
-RUN npm install --no-audit --no-fund && npm cache clean --force
-
-# Copy the rest of the application code
+# Copy all application files
+# Railway will run npm install as the build command
 COPY . .
 
 # Expose port (Railway will set PORT env var automatically)
 EXPOSE 3000 8000
 
-# Use the PORT environment variable or default to Railway's expected port
-CMD ["npm", "run", "prod"]
+# Railway will use the start command (npm run prod) from settings
+# No CMD needed - Railway handles this
