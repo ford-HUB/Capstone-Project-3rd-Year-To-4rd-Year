@@ -28,10 +28,17 @@ RUN apt-get update && apt-get install -y \
     libvulkan1 \
     && rm -rf /var/lib/apt/lists/*
 
+# Copy package files first for better layer caching
+COPY package.json package-lock.json* ./
+
+# Install dependencies (this layer will be cached if package.json doesn't change)
+RUN npm ci && npm cache clean --force
+
+# Copy the rest of the application code
 COPY . .
 
-RUN npm install
+# Expose port (Railway will set PORT env var, but we expose common ports)
+EXPOSE 3000 8000
 
-EXPOSE 8000
-
+# Use the PORT environment variable or default to Railway's expected port
 CMD ["npm", "run", "prod"]
