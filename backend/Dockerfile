@@ -39,7 +39,7 @@ RUN npm install --no-audit --no-fund && npm cache clean --force
 COPY . .
 
 # Expose port (Railway will set PORT env var automatically)
-EXPOSE 3000
+EXPOSE 3000 8000
 
 # Use the PORT environment variable or default to Railway's expected port
 CMD ["npm", "run", "prod"]
