@@ -258,11 +258,6 @@ export const logDirectorActivity = async (account_id, action, module, descriptio
         const accountExists = await Accounts.findOne({
             where: { account_id },
             attributes: ['account_id'],
-            include: [
-                {
-                    model: Rol
-                }
-            ]
         });
 
         if (!accountExists) {
