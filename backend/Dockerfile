@@ -29,8 +29,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
+# Copy package files first for better caching
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
 # Copy all application files
-# Railway will run npm install as the build command
 COPY . .
 
 # Expose port (Railway will set PORT env var automatically)
