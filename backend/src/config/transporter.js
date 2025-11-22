@@ -1,4 +1,4 @@
-import { Resend } from 'resend'
+// import { Resend } from 'resend'
 import nodemailer from 'nodemailer'
 import dotenv from 'dotenv'
 // import { MailerSend } from 'mailersend''

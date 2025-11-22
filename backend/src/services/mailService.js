@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url"
 import dotenv from 'dotenv'
 // import { transporter } from '../config/transporter.js'
 // import { EmailParams, Recipient, Sender } from 'mailersend'
-import { resend } from '../config/transporter.js'
+// import { resend } from '../config/transporter.js'
 
 dotenv.config()
 const __filename = fileURLToPath(import.meta.url)
@@ -37,14 +37,14 @@ export const sendMail = async (to, subject, text, templateUsed, variables = {}) 
 
         console.log(`📧 Sending email via transporter...`);
         // const info = await mailer.email.send(params)
-        const infomation = await resend.emails.send({
-            from: `"UCLM CARES" <no-reply@uclmcares.online>`,
-            to: [to],
-            subject: subject,
-            html: htmlContent,
-            text: text.text || ''
-        })
-        console.log('Email Sent Successfully: ', infomation)
+        // const infomation = await resend.emails.send({
+        //     from: `"UCLM CARES" <no-reply@uclmcares.online>`,
+        //     to: [to],
+        //     subject: subject,
+        //     html: htmlContent,
+        //     text: text.text || ''
+        // })
+        // console.log('Email Sent Successfully: ', infomation)
         return { success: true, messageId: infomation.id };
 
     } catch (error) {
