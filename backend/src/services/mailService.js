@@ -36,7 +36,7 @@ export const sendMail = async (to, subject, text, templateUsed, variables = {}) 
         // .setHtml(htmlContent)
 
         console.log(`📧 Sending email via transporter...`);
-        const info = await mailer.email.send(params)
+        // const info = await mailer.email.send(params)
         const infomation = await resend.emails.send({
             from: `"UCLM CARES" <no-reply@uclmcares.online>`,
             to: [to],
