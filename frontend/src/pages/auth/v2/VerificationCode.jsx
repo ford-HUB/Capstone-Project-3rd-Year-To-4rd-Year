@@ -2,17 +2,30 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useVerificationStore } from '../../../store/participant/useVerificationStore.js';
 import { useVerificationStore as useDonorVerificationStore } from '../../../store/donor/useVerificationStore.js';
 import { FormatTime } from '../../../utils/FormatTime.js';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const VerificationCode = () => {
     const navigate = useNavigate()
+    const [searchParams] = useSearchParams()
     
     const donorExpiration = localStorage.getItem('DonorVerificationExpireAt');
     const isDonor = !!donorExpiration;
     
     const participantVerification = useVerificationStore();
     const donorVerification = useDonorVerificationStore();
-    const { otp_expiration, resendCode, verifyCode, userData, clearAll } = isDonor ? donorVerification : participantVerification;
+    
+    // Get rq_access from URL params (for donor verification)
+    const rq_access = searchParams.get('rq_access');
+    
+    // Subscribe to store changes reactively
+    const participantOtpExpiration = useVerificationStore((state) => state.otp_expiration);
+    const donorOtpExpiration = useDonorVerificationStore((state) => state.otp_expiration);
+    const otp_expiration = isDonor ? donorOtpExpiration : participantOtpExpiration;
+    
+    const participantUserData = useVerificationStore((state) => state.userData);
+    const userData = isDonor ? null : participantUserData; // Donor doesn't use userData
+    
+    const { resendCode, verifyCode, clearAll } = isDonor ? donorVerification : participantVerification;
     
     const [timeLeft, setTimeLeft] = React.useState(0);
     const [showResend, setShowResend] = React.useState(false);
@@ -119,8 +132,14 @@ const VerificationCode = () => {
             return;
         }
 
-        if (!userData) {
+        // For participant, check userData. For donor, check rq_access
+        if (!isDonor && !userData) {
             setError('Session expired. Please sign up again.');
+            return;
+        }
+
+        if (isDonor && !rq_access) {
+            setError('Verification link is invalid. Please sign up again.');
             return;
         }
 
@@ -128,7 +147,11 @@ const VerificationCode = () => {
         setError('');
 
         setTimeout(async () => {
-            const success = await verifyCode(enteredOTP)
+            // Pass rq_access for donor verification
+            const success = isDonor 
+                ? await verifyCode(enteredOTP, rq_access)
+                : await verifyCode(enteredOTP);
+                
             if(!success) {
                 setError('Invalid verification code. Please try again.');
                 setOtp(['', '', '', '', '', '', '']);
@@ -144,8 +167,14 @@ const VerificationCode = () => {
     };
 
     const handleResendCode = async () => {
-        if (!userData) {
+        // For participant, check userData. For donor, check rq_access
+        if (!isDonor && !userData) {
             setError('Session expired. Please sign up again.');
+            return;
+        }
+
+        if (isDonor && !rq_access) {
+            setError('Verification link is invalid. Please sign up again.');
             return;
         }
 
@@ -156,7 +185,11 @@ const VerificationCode = () => {
         setResendLoading(true)
         inputRefs.current[0]?.focus();
         
-        const success = await resendCode()
+        // Pass rq_access for donor resend
+        const success = isDonor 
+            ? await resendCode(rq_access)
+            : await resendCode();
+            
         if(!success) {
             setResendLoading(false)
             return

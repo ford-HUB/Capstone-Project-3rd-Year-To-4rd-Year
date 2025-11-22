@@ -8,6 +8,7 @@ import toast from 'react-hot-toast'
 import { useDonorAuthStore } from '../../store/donor/useDonorAuthStore.js'
 import { X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { encrypt } from '../../utils/crypto.js'
 
 const DonorRegistration = () => {
     const [open, setOpen] = React.useState(true)
@@ -33,9 +34,10 @@ const DonorRegistration = () => {
         })
         if(!success) return
         
-        // Close modal and redirect to verification page
+        // Close modal and redirect to verification page with encrypted email
         setOpen(false)
-        navigate('/verification_code')
+        const encryptedEmail = encrypt(formData.email);
+        navigate(`/verification_code?rq_access=${encodeURIComponent(encryptedEmail)}`)
     }
 
 
