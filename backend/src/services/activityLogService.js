@@ -1,7 +1,7 @@
 import models from "../models/index.js";
 import { Op } from "sequelize";
 
-const { ActivityLog, Director, Staff, Coordinator, Volunteer, Beneficiary, Donor, Accounts } = models;
+const { ActivityLog, Role, Director, Staff, Coordinator, Volunteer, Beneficiary, Donor, Accounts } = models;
 
 export const createActivityLog = async ({
     user_id,
@@ -257,7 +257,12 @@ export const logDirectorActivity = async (account_id, action, module, descriptio
     try {
         const accountExists = await Accounts.findOne({
             where: { account_id },
-            attributes: ['account_id']
+            attributes: ['account_id'],
+            include: [
+                {
+                    model: Rol
+                }
+            ]
         });
 
         if (!accountExists) {
