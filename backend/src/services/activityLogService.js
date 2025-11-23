@@ -99,7 +99,17 @@ export const getActivityLogsByAccount = async (account_id, role, options = {}) =
             };
         }
 
-        return await getActivityLogsByUser(account_id, role, options);
+        const { success, user_id, error } = await getUserIdFromAccount(account_id, role);
+
+        if (!success || !user_id) {
+            return {
+                success: false,
+                error: error || `Failed to get user_id for account_id ${account_id} with role ${role}`,
+                logs: []
+            };
+        }
+
+        return await getActivityLogsByUser(user_id, role, options);
 
     } catch (error) {
         console.error('Get activity logs by account failed:', error);
@@ -174,14 +184,14 @@ export const isSubEvent = (logData) => {
         'rejected',
         'approved'
     ];
-    
+
     const description = (logData.description || '').toLowerCase();
     return subEventKeywords.some(keyword => description.includes(keyword));
 };
 
 export const determineStatus = (description) => {
     if (!description) return 'info';
-    
+
     const desc = description.toLowerCase();
     
     if (desc.includes('success') || desc.includes('successful') || desc.includes('approved')) {
@@ -256,7 +266,7 @@ export const logDirectorActivity = async (account_id, action, module, descriptio
     try {
         const accountExists = await Accounts.findOne({
             where: { account_id },
-            attributes: ['account_id'],
+            attributes: ['account_id']
         });
 
         if (!accountExists) {
@@ -301,7 +311,7 @@ export const logActivity = async (account_id, role, action, module, description,
         }
 
         const { success, user_id, error } = await getUserIdFromAccount(account_id, role);
-        
+
         if (!success || !user_id) {
             console.warn(`Failed to get user_id for account_id ${account_id} with role ${role}: ${error}. Activity log skipped.`);
             return;
@@ -334,7 +344,7 @@ export const logManagementActivity = async (account_id, role, action, module, de
         }
 
         const { success, user_id, error } = await getUserIdFromAccount(account_id, role);
-        
+
         if (!success || !user_id) {
             console.warn(`Failed to get user_id for account_id ${account_id} with role ${role}: ${error}. Activity log skipped.`);
             return;
@@ -527,7 +537,7 @@ export const getAllUsersActivityLogs = async (options = {}) => {
 export const getUserIdFromAccount = async (account_id, role) => {
     try {
         const roleLower = role.toLowerCase();
-        
+
         if (roleLower === 'volunteer') {
             const campusUser = await CampusUsers.findOne({
                 where: { account_id },
@@ -572,7 +582,7 @@ export const getUserIdFromAccount = async (account_id, role) => {
         };
 
         const roleConfig = roleIdMap[roleLower];
-        
+
         if (!roleConfig) {
             return {
                 success: false,
