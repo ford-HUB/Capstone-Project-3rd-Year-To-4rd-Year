@@ -29,17 +29,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# Copy package files first for better caching
-COPY package*.json ./
-
-# Install dependencies
-RUN npm install
-
 # Copy all application files
 COPY . .
 
-# Expose port (Railway will set PORT env var automatically)
+# Expose port
 EXPOSE 3000 8000
 
-# Railway will use the start command (npm run prod) from settings
-# No CMD needed - Railway handles this
+# Railway will override with your Start Command: npm install && npm run prod
+CMD ["npm", "run", "prod"]
