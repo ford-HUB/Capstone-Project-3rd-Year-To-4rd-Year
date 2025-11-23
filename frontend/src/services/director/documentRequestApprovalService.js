@@ -113,3 +113,63 @@ export const deleteDocumentRequestApproval = async (dra_id) => {
         };
     }
 };
+
+// Get documents by date for monitoring
+export const getDocumentsByDateForMonitoring = async (date) => {
+    try {
+        const response = await apiInstance.get(`/api/director/document-request-approval/monitoring/documents-by-date?date=${date}`);
+        
+        return {
+            success: response.data.success,
+            message: response.data.message,
+            data: response.data.data || []
+        };
+    } catch (error) {
+        console.error('Error fetching documents by date:', error);
+        return {
+            success: false,
+            message: error.response?.data?.message || 'Failed to fetch documents by date',
+            data: []
+        };
+    }
+};
+
+// Get all coordinators for monitoring
+export const getAllCoordinatorsForMonitoring = async () => {
+    try {
+        const response = await apiInstance.get('/api/director/document-request-approval/monitoring/coordinators');
+        
+        return {
+            success: response.data.success,
+            message: response.data.message,
+            data: response.data.data || []
+        };
+    } catch (error) {
+        console.error('Error fetching coordinators:', error);
+        return {
+            success: false,
+            message: error.response?.data?.message || 'Failed to fetch coordinators',
+            data: []
+        };
+    }
+};
+
+// Get calendar data for document monitoring
+export const getDocumentMonitoringCalendar = async (year, month) => {
+    try {
+        const response = await apiInstance.get(`/api/director/document-request-approval/monitoring/calendar?year=${year}&month=${month}`);
+        
+        return {
+            success: response.data.success,
+            message: response.data.message,
+            data: response.data.data || {}
+        };
+    } catch (error) {
+        console.error('Error fetching calendar data:', error);
+        return {
+            success: false,
+            message: error.response?.data?.message || 'Failed to fetch calendar data',
+            data: {}
+        };
+    }
+};

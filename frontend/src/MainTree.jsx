@@ -65,6 +65,7 @@ import GoogleFormListPage from './pages/common/GoogleFormListPage.jsx'
 import FormResponsesPage from './pages/common/FormResponsesPage.jsx'
 import PostRequirements from './pages/director/PostRequirements.jsx'
 import ManageDocuments from './pages/director/ManageDocuments.jsx'
+import DocumentMonitoring from './pages/common/DocumentMonitoring.jsx'
 import BeneficiaryHomePage from './pages/beneficiary/v2/BeneficiaryHomePage.jsx'
 import BeneficiaryProfile from './pages/beneficiary/v2/BeneficiaryProfile.jsx'
 import MyRegistrations from './pages/beneficiary/v2/MyRegistrations.jsx'
@@ -353,6 +354,10 @@ const MainTree = [
             {
                 path: 'calendar',
                 element: <Calendar/>
+            },
+            {
+                path: 'calendar/documents/monitoring',
+                element: <DocumentMonitoring/>
             },
             {
                 path: 'manage-users',

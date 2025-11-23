@@ -2,6 +2,7 @@ import models from "../../models/index.js";
 import supabase from "../../config/supabase.js";
 import { sendMail } from "../../services/mailService.js";
 import { logDirectorActivity } from "../../services/activityLogService.js";
+import { Op } from "sequelize";
 
 const { DocumentRequestApproval, Document, Accounts, Director, Staff, Role, Coordinator, Department } = models;
 
@@ -507,6 +508,276 @@ export const deleteDocumentRequestApproval = async (req, res) => {
 
     } catch (error) {
         console.error('Error deleting document request approval:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: error.message
+        });
+    }
+};
+
+// Get documents by date for monitoring
+export const getDocumentsByDateForMonitoring = async (req, res) => {
+    try {
+        const { date } = req.query; // Format: YYYY-MM-DD
+
+        if (!date) {
+            return res.status(400).json({
+                success: false,
+                message: 'Date parameter is required (format: YYYY-MM-DD)'
+            });
+        }
+
+        // Parse date and create date range for the entire day
+        const startDate = new Date(date);
+        startDate.setHours(0, 0, 0, 0);
+        const endDate = new Date(date);
+        endDate.setHours(23, 59, 59, 999);
+
+        // Get all documents submitted on this date by coordinators
+        const documents = await Document.findAll({
+            where: {
+                author_type: { [Op.in]: ['coordinator', 'assistant_coordinator'] },
+                createdAt: {
+                    [Op.between]: [startDate, endDate]
+                },
+                is_public: true
+            },
+            include: [
+                {
+                    model: Accounts,
+                    include: [
+                        {
+                            model: Coordinator,
+                            required: true,
+                            include: [
+                                {
+                                    model: Department,
+                                    required: true
+                                }
+                            ]
+                        },
+                        {
+                            model: Role,
+                            required: false
+                        }
+                    ]
+                },
+                {
+                    model: DocumentRequestApproval,
+                    required: false,
+                    order: [['createdAt', 'DESC']]
+                }
+            ],
+            order: [['createdAt', 'DESC']]
+        });
+
+        // Format the response
+        const formattedDocuments = documents.map(doc => {
+            const latestApproval = doc.DocumentRequestApprovals && doc.DocumentRequestApprovals.length > 0
+                ? doc.DocumentRequestApprovals[0]
+                : null;
+
+            return {
+                document_id: doc.document_id,
+                title: doc.title,
+                category: doc.category,
+                file_type: doc.file_type,
+                public_url: supabase.storage.from('documents').getPublicUrl(doc.file_url).data.publicUrl,
+                size: doc.size,
+                createdAt: doc.createdAt,
+                coordinator: {
+                    account_id: doc.Account.account_id,
+                    coordinator_id: doc.Account.Coordinator.coordinator_id,
+                    firstname: doc.Account.Coordinator.firstname,
+                    lastname: doc.Account.Coordinator.lastname,
+                    fullname: `${doc.Account.Coordinator.firstname} ${doc.Account.Coordinator.lastname}`,
+                    department: {
+                        department_id: doc.Account.Coordinator.Department.department_id,
+                        department_name: doc.Account.Coordinator.Department.department_name
+                    }
+                },
+                approval_status: latestApproval ? latestApproval.status : 'no_request',
+                approval_request_id: latestApproval ? latestApproval.dra_id : null,
+                reviewed_at: latestApproval ? latestApproval.updatedAt : null
+            };
+        });
+
+        return res.json({
+            success: true,
+            message: 'Documents retrieved successfully',
+            data: formattedDocuments
+        });
+
+    } catch (error) {
+        console.error('Error fetching documents by date:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: error.message
+        });
+    }
+};
+
+// Get all coordinators for monitoring
+export const getAllCoordinatorsForMonitoring = async (req, res) => {
+    try {
+        const coordinators = await Accounts.findAll({
+            where: {
+                is_active: true
+            },
+            include: [
+                {
+                    model: Role,
+                    where: {
+                        name: { [Op.in]: ['coordinator', 'assistant_coordinator'] }
+                    },
+                    required: true
+                },
+                {
+                    model: Coordinator,
+                    required: true,
+                    include: [
+                        {
+                            model: Department,
+                            required: true
+                        }
+                    ]
+                }
+            ],
+            order: [
+                [{ model: Coordinator }, 'lastname', 'ASC'],
+                [{ model: Coordinator }, 'firstname', 'ASC']
+            ]
+        });
+
+        const formattedCoordinators = coordinators.map(account => ({
+            account_id: account.account_id,
+            coordinator_id: account.Coordinator.coordinator_id,
+            firstname: account.Coordinator.firstname,
+            lastname: account.Coordinator.lastname,
+            fullname: `${account.Coordinator.firstname} ${account.Coordinator.lastname}`,
+            email: account.email,
+            phone_number: account.Coordinator.phone_number,
+            department: {
+                department_id: account.Coordinator.Department.department_id,
+                department_name: account.Coordinator.Department.department_name
+            },
+            role: account.Role.name
+        }));
+
+        return res.json({
+            success: true,
+            message: 'Coordinators retrieved successfully',
+            data: formattedCoordinators
+        });
+
+    } catch (error) {
+        console.error('Error fetching coordinators:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: error.message
+        });
+    }
+};
+
+// Get calendar data with document status for each day
+export const getDocumentMonitoringCalendar = async (req, res) => {
+    try {
+        const { year, month } = req.query; // Format: YYYY, MM (1-12)
+
+        if (!year || !month) {
+            return res.status(400).json({
+                success: false,
+                message: 'Year and month parameters are required'
+            });
+        }
+
+        // Create date range for the entire month
+        const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+        const endDate = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59, 999);
+
+        // Get all documents submitted in this month by coordinators
+        const documents = await Document.findAll({
+            where: {
+                author_type: { [Op.in]: ['coordinator', 'assistant_coordinator'] },
+                createdAt: {
+                    [Op.between]: [startDate, endDate]
+                },
+                is_public: true
+            },
+            include: [
+                {
+                    model: Accounts,
+                    include: [
+                        {
+                            model: Coordinator,
+                            required: true,
+                            include: [
+                                {
+                                    model: Department,
+                                    required: true
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    model: DocumentRequestApproval,
+                    required: false,
+                    order: [['createdAt', 'DESC']]
+                }
+            ]
+        });
+
+        // Group documents by date
+        const documentsByDate = {};
+        documents.forEach(doc => {
+            const docDate = new Date(doc.createdAt);
+            const dateKey = `${docDate.getFullYear()}-${String(docDate.getMonth() + 1).padStart(2, '0')}-${String(docDate.getDate()).padStart(2, '0')}`;
+            
+            if (!documentsByDate[dateKey]) {
+                documentsByDate[dateKey] = [];
+            }
+
+            const latestApproval = doc.DocumentRequestApprovals && doc.DocumentRequestApprovals.length > 0
+                ? doc.DocumentRequestApprovals[0]
+                : null;
+
+            documentsByDate[dateKey].push({
+                document_id: doc.document_id,
+                title: doc.title,
+                coordinator_id: doc.Account.Coordinator.coordinator_id,
+                coordinator_name: `${doc.Account.Coordinator.firstname} ${doc.Account.Coordinator.lastname}`,
+                approval_status: latestApproval ? latestApproval.status : 'no_request'
+            });
+        });
+
+        // Determine day status: has pending, has approved, or no documents
+        const calendarData = {};
+        Object.keys(documentsByDate).forEach(dateKey => {
+            const dayDocs = documentsByDate[dateKey];
+            const hasPending = dayDocs.some(doc => doc.approval_status === 'pending');
+            const hasApproved = dayDocs.some(doc => doc.approval_status === 'approved');
+            
+            calendarData[dateKey] = {
+                status: hasPending ? 'pending' : (hasApproved ? 'approved' : 'no_request'),
+                document_count: dayDocs.length,
+                pending_count: dayDocs.filter(doc => doc.approval_status === 'pending').length,
+                approved_count: dayDocs.filter(doc => doc.approval_status === 'approved').length,
+                documents: dayDocs
+            };
+        });
+
+        return res.json({
+            success: true,
+            message: 'Calendar data retrieved successfully',
+            data: calendarData
+        });
+
+    } catch (error) {
+        console.error('Error fetching calendar data:', error);
         return res.status(500).json({
             success: false,
             message: 'Internal server error',

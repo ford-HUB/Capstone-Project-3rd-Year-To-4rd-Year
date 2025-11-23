@@ -246,6 +246,14 @@ const DirectorSidebarPanel = ({ sidebarCollapsed }) => {
               <div className={`mt-2.5 ml-10 text-sm bg-white overflow-hidden transition-all duration-300 ease-in-out
               ${drExpanded && !sidebarCollapsed ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
 
+                <NavLink to="/director/calendar/documents/monitoring" end className={({ isActive }) => {
+                  return `block px-3 py-2 rounded-md hover:bg-gray-50
+                  ${isActive ? 'text-blue-600 bg-gray-50 rounded-md': 'text-gray-800'}`
+                }}
+                >
+                    Documents Monitoring
+                </NavLink>
+
                 <NavLink to="/director/request-approval-document" end className={({ isActive }) => {
                   return `block px-3 py-2 rounded-md hover:bg-gray-50
                   ${isActive ? 'text-blue-600 bg-gray-50 rounded-md': 'text-gray-800'}`

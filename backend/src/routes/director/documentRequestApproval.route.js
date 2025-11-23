@@ -6,7 +6,10 @@ import {
     getDocumentRequestApprovalById,
     createDocumentRequestApproval,
     updateDocumentRequestApprovalStatus,
-    deleteDocumentRequestApproval
+    deleteDocumentRequestApproval,
+    getDocumentsByDateForMonitoring,
+    getAllCoordinatorsForMonitoring,
+    getDocumentMonitoringCalendar
 } from "../../controllers/director/documentRequestApproval.controller.js";
 
 // @ Validators
@@ -37,6 +40,11 @@ documentRequestApprovalRouter.put("/update-request-status/:dra_id", validateRequ
 
 // Delete document request approval
 documentRequestApprovalRouter.delete("/delete-request-approval/:dra_id", guard("director"), deleteDocumentRequestApproval);
+
+// Document monitoring routes
+documentRequestApprovalRouter.get("/monitoring/documents-by-date", guard("director"), getDocumentsByDateForMonitoring);
+documentRequestApprovalRouter.get("/monitoring/coordinators", guard("director"), getAllCoordinatorsForMonitoring);
+documentRequestApprovalRouter.get("/monitoring/calendar", guard("director"), getDocumentMonitoringCalendar);
 
 // Testing route
 documentRequestApprovalRouter.get("/testing", (req, res) => {
