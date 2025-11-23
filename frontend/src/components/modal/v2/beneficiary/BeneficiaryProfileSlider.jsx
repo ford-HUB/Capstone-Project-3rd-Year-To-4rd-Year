@@ -104,14 +104,6 @@ const BeneficiaryProfileSlider = ({ open, setOpen, userData }) => {
                             <span>My Registrations</span>
                             <ChevronRight className="h-6 w-6 text-green-600" />
                         </button>
-                        {/* <button onClick={() => {
-                            navigate('/beneficiary/attendance-scanner')
-                            setOpen(false)
-                        }}
-                        className="w-full flex items-center justify-between text-sm text-gray-700 py-2 px-2 rounded hover:bg-gray-50">
-                            <span>Attendance Scanner</span>
-                            <ChevronRight className="h-6 w-6 text-green-600" />
-                        </button> */}
                         <div className="mt-4 border-t border-gray-200" />
                     </div>
 
@@ -120,15 +112,6 @@ const BeneficiaryProfileSlider = ({ open, setOpen, userData }) => {
                             <Newspaper className="h-6 w-6" />
                             <span>Community</span>
                         </div>
-                        <button
-                            onClick={() => {
-                                setOpen(false);
-                                setShowTestimonialModal(true);
-                            }}
-                            className="w-full flex items-center justify-between text-sm text-gray-700 py-2 px-2 rounded hover:bg-gray-50">
-                            <span>Support System Testimonial</span>
-                            <ChevronRight className="h-6 w-6 text-green-600" />
-                        </button>
                         {[
                             {
                                 name: 'Update Profile',
@@ -156,6 +139,15 @@ const BeneficiaryProfileSlider = ({ open, setOpen, userData }) => {
                                 <ChevronRight className="h-6 w-6 text-green-600" />
                             </NavLink>
                         ))}
+                        <button
+                            onClick={() => {
+                                setOpen(false);
+                                setShowTestimonialModal(true);
+                            }}
+                            className="w-full flex items-center justify-between text-sm text-gray-700 py-2 px-2 rounded hover:bg-gray-50">
+                            <span>Support System Testimonial</span>
+                            <ChevronRight className="h-6 w-6 text-green-600" />
+                        </button>
                         <div className="mt-4 border-t border-gray-200" />
                     </div>
 
