@@ -110,10 +110,30 @@ const DonationPage = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    
+    // Handle custom amount input with validation
+    if (name === 'customAmount') {
+      // Remove any non-numeric characters except decimal point
+      let numericValue = value.replace(/[^0-9.]/g, '');
+      
+      // Prevent multiple decimal points
+      const parts = numericValue.split('.');
+      if (parts.length > 2) {
+        numericValue = parts[0] + '.' + parts.slice(1).join('');
+      }
+      
+      // Clear preset amount when custom amount is being used
+      setFormData(prev => ({
+        ...prev,
+        [name]: numericValue,
+        amount: '' // Clear preset amount when custom amount is being used
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value
+      }));
+    }
     
     // Clear error when user starts typing
     if (errors[name]) {
@@ -125,11 +145,29 @@ const DonationPage = () => {
   };
 
   const handleAmountSelect = (amount) => {
-    setFormData(prev => ({
-      ...prev,
-      amount: amount.toString(),
-      customAmount: ''
-    }));
+    if (formData.amount === amount.toString()) {
+      setFormData(prev => ({
+        ...prev,
+        amount: '',
+        customAmount: ''
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        amount: amount.toString(),
+        customAmount: '' // Clear custom amount when preset is selected
+      }));
+    }
+    
+    // Clear any errors
+    if (errors.amount || errors.customAmount) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.amount;
+        delete newErrors.customAmount;
+        return newErrors;
+      });
+    }
   };
 
   const nextStep = () => {
@@ -151,6 +189,15 @@ const DonationPage = () => {
       case 1:
         if (!formData.amount && !formData.customAmount) {
           newErrors.amount = 'Please select or enter an amount';
+        } else {
+          // Validate that the amount is greater than zero
+          const amountValue = parseFloat(formData.customAmount || formData.amount);
+          if (isNaN(amountValue) || amountValue <= 0) {
+            newErrors.amount = 'Please enter an amount greater than zero';
+            if (formData.customAmount) {
+              newErrors.customAmount = 'Amount must be greater than zero';
+            }
+          }
         }
         break;
       
