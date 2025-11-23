@@ -149,13 +149,30 @@ const AllUsersLogs = () => {
                                                                 <div className="text-xs text-gray-500">{time}</div>
                                                             </div>
                                                         </div>
-                                                        <div className="flex items-start gap-2">
+                                                        <div className="flex items-start gap-2 mb-2">
                                                             <StatusIcon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
                                                                 logGroup.mainEvent.status === 'success' ? 'text-green-500' :
                                                                 logGroup.mainEvent.status === 'failure' ? 'text-red-500' :
                                                                 'text-blue-500'
                                                             }`} />
                                                             <p className="text-sm text-gray-600">{logGroup.mainEvent.description}</p>
+                                                        </div>
+                                                        <div className="mt-2 pt-2 border-t border-gray-100">
+                                                            <div className="flex items-center gap-4 text-xs text-gray-500">
+                                                                <div className="flex items-center gap-1">
+                                                                    <User className="w-3 h-3" />
+                                                                    <span className="font-medium text-gray-700">User:</span>
+                                                                    <span>{logGroup.mainEvent.user_name || 'Unknown User'}</span>
+                                                                </div>
+                                                                {logGroup.mainEvent.user_agent && (
+                                                                    <div className="flex items-center gap-1">
+                                                                        <span className="font-medium text-gray-700">Device:</span>
+                                                                        <span className="max-w-md truncate" title={logGroup.mainEvent.user_agent}>
+                                                                            {logGroup.mainEvent.user_agent}
+                                                                        </span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>

@@ -138,7 +138,9 @@ export const groupLogsForTimeline = (logs) => {
             icon: getEventIcon(log.module, log.action),
             status: determineStatus(log.description),
             activity_log_id: log.activity_log_id,
-            role: log.role || null
+            role: log.role || null,
+            user_name: log.user_name || 'Unknown User',
+            user_agent: log.user_agent || null
         };
 
         const subEvents = [];
@@ -518,11 +520,83 @@ export const getAllUsersActivityLogs = async (options = {}) => {
         }
 
         const logs = await ActivityLog.findAll(queryOptions);
+        const logsWithNames = await Promise.all(logs.map(async (log) => {
+            const logData = log.toJSON();
+            let userName = 'Unknown User';
+
+            try {
+                const roleLower = logData.role.toLowerCase();
+                
+                if (roleLower === 'volunteer') {
+                    const volunteer = await Volunteer.findOne({
+                        where: { volunteer_id: logData.user_id },
+                        include: [{
+                            model: CampusUsers,
+                            attributes: ['firstname', 'lastname', 'middle_initial']
+                        }]
+                    });
+                    if (volunteer && volunteer.CampusUsers) {
+                        const { firstname, lastname, middle_initial } = volunteer.CampusUsers;
+                        if (firstname || lastname) {
+                            userName = `${firstname || ''} ${middle_initial ? middle_initial + '. ' : ''}${lastname || ''}`.trim();
+                        }
+                    }
+                } else if (roleLower === 'staff') {
+                    const staff = await Staff.findOne({
+                        where: { staff_id: logData.user_id },
+                        attributes: ['firstname', 'lastname', 'middle_initial']
+                    });
+                    if (staff) {
+                        const { firstname, lastname, middle_initial } = staff;
+                        if (firstname || lastname) {
+                            userName = `${firstname || ''} ${middle_initial ? middle_initial + '. ' : ''}${lastname || ''}`.trim();
+                        }
+                    }
+                } else if (roleLower === 'coordinator' || roleLower === 'assistant_coordinator') {
+                    const coordinator = await Coordinator.findOne({
+                        where: { coordinator_id: logData.user_id },
+                        attributes: ['firstname', 'lastname', 'middle_initial']
+                    });
+                    if (coordinator) {
+                        const { firstname, lastname, middle_initial } = coordinator;
+                        if (firstname || lastname) {
+                            userName = `${firstname || ''} ${middle_initial ? middle_initial + '. ' : ''}${lastname || ''}`.trim();
+                        }
+                    }
+                } else if (roleLower === 'beneficiary') {
+                    const beneficiary = await Beneficiary.findOne({
+                        where: { beneficiary_id: logData.user_id },
+                        attributes: ['firstname', 'lastname', 'middle_initial']
+                    });
+                    if (beneficiary) {
+                        const { firstname, lastname, middle_initial } = beneficiary;
+                        if (firstname || lastname) {
+                            userName = `${firstname || ''} ${middle_initial ? middle_initial + '. ' : ''}${lastname || ''}`.trim();
+                        }
+                    }
+                } else if (roleLower === 'donor') {
+                    const donor = await Donor.findOne({
+                        where: { donor_id: logData.user_id },
+                        attributes: ['fullname']
+                    });
+                    if (donor && donor.fullname) {
+                        userName = donor.fullname;
+                    }
+                }
+            } catch (error) {
+                console.error(`Error fetching user name for log ${logData.activity_log_id}:`, error.message);
+            }
+
+            return {
+                ...logData,
+                user_name: userName
+            };
+        }));
 
         return {
             success: true,
-            logs: logs.map(log => log.toJSON()),
-            total: logs.length
+            logs: logsWithNames,
+            total: logsWithNames.length
         };
     } catch (error) {
         console.error('Get all users activity logs failed:', error);
