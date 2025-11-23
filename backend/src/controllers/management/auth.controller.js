@@ -5,6 +5,7 @@ import { generateToken } from "../../utils/generateToken.js"
 import { clearJwtCookie } from "../../utils/clearJwtCookie.js"
 import { createNotification } from "../../services/notificationService.js"
 import { logManagementActivity, logActivity } from "../../services/activityLogService.js"
+import { formatRoleName } from "../../utils/requestUtils.js"
 
 
 export const setUpAccount = async (req, res) => {
@@ -170,10 +171,29 @@ export const requestApproval = async (req, res) => {
                     return res.json({ message: 'An account with this email has already been set up. Please contact the administrator if you need assistance.' })
                 }
                 
-                return res.json({ message: 'This email has already been approved. Please check your email for the setup link or contact the administrator to resend it.' })
-            }
-            
-            if (existingRequest.status === 'requesting') {
+                if (existingToken && !existingToken.used) {
+                    const now = new Date()
+                    const isTokenExpired = now > existingToken.expires_at
+                    
+                    if (isTokenExpired) {
+                        await existingRequest.update({
+                            fullname: fullname,
+                            requested_role: requested_role,
+                            reason: reason,
+                            status: 'requesting'
+                        })
+                    } else {
+                        return res.json({ message: 'This email has already been approved. Please check your email for the setup link or contact the administrator to resend it.' })
+                    }
+                } else {
+                    await existingRequest.update({
+                        fullname: fullname,
+                        requested_role: requested_role,
+                        reason: reason,
+                        status: 'requesting'
+                    })
+                }
+            } else if (existingRequest.status === 'requesting') {
                 await existingRequest.update({
                     fullname: fullname,
                     requested_role: requested_role,
@@ -198,15 +218,6 @@ export const requestApproval = async (req, res) => {
                 status: 'requesting'
             })
         }
-
-        const formatRoleName = (role) => {
-            const roleMap = {
-                'staff': 'Staff',
-                'coordinator': 'Coordinator',
-                'assistant_coordinator': 'Assistant Coordinator'
-            };
-            return roleMap[role] || role;
-        };
 
         const newNotification = await createNotification({
             type: 'event_approval',
