@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSearchParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { asset } from '../../assets/asset';
 import TestimonialsModal from '../../components/modal/TestimonialsModal';
 import { useTestimonialStore } from '../../store/guest/useTestimonialStore';
@@ -7,6 +9,8 @@ import { TESTIMONIAL_COLOR_CLASSES } from '../../constants';
 import { getBeneficiaryName, getBeneficiaryInitials, renderStars } from '../../utils/testimonialUtils';
 
 const GuestHome = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  
   const carouselImages = [
     { src: asset.groupImage, alt: 'UCLM CARES Group' },
     { src: asset.impactPic1, alt: 'Community Impact' },
@@ -53,6 +57,33 @@ const GuestHome = () => {
     getFeaturedTestimonials();
     getTestimonialsStatistics();
   }, [getFeaturedTestimonials, getTestimonialsStatistics]);
+
+  // Handle OAuth error redirects
+  useEffect(() => {
+    const error = searchParams.get('error');
+    const message = searchParams.get('message');
+    
+    if (error === 'account_already_registered' || error === 'email_already_registered') {
+      const errorMessage = message 
+        ? decodeURIComponent(message) 
+        : 'This account is already used in another registration';
+      
+      toast.error(errorMessage, {
+        duration: 5000,
+        position: 'top-center',
+        style: {
+          background: '#ef4444',
+          color: '#fff',
+          padding: '16px',
+          borderRadius: '8px',
+          fontSize: '14px',
+        },
+      });
+      
+      // Clean up URL by removing query parameters
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams]);
 
   const fadeVariants = {
     enter: {
