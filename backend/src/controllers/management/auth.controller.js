@@ -20,8 +20,18 @@ export const setUpAccount = async (req, res) => {
 
         const isTokenValid = await ApprovalToken.findOne({ where: { token: token } })
 
-        if (!isTokenValid || isTokenValid.used) {
-            return res.json({ message: 'Invalid or Already Used Token' })
+        if (!isTokenValid) {
+            return res.json({ message: 'Invalid Token' })
+        }
+
+        if (isTokenValid.used) {
+            return res.json({ message: 'Token has already been used' })
+        }
+
+        // Check if token has expired
+        const now = new Date()
+        if (now > isTokenValid.expires_at) {
+            return res.json({ message: 'Token has expired. Please request a new verification link.' })
         }
 
         const requestedInfo = await RequestApproval.findByPk(isTokenValid.ra_id)
@@ -141,22 +151,54 @@ export const requestApproval = async (req, res) => {
     try {
         const { fullname, email, requested_role, reason } = req.validatedBody
 
-        const { RequestApproval, Notification } = models
+        const { RequestApproval, Notification, Accounts, ApprovalToken } = models
 
-        const [newRequest, created] = await RequestApproval.findOrCreate({
-            where: { email: email },
-            defaults: {
+        const existingAccount = await Accounts.findOne({ where: { email: email } })
+        if (existingAccount) {
+            return res.json({ message: 'An account with this email already exists' })
+        }
+
+        const existingRequest = await RequestApproval.findOne({ where: { email: email } })
+        
+        if (existingRequest) {
+            if (existingRequest.status === 'approved') {
+                const existingToken = await ApprovalToken.findOne({ 
+                    where: { ra_id: existingRequest.ra_id } 
+                })
+                
+                if (existingToken && existingToken.used) {
+                    return res.json({ message: 'An account with this email has already been set up. Please contact the administrator if you need assistance.' })
+                }
+                
+                return res.json({ message: 'This email has already been approved. Please check your email for the setup link or contact the administrator to resend it.' })
+            }
+            
+            if (existingRequest.status === 'requesting') {
+                await existingRequest.update({
+                    fullname: fullname,
+                    requested_role: requested_role,
+                    reason: reason,
+                    status: 'requesting'
+                })
+            } else if (existingRequest.status === 'rejected') {
+                await existingRequest.update({
+                    fullname: fullname,
+                    requested_role: requested_role,
+                    reason: reason,
+                    status: 'requesting',
+                    rejection_reason: null
+                })
+            }
+        } else {
+            await RequestApproval.create({
                 email: email,
                 fullname: fullname,
                 requested_role: requested_role,
                 reason: reason,
                 status: 'requesting'
-            }
-        })
+            })
+        }
 
-        if (!created) { return res.json({ message: 'email is already requesting' }) }
-
-        // Helper function to format role names for display
         const formatRoleName = (role) => {
             const roleMap = {
                 'staff': 'Staff',
@@ -175,9 +217,8 @@ export const requestApproval = async (req, res) => {
         })
 
         if (!newNotification) { return res.json({ message: 'Failed to create notification' }) }
-        if(newRequest) {
-            return res.json({ success: true, message: 'Request submitted successfully' })
-        }
+        
+        return res.json({ success: true, message: 'Request submitted successfully' })
     } catch (error) {
         res.json({ messsage: 'Internal Server Error' })
         console.log('staff request approval controller failed: ', error.message)

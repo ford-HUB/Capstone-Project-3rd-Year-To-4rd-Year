@@ -13,11 +13,6 @@ export const ListApprovalRequest = async (req, res) => {
 
         if(getList.length === 0) { return res.json({ message: 'Request Approvals Currently Empty' }) }
 
-        // Debug: Log the structure of the first item
-        if(getList.length > 0) {
-            console.log('First request item structure:', JSON.stringify(getList[0].dataValues, null, 2));
-        }
-
         res.json({ success: true, list: getList })
 
     } catch (error) {
@@ -37,11 +32,6 @@ export const ListRejectedRequests = async (req, res) => {
 
         if(getList.length === 0) { return res.json({ message: 'Rejected Requests Currently Empty' }) }
 
-        // Debug: Log the structure of the first item
-        if(getList.length > 0) {
-            console.log('First rejected request item structure:', JSON.stringify(getList[0].dataValues, null, 2));
-        }
-
         res.json({ success: true, list: getList })
 
     } catch (error) {
@@ -59,21 +49,56 @@ export const ApprovedRequest = async (req, res) => {
         const requestedStaff = await RequestApproval.findOne({ where: { ra_id: id } })
         if(!requestedStaff) { return res.json({ message: 'requested staff not found' }) }
 
-        if(requestedStaff.status === 'approved') { return res.json({ message: 'requested email is already approved' }) }
+        const isAlreadyApproved = requestedStaff.status === 'approved'
+        
+        let existingToken = null
+        if (isAlreadyApproved) {
+            existingToken = await ApprovalToken.findOne({ 
+                where: { ra_id: requestedStaff.ra_id } 
+            })
+            
+            if (existingToken && existingToken.used) {
+                return res.json({ message: 'requested email is already approved and account has been set up' })
+            }
+            
+            if (existingToken && !existingToken.used && new Date() < existingToken.expires_at) {
+                return res.json({ message: 'requested email is already approved with an active token. Please check your email.' })
+            }
+        }
 
-        const updateRequest = await RequestApproval.update(
-            { status: "approved" },
-            { where: { ra_id: requestedStaff.ra_id } }
-        )
+        if (!isAlreadyApproved) {
+            const updateRequest = await RequestApproval.update(
+                { status: "approved" },
+                { where: { ra_id: requestedStaff.ra_id } }
+            )
 
-        if(!updateRequest) { return res.json({ message: 'status not successfully updated' }) }
+            if(!updateRequest) { return res.json({ message: 'status not successfully updated' }) }
+        }
 
         const uniqueToken = await generateUniqueToken()
+        const TWENTY_FOUR_HOURS = new Date(Date.now() + 24 * 60 * 60 * 1000)
+
+        if (existingToken && !existingToken.used) {
+            await ApprovalToken.update(
+                {
+                    token: uniqueToken,
+                    expires_at: TWENTY_FOUR_HOURS,
+                    used: false
+                },
+                { where: { at_id: existingToken.at_id } }
+            )
+        } else {
+            await ApprovalToken.create({
+                ra_id: requestedStaff.ra_id,
+                token: uniqueToken,
+                expires_at: TWENTY_FOUR_HOURS,
+                used: false
+            })
+        }
 
         const FRONTEND_URL = process.env.NODE_ENV === 'development' ? process.env.FRONT_END_URL : process.env.FRONTEND_URL_PROD
         await sendMail(requestedStaff.email, 'Verify Your Account', 'Verify Your Account Fallback', 'mailingRequestApproval.html', { email: process.env.AUTH_MAILER, token: uniqueToken, setup_link: `${FRONTEND_URL}/requested-setup-account?token=${uniqueToken}` } )
 
-        // Send approval notification email
         try {
             await notifyRequestAction(requestedStaff.email, 'APPROVED', {
                 fullname: requestedStaff.fullname,
@@ -83,20 +108,13 @@ export const ApprovedRequest = async (req, res) => {
             console.log('Approval email failed:', err.message)
         }
 
-        const FIVE_MINUTES = new Date(Date.now() + 5 * 60 * 1000) // this will set expireration to 5 minutes
+        const activityMessage = isAlreadyApproved 
+            ? `Re-sent verification token for ${requestedStaff.fullname} (${requestedStaff.requested_role}) - previous token expired`
+            : `Approved role request for ${requestedStaff.fullname} (${requestedStaff.requested_role})`
+        
+        await logDirectorActivity(req.user.account_id, 'update', 'account', activityMessage, req.ip || req.connection.remoteAddress, req.get('user-agent'));
 
-
-        await ApprovalToken.create({
-            ra_id: requestedStaff.ra_id,
-            token: uniqueToken,
-            expires_at: FIVE_MINUTES,
-            used: false
-        })
-
-        // Log activity
-        await logDirectorActivity(req.user.account_id, 'update', 'account', `Approved role request for ${requestedStaff.fullname} (${requestedStaff.requested_role})`, req.ip || req.connection.remoteAddress, req.get('user-agent'));
-
-        res.json({ success: true, message: 'status successfully updated' })
+        res.json({ success: true, message: isAlreadyApproved ? 'Verification token has been re-sent successfully' : 'status successfully updated' })
 
     } catch (error) {
         res.json({ message: 'Internal Server Error' })
@@ -119,7 +137,6 @@ export const rejectRequest = async (req, res) => {
             return res.json({ success: false, message: 'requested id not found' }) 
         }
 
-        // Update status to rejected with reason
         await RequestApproval.update(
             { 
                 status: 'rejected',
@@ -128,7 +145,6 @@ export const rejectRequest = async (req, res) => {
             { where: { ra_id: id }, transaction: t }
         )
 
-        // Remove notification
         await Notification.destroy({ 
             where: { 
                 sender_type: 'system',
@@ -139,7 +155,6 @@ export const rejectRequest = async (req, res) => {
             transaction: t 
         })
 
-        // Send rejection email
         try {
             await notifyRequestAction(isExist.email, 'REJECTED', {
                 fullname: isExist.fullname,
@@ -150,11 +165,8 @@ export const rejectRequest = async (req, res) => {
             console.log('Rejection email failed:', err.message)
         }
 
-        // Note: Notification removal from frontend state is handled by the database removal above
-
         await t.commit()
 
-        // Log activity
         await logDirectorActivity(req.user.account_id, 'update', 'account', `Rejected role request for ${isExist.fullname} (${isExist.requested_role})${reason ? ` (Reason: ${reason})` : ''}`, req.ip || req.connection.remoteAddress, req.get('user-agent'));
 
         return res.json({ success: true, message: 'Request successfully rejected' })
@@ -185,7 +197,7 @@ const notifyRequestAction = async (email, action, data) => {
             status_title: 'Request Status: Approved',
             status_description: 'You will receive a separate email with instructions to complete your account setup.',
             action_title: 'Next steps:',
-            action_text: 'Please check your email for the verification link to complete your account setup. The link will expire in 5 minutes.'
+            action_text: 'Please check your email for the verification link to complete your account setup. The link will expire in 24 hours.'
         },
         'REJECTED': {
             subject: 'Your role request has been declined',
@@ -224,19 +236,39 @@ export const AcceptRejectedRequest = async (req, res) => {
         const rejectedRequest = await RequestApproval.findOne({ where: { ra_id: id, status: 'rejected' } })
         if(!rejectedRequest) { return res.json({ success: false, message: 'rejected request not found' }) }
 
-        // Update status to approved
+        const existingToken = await ApprovalToken.findOne({ 
+            where: { ra_id: rejectedRequest.ra_id } 
+        })
+
         await RequestApproval.update(
             { status: "approved" },
             { where: { ra_id: rejectedRequest.ra_id } }
         )
 
         const uniqueToken = await generateUniqueToken()
+        const TWENTY_FOUR_HOURS = new Date(Date.now() + 24 * 60 * 60 * 1000)
 
-        // Send verification email
+        if (existingToken && !existingToken.used) {
+            await ApprovalToken.update(
+                {
+                    token: uniqueToken,
+                    expires_at: TWENTY_FOUR_HOURS,
+                    used: false
+                },
+                { where: { at_id: existingToken.at_id } }
+            )
+        } else {
+            await ApprovalToken.create({
+                ra_id: rejectedRequest.ra_id,
+                token: uniqueToken,
+                expires_at: TWENTY_FOUR_HOURS,
+                used: false
+            })
+        }
+
         const FRONTEND_URL = process.env.NODE_ENV === 'development' ? process.env.FRONT_END_URL : process.env.FRONTEND_URL_PROD
         await sendMail(rejectedRequest.email, 'Verify Your Account', 'Verify Your Account Fallback', 'mailingRequestApproval.html', { email: process.env.AUTH_MAILER, token: uniqueToken, setup_link: `${FRONTEND_URL}/requested-setup-account?token=${uniqueToken}` } )
 
-        // Send approval notification email
         try {
             await notifyRequestAction(rejectedRequest.email, 'APPROVED', {
                 fullname: rejectedRequest.fullname,
@@ -246,16 +278,6 @@ export const AcceptRejectedRequest = async (req, res) => {
             console.log('Approval email failed:', err.message)
         }
 
-        const FIVE_MINUTES = new Date(Date.now() + 5 * 60 * 1000)
-
-        await ApprovalToken.create({
-            ra_id: rejectedRequest.ra_id,
-            token: uniqueToken,
-            expires_at: FIVE_MINUTES,
-            used: false
-        })
-
-        // Log activity
         await logDirectorActivity(req.user.account_id, 'update', 'account', `Accepted previously rejected role request for ${rejectedRequest.fullname} (${rejectedRequest.requested_role})`, req.ip || req.connection.remoteAddress, req.get('user-agent'));
 
         res.json({ success: true, message: 'Rejected request successfully approved' })
