@@ -1,5 +1,6 @@
 import models from "../../models/index.js"
 import { db } from "../../config/db.js"
+import { sendMail } from "../../services/mailService.js";
 import { generateUniqueToken } from "../../utils/generatePermessionToken.js";
 import { removeNotification } from "../../socket.js";
 import { logDirectorActivity } from "../../services/activityLogService.js";
