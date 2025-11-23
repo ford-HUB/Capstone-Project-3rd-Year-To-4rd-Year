@@ -27,27 +27,25 @@ export const getAllDepartments = async (req, res) => {
 
 export const getAllDocumentsAsSubmissions = async (req, res) => {
     try {
-        const { department_id, submission_type, status, submitted_by } = req.query;
+        const { department_id, submission_type, status, submitted_by, month } = req.query;
         const accountId = req.user.account_id;
         const roleType = req.user.Role.name;
-
-        let documentWhereClause = { is_public: true };
-
-        if (submission_type) {
-            const categoryMap = {
-                'Annual': 'Annual Report',
-                'Monthly': 'Monthly Report', 
-                'Quarterly': 'Financial Statement',
-                'Special': 'Special',
-                'Compliance': 'Compliance Document'
-            };
-            if (categoryMap[submission_type]) {
-                documentWhereClause.category = categoryMap[submission_type];
+        
+        // Handle month filtering
+        let monthWhereClause = {};
+        if (month && month !== 'all') {
+            const [year, monthNum] = month.split('-');
+            if (year && monthNum) {
+                const yearInt = parseInt(year);
+                const monthInt = parseInt(monthNum);
+                const startDate = new Date(yearInt, monthInt - 1, 1, 0, 0, 0, 0);
+                const endDate = new Date(yearInt, monthInt, 0, 23, 59, 59, 999);
+                monthWhereClause = {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    }
+                };
             }
-        }
-
-        if (submitted_by) {
-            documentWhereClause.author_id = submitted_by;
         }
 
         let documentDataContainer = []
@@ -55,7 +53,11 @@ export const getAllDocumentsAsSubmissions = async (req, res) => {
         switch(roleType) {
             case 'director':
                 documentDataContainer = await Document.findAll({
-                    where: { author_type: 'coordinator', is_public: true },
+                    where: { 
+                        author_type: 'coordinator', 
+                        is_public: true,
+                        ...monthWhereClause
+                    },
                     include: [
                         {
                             model: Accounts,
@@ -80,7 +82,11 @@ export const getAllDocumentsAsSubmissions = async (req, res) => {
             
             case 'staff':
                 documentDataContainer = await Document.findAll({
-                    where: { author_type: 'coordinator', is_public: true },
+                    where: { 
+                        author_type: 'coordinator', 
+                        is_public: true,
+                        ...monthWhereClause
+                    },
                     include: [
                         {
                             model: Accounts,
@@ -119,8 +125,6 @@ export const getAllDocumentsAsSubmissions = async (req, res) => {
                 });
 
                 if (coordinatorAccount && coordinatorAccount.Coordinator && coordinatorAccount.Coordinator.Department) {
-                    console.log('Coordinator account found, fetching documents for account_id:', accountId);
-                    
                     // For assistant_coordinator, show approved documents from all coordinators in the same department
                     // For regular coordinator, show only their own documents
                     if (roleType === 'assistant_coordinator') {
@@ -144,7 +148,8 @@ export const getAllDocumentsAsSubmissions = async (req, res) => {
                             where: { 
                                 author_id: { [Op.in]: [...coordinatorIds, accountId] },
                                 author_type: 'coordinator', // Include both coordinator and assistant_coordinator documents
-                                is_public: true 
+                                is_public: true,
+                                ...monthWhereClause
                             },
                             include: [
                                 {
@@ -166,15 +171,14 @@ export const getAllDocumentsAsSubmissions = async (req, res) => {
                             ],
                             order: [['createdAt', 'DESC']]
                         });
-                        
-                        console.log('Assistant coordinator: Found documents from department coordinators:', documentDataContainer.length);
                     } else {
                         // Regular coordinator - show only their own documents
                         documentDataContainer = await Document.findAll({
                             where: { 
                                 author_id: accountId, 
                                 author_type: roleType, 
-                                is_public: true 
+                                is_public: true,
+                                ...monthWhereClause
                             },
                             include: [
                                 {
@@ -196,12 +200,9 @@ export const getAllDocumentsAsSubmissions = async (req, res) => {
                             ],
                             order: [['createdAt', 'DESC']]
                         });
-                        
-                        console.log('Regular coordinator: Found own documents:', documentDataContainer.length);
                     }
 
                     // Filter documents based on approval status
-                    console.log('Documents before filtering:', documentDataContainer.length);
                     documentDataContainer = documentDataContainer.filter(doc => {
                         const latestApproval = doc.DocumentRequestApprovals && doc.DocumentRequestApprovals.length > 0 
                             ? doc.DocumentRequestApprovals[0] 
@@ -209,24 +210,21 @@ export const getAllDocumentsAsSubmissions = async (req, res) => {
                         
                         const approvalStatus = latestApproval ? latestApproval.status : 'no_request';
                         
-                        console.log(`Document ${doc.title}: approval_status=${approvalStatus}`);
-                        
-                        // For assistant_coordinator: show approved documents and pending/no_request documents
-                        // For regular coordinator: show pending, no_request, or approved status (hide rejected)
                         if (roleType === 'assistant_coordinator') {
-                            // Show approved documents and pending/no_request documents
                             return approvalStatus === 'approved' || approvalStatus === 'pending' || approvalStatus === 'no_request';
                         } else {
-                            // Regular coordinator: show all except rejected
                             return approvalStatus !== 'rejected';
                         }
                     });
-                    console.log('Documents after filtering:', documentDataContainer.length);
                 } else {
-                    // Fallback to original logic if department not found - show all documents
-                    console.log('Coordinator account or department not found, using fallback logic');
+                    // Fallback if department not found
                     documentDataContainer = await Document.findAll({
-                        where: { author_id: accountId, author_type: roleType, is_public: true },
+                        where: { 
+                            author_id: accountId, 
+                            author_type: roleType, 
+                            is_public: true,
+                            ...monthWhereClause
+                        },
                         include: [
                             {
                                 model: Accounts,
@@ -249,28 +247,19 @@ export const getAllDocumentsAsSubmissions = async (req, res) => {
                     });
 
                     // Filter out rejected documents
-                    console.log('Fallback: Documents before filtering:', documentDataContainer.length);
                     documentDataContainer = documentDataContainer.filter(doc => {
                         const latestApproval = doc.DocumentRequestApprovals && doc.DocumentRequestApprovals.length > 0 
                             ? doc.DocumentRequestApprovals[0] 
                             : null;
                         
                         const approvalStatus = latestApproval ? latestApproval.status : 'no_request';
-                        console.log(`Fallback Document ${doc.title}: approval_status=${approvalStatus}`);
                         return approvalStatus !== 'rejected';
                     });
-                    console.log('Fallback: Documents after filtering:', documentDataContainer.length);
                 }
                 break
             
         }
 
-
-        // Debug logging
-        console.log('=== SUBMISSION CONTROLLER DEBUG ===');
-        console.log('Role type:', roleType);
-        console.log('Document count before filtering:', documentDataContainer.length);
-        
         // Convert documents to submission-like format
         const convertedSubmissions = documentDataContainer.map(doc => {
             // Map document category to submission type
@@ -418,12 +407,8 @@ export const getAllDocumentsAsSubmissions = async (req, res) => {
                 },
                 author_info: authorInfo
             };
-        }).filter(submission => submission !== null); // Remove null entries
+        }).filter(submission => submission !== null);
 
-        console.log('Final submissions count:', convertedSubmissions.length);
-        console.log('Sample submission:', convertedSubmissions[0]);
-        console.log('=== END DEBUG ===');
-        
         res.json({
             success: true,
             message: 'Documents converted to submissions successfully',

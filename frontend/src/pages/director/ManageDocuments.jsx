@@ -76,55 +76,46 @@ const ManageDocuments = () => {
     useEffect(() => {
         const loadSubmissions = async () => {
             try {
-                // Always fetch all submissions first, then filter on frontend
-                await fetchSubmissions({});
+                // Build filters object to pass to backend
+                const filters = {};
+                if (departmentFilter !== 'all') {
+                    filters.department_id = departmentFilter;
+                }
+                if (typeFilter !== 'all') {
+                    filters.submission_type = typeFilter;
+                }
+                if (statusFilter !== 'all') {
+                    filters.status = statusFilter;
+                }
+                if (monthFilter !== 'all') {
+                    filters.month = monthFilter;
+                }
+                
+                await fetchSubmissions(filters);
             } catch (error) {
                 console.error('Error loading submissions:', error);
             }
         };
         
         loadSubmissions();
-    }, [fetchSubmissions]);
+    }, [fetchSubmissions, departmentFilter, typeFilter, statusFilter, monthFilter]);
 
-    // Filter submissions based on current filters
+    // Filter submissions for search (backend handles other filters)
     const filteredSubmissions = React.useMemo(() => {
+        if (!searchTerm) {
+            return submissions;
+        }
+
+        const searchLower = searchTerm.toLowerCase();
         return submissions.filter(submission => {
-            // Department filter (for directors and staff only)
-            if (userRole === 'director' || userRole === 'staff') {
-                if (departmentFilter === 'all') {
-                    // For "All Departments", show all submissions
-                    return true;
-                } else {
-                    // Check if department matches the selected department
-                    const departmentName = submission.Department?.department_name;
-                    const selectedDept = departments.find(d => d.department_id == departmentFilter);
-                    if (!selectedDept || departmentName !== selectedDept.department_name) {
-                        return false;
-                    }
-                }
-            }
-
-            // Month filter
-            if (monthFilter !== 'all') {
-                const submissionMonth = dayjs(submission.createdAt).format('YYYY-MM');
-                if (submissionMonth !== monthFilter) {
-                    return false;
-                }
-            }
-
-            // Type filter
-            if (typeFilter !== 'all' && submission.submission_type !== typeFilter) {
-                return false;
-            }
-
-            // Status filter
-            if (statusFilter !== 'all' && submission.status !== statusFilter) {
-                return false;
-            }
-
-            return true;
+            const matchesTitle = submission.title?.toLowerCase().includes(searchLower);
+            const matchesDescription = submission.description?.toLowerCase().includes(searchLower);
+            const matchesSubmittedBy = submission.submitted_by_display?.toLowerCase().includes(searchLower);
+            const matchesDepartment = submission.Department?.department_name?.toLowerCase().includes(searchLower);
+            
+            return matchesTitle || matchesDescription || matchesSubmittedBy || matchesDepartment;
         });
-    }, [submissions, departmentFilter, typeFilter, statusFilter, monthFilter, departments, userRole]);
+    }, [submissions, searchTerm]);
 
     // Calculate submission statistics
     const submissionStats = React.useMemo(() => {

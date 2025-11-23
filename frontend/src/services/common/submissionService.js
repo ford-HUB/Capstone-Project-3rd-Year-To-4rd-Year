@@ -9,6 +9,7 @@ export const getAllDocumentsAsSubmissions = async (filters = {}) => {
         if (filters.submission_type) queryParams.append('submission_type', filters.submission_type);
         if (filters.status) queryParams.append('status', filters.status);
         if (filters.submitted_by) queryParams.append('submitted_by', filters.submitted_by);
+        if (filters.month) queryParams.append('month', filters.month);
         
         const url = queryParams.toString() 
             ? `/api/submissions/all-documents?${queryParams.toString()}`
