@@ -9,7 +9,8 @@ import {
     CreditCard,
     Package,
     History,
-    Settings
+    Settings,
+    Inbox
 } from 'lucide-react';
 import Logout from '../../Logout.jsx';
 import { NavLink } from 'react-router-dom';
@@ -163,6 +164,22 @@ const DonorProfileSlider = ({ open, setOpen, userData }) => {
                                 <ChevronRight className="h-6 w-6 text-purple-600" />
                             </button>
                         ))}
+                        <div className="mt-4 border-t border-gray-200" />
+                    </div>
+
+                    <div className="mb-6">
+                        <div className="flex items-center gap-2 text-gray-800 font-semibold text-md mb-2">
+                            <Inbox className="h-5 w-5" />
+                            <span>Activity</span>
+                        </div>
+                        <button onClick={() => {
+                            navigate('/donor/my-activity-logs')
+                            setOpen(false)
+                        }}
+                        className="w-full flex items-center justify-between text-sm text-gray-700 py-2 px-2 rounded hover:bg-gray-50">
+                            <span>My Activity Log</span>
+                            <ChevronRight className="h-6 w-6 text-purple-600" />
+                        </button>
                         <div className="mt-4 border-t border-gray-200" />
                     </div>
 

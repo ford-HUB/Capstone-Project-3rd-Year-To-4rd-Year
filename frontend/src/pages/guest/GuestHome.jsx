@@ -68,19 +68,8 @@ const GuestHome = () => {
         ? decodeURIComponent(message) 
         : 'This account is already used in another registration';
       
-      toast.error(errorMessage, {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: '#ef4444',
-          color: '#fff',
-          padding: '16px',
-          borderRadius: '8px',
-          fontSize: '14px',
-        },
-      });
+      toast.error(errorMessage);
       
-      // Clean up URL by removing query parameters
       setSearchParams({});
     }
   }, [searchParams, setSearchParams]);
