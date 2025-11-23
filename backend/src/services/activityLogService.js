@@ -1,7 +1,7 @@
 import models from "../models/index.js";
 import { Op } from "sequelize";
 
-const { ActivityLog, Role, Director, Staff, Coordinator, Volunteer, Beneficiary, Donor, Accounts } = models;
+const { ActivityLog, Role, Director, Staff, Coordinator, Volunteer, Beneficiary, Donor, Accounts, CampusUsers } = models;
 
 export const createActivityLog = async ({
     user_id,
@@ -28,7 +28,6 @@ export const createActivityLog = async ({
             activityLog: activityLog.toJSON()
         };
     } catch (error) {
-
         console.error('Create activity log failed:', error);
         return {
             success: false,
@@ -265,8 +264,18 @@ export const logDirectorActivity = async (account_id, action, module, descriptio
             return;
         }
 
+        const director = await Director.findOne({
+            where: { account_id },
+            attributes: ['director_id']
+        });
+
+        if (!director) {
+            console.warn(`Director record not found for account_id ${account_id}. Activity log skipped.`);
+            return;
+        }
+
         await createActivityLog({
-            user_id: account_id,
+            user_id: director.director_id,
             role: 'director',
             action,
             module,
@@ -278,7 +287,6 @@ export const logDirectorActivity = async (account_id, action, module, descriptio
         console.error('Failed to create activity log:', error.message);
     }
 };
-
 
 export const logActivity = async (account_id, role, action, module, description, ip_address = null, user_agent = null) => {
     try {
@@ -292,8 +300,15 @@ export const logActivity = async (account_id, role, action, module, description,
             return;
         }
 
+        const { success, user_id, error } = await getUserIdFromAccount(account_id, role);
+        
+        if (!success || !user_id) {
+            console.warn(`Failed to get user_id for account_id ${account_id} with role ${role}: ${error}. Activity log skipped.`);
+            return;
+        }
+
         await createActivityLog({
-            user_id: account_id,
+            user_id,
             role: role.toLowerCase(),
             action,
             module,
@@ -318,8 +333,15 @@ export const logManagementActivity = async (account_id, role, action, module, de
             return;
         }
 
+        const { success, user_id, error } = await getUserIdFromAccount(account_id, role);
+        
+        if (!success || !user_id) {
+            console.warn(`Failed to get user_id for account_id ${account_id} with role ${role}: ${error}. Activity log skipped.`);
+            return;
+        }
+
         await createActivityLog({
-            user_id: account_id,
+            user_id,
             role: role.toLowerCase(),
             action,
             module,
@@ -344,8 +366,28 @@ export const logParticipantActivity = async (account_id, action, module, descrip
             return;
         }
 
+        const campusUser = await CampusUsers.findOne({
+            where: { account_id },
+            attributes: ['campus_user_id']
+        });
+
+        if (!campusUser) {
+            console.warn(`CampusUsers record not found for account_id ${account_id}. Activity log skipped.`);
+            return;
+        }
+
+        const volunteer = await Volunteer.findOne({
+            where: { campus_user_id: campusUser.campus_user_id },
+            attributes: ['volunteer_id']
+        });
+
+        if (!volunteer) {
+            console.warn(`Volunteer record not found for campus_user_id ${campusUser.campus_user_id}. Activity log skipped.`);
+            return;
+        }
+
         await createActivityLog({
-            user_id: account_id,
+            user_id: volunteer.volunteer_id,
             role: 'volunteer',
             action,
             module,
@@ -370,8 +412,18 @@ export const logBeneficiaryActivity = async (account_id, action, module, descrip
             return;
         }
 
+        const beneficiary = await Beneficiary.findOne({
+            where: { account_id },
+            attributes: ['beneficiary_id']
+        });
+
+        if (!beneficiary) {
+            console.warn(`Beneficiary record not found for account_id ${account_id}. Activity log skipped.`);
+            return;
+        }
+
         await createActivityLog({
-            user_id: account_id,
+            user_id: beneficiary.beneficiary_id,
             role: 'beneficiary',
             action,
             module,
@@ -396,8 +448,18 @@ export const logDonorActivity = async (account_id, action, module, description, 
             return;
         }
 
+        const donor = await Donor.findOne({
+            where: { account_id },
+            attributes: ['donor_id']
+        });
+
+        if (!donor) {
+            console.warn(`Donor record not found for account_id ${account_id}. Activity log skipped.`);
+            return;
+        }
+
         await createActivityLog({
-            user_id: account_id,
+            user_id: donor.donor_id,
             role: 'donor',
             action,
             module,
@@ -462,20 +524,54 @@ export const getAllUsersActivityLogs = async (options = {}) => {
     }
 };
 
-
 export const getUserIdFromAccount = async (account_id, role) => {
     try {
+        const roleLower = role.toLowerCase();
+        
+        if (roleLower === 'volunteer') {
+            const campusUser = await CampusUsers.findOne({
+                where: { account_id },
+                attributes: ['campus_user_id']
+            });
+
+            if (!campusUser) {
+                return {
+                    success: false,
+                    user_id: null,
+                    error: `CampusUsers not found for account_id: ${account_id}`
+                };
+            }
+
+            const volunteer = await Volunteer.findOne({
+                where: { campus_user_id: campusUser.campus_user_id },
+                attributes: ['volunteer_id']
+            });
+
+            if (!volunteer) {
+                return {
+                    success: false,
+                    user_id: null,
+                    error: `Volunteer not found for campus_user_id: ${campusUser.campus_user_id}`
+                };
+            }
+
+            return {
+                success: true,
+                user_id: volunteer.volunteer_id,
+                error: null
+            };
+        }
+
         const roleIdMap = {
             'director': { model: Director, idField: 'director_id' },
             'staff': { model: Staff, idField: 'staff_id' },
             'coordinator': { model: Coordinator, idField: 'coordinator_id' },
             'assistant_coordinator': { model: Coordinator, idField: 'coordinator_id' },
-            'volunteer': { model: Volunteer, idField: 'volunteer_id' },
             'beneficiary': { model: Beneficiary, idField: 'beneficiary_id' },
             'donor': { model: Donor, idField: 'donor_id' }
         };
 
-        const roleConfig = roleIdMap[role.toLowerCase()];
+        const roleConfig = roleIdMap[roleLower];
         
         if (!roleConfig) {
             return {
