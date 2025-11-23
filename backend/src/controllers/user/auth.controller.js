@@ -434,7 +434,7 @@ export const checkEmailExists = async (req, res) => {
             });
         }
 
-        const { Accounts } = models;
+        const { Accounts, VerificationCodes } = models;
         
         const account = await Accounts.findOne({ 
             where: { email: email }, 
@@ -446,6 +446,35 @@ export const checkEmailExists = async (req, res) => {
                 success: true, 
                 exists: false,
                 message: 'Email not found'
+            });
+        }
+
+        if (account.is_active) {
+            return res.json({ 
+                success: true, 
+                exists: true,
+                account: {
+                    account_id: account.account_id,
+                    email: account.email,
+                    is_active: account.is_active,
+                    is_deactivated: account.is_deactivated,
+                    activeAt: account.activeAt
+                },
+                message: 'Email found'
+            });
+        }
+
+        const verificationCode = await VerificationCodes.findOne({
+            where: { account_id: account.account_id },
+            order: [['createdAt', 'DESC']]
+        });
+
+        if (verificationCode && !verificationCode.used) {
+            return res.json({ 
+                success: true, 
+                exists: false,
+                message: 'Email can be reused - previous verification code not used',
+                canReuse: true
             });
         }
 
