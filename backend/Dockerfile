@@ -35,5 +35,5 @@ COPY . .
 # Expose port
 EXPOSE 3000 8000
 
-# Railway will override with your Start Command: npm install && npm run prod
+# Railway will override this with Start Command
 CMD ["npm", "run", "prod"]
