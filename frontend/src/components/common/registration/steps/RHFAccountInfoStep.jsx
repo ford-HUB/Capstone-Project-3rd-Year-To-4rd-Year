@@ -27,6 +27,8 @@ const RHFAccountInfoStep = ({
                 exists: false,
                 valid: false,
                 checking: false,
+                message: '',
+                canReuse: false,
             });
             return;
         }
@@ -39,6 +41,8 @@ const RHFAccountInfoStep = ({
                 exists: false,
                 valid: false,
                 checking: false,
+                message: 'Please enter a valid email address',
+                canReuse: false,
             });
             return;
         }
@@ -55,8 +59,10 @@ const RHFAccountInfoStep = ({
                 setEmailValidationStatus({
                     checked: true,
                     exists: response.exists,
-                    valid: !response.exists,
+                    valid: !response.exists || response.canReuse,
                     checking: false,
+                    message: response.message,
+                    canReuse: response.canReuse || false,
                 });
             } else {
                 setEmailValidationStatus({
@@ -64,6 +70,8 @@ const RHFAccountInfoStep = ({
                     exists: false,
                     valid: false,
                     checking: false,
+                    message: response.message || 'Error checking email',
+                    canReuse: false,
                 });
             }
         } catch (error) {
@@ -73,6 +81,8 @@ const RHFAccountInfoStep = ({
                 exists: false,
                 valid: false,
                 checking: false,
+                message: 'Error checking email. Please try again.',
+                canReuse: false,
             });
         }
     };
@@ -87,6 +97,8 @@ const RHFAccountInfoStep = ({
             exists: false,
             valid: false,
             checking: false,
+            message: '',
+            canReuse: false,
         });
 
         if (!email || email.trim() === '') {
@@ -142,8 +154,10 @@ const RHFAccountInfoStep = ({
                             className={`w-full px-3 py-2 pl-10 pr-12 border rounded-md focus:outline-none focus:ring-2 ${
                                 errors.email
                                     ? 'border-red-500 focus:ring-red-500'
-                                    : emailValidationStatus.exists
+                                    : emailValidationStatus.exists && !emailValidationStatus.canReuse
                                     ? 'border-red-500 focus:ring-red-500'
+                                    : emailValidationStatus.canReuse
+                                    ? 'border-yellow-500 focus:ring-yellow-500'
                                     : emailValidationStatus.valid
                                     ? 'border-green-500 focus:ring-green-500'
                                     : 'border-gray-300 focus:ring-blue-500'
@@ -177,25 +191,24 @@ const RHFAccountInfoStep = ({
                     )}
 
                     {/* Show email status messages */}
-                    {emailValidationStatus.checked && (
+                    {emailValidationStatus.checked && emailValidationStatus.message && (
                         <div
-                            className={`rounded-md ${
-                                emailValidationStatus.exists &&
-                                'bg-red-50 border border-red-200'
+                            className={`rounded-md p-3 ${
+                                emailValidationStatus.exists && !emailValidationStatus.canReuse
+                                    ? 'bg-red-50 border border-red-200'
+                                    : emailValidationStatus.canReuse
+                                    ? 'bg-yellow-50 border border-yellow-200'
+                                    : 'bg-green-50 border border-green-200'
                             }`}>
                             <p
                                 className={`text-sm ${
-                                    emailValidationStatus.exists &&
-                                    'text-red-800'
+                                    emailValidationStatus.exists && !emailValidationStatus.canReuse
+                                        ? 'text-red-800'
+                                        : emailValidationStatus.canReuse
+                                        ? 'text-yellow-800'
+                                        : 'text-green-800'
                                 }`}>
-                                {emailValidationStatus.exists && (
-                                    <>
-                                        <span className="font-medium">
-                                            Email already exists!
-                                        </span>{' '}
-                                        Please use a different email address.
-                                    </>
-                                )}
+                                {emailValidationStatus.message}
                             </p>
                         </div>
                     )}

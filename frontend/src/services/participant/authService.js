@@ -58,7 +58,8 @@ export const checkEmailExists = async (email) => {
     return {
         success: response.data.success,
         exists: response.data.exists,
-        message: response.data.message
+        message: response.data.message,
+        canReuse: response.data.canReuse || false
     }
 }
 
