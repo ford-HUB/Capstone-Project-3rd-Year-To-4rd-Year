@@ -3,7 +3,6 @@ import dotenv from 'dotenv'
 import http from 'http'
 import { initSocket } from './socket.js'
 import { testConnection, dropTables, updateSchemaChanges } from './config/db.js'
-
 // import './cron/realtimeStatus.js'
 // import './cron/notificationPusher.js'
 // import './cron/certificateGenerator.js'
@@ -36,7 +35,7 @@ server.listen(PORT, () => {
     console.log(`server running at http://localhost:${PORT}`)
     testConnection()
     // updateSchemaChanges()
-    dropTables()
+    // dropTables()
     // simpleTest()
     // debugEmailSetup()
 })
