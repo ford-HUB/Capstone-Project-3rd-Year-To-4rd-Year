@@ -40,59 +40,129 @@ export const signup = async (req, res) => {
         const picture_id_image = req.file ? req.file.path : null;
         const { Accounts, Role, Beneficiary, Department, Course, YearLevel, CampusUsers, StrandCourse, Volunteer, VerificationCodes } = models;
 
-        // Check if email exists
-        const isEmailExist = await Accounts.findOne({ where: { email } });
-        if (isEmailExist) {
-            await t.rollback();
-            return res.status(400).json({ message: 'Your email account already exists' });
+        const existingAccount = await Accounts.findOne({ where: { email } });
+        let accountToUse = existingAccount;
+        let isNewAccount = false;
+
+        if (existingAccount) {
+            if (existingAccount.is_active) {
+                await t.rollback();
+                return res.json({ message: 'Your email account already exists and is verified' });
+            }
+
+            const existingVerificationCode = await VerificationCodes.findOne({
+                where: { account_id: existingAccount.account_id },
+                order: [['createdAt', 'DESC']]
+            });
+
+            if (existingVerificationCode && existingVerificationCode.used) {
+                await t.rollback();
+                return res.json({ message: 'Your email account already exists. Please contact support if you need assistance.' });
+            }
+
+            const now = new Date();
+            const isCodeExpired = existingVerificationCode && now > existingVerificationCode.expires_at;
+            const canReuse = !existingVerificationCode || (existingVerificationCode && !existingVerificationCode.used && isCodeExpired);
+
+            if (canReuse) {
+                accountToUse = existingAccount;
+                isNewAccount = false;
+            } else if (existingVerificationCode && !existingVerificationCode.used && !isCodeExpired) {
+                await t.rollback();
+                return res.status(400).json({ message: 'A verification code has already been sent. Please check your email or wait for it to expire.' });
+            }
+        } else {
+            isNewAccount = true;
         }
 
         const truePassword = password || confirmPassword;
         const salt = await bcrypt.genSalt(10);
         const hashPassword = await bcrypt.hash(truePassword, salt);
 
-        const newAccount = await Accounts.create({
-            email,
-            password: hashPassword,
-            is_active: false
-        }, { transaction: t });
+        let accountToUpdate;
+        if (isNewAccount) {
+            accountToUpdate = await Accounts.create({
+                email,
+                password: hashPassword,
+                is_active: false
+            }, { transaction: t });
+        } else {
+            await Accounts.update(
+                { password: hashPassword, is_active: false },
+                { where: { account_id: accountToUse.account_id }, transaction: t }
+            );
+            accountToUpdate = accountToUse;
+        }
 
         const IsBeneficiary = isBeneficiary === "true"
-
-        console.log('is beneficiary type: ', typeof IsBeneficiary)
-        console.log('is beneficiary type: ', IsBeneficiary)
         
-        await Role.create({
-            account_id: newAccount.account_id,
-            name: IsBeneficiary ? 'beneficiary' : 'volunteer',
-            description: IsBeneficiary 
-                ? 'This role allows access to beneficiary events' 
-                : 'This role allows access to volunteer events'
-        }, { transaction: t });
+        const existingRole = await Role.findOne({ where: { account_id: accountToUpdate.account_id } });
+        if (existingRole) {
+            await existingRole.update({
+                name: IsBeneficiary ? 'beneficiary' : 'volunteer',
+                description: IsBeneficiary 
+                    ? 'This role allows access to beneficiary events' 
+                    : 'This role allows access to volunteer events'
+            }, { transaction: t });
+        } else {
+            await Role.create({
+                account_id: accountToUpdate.account_id,
+                name: IsBeneficiary ? 'beneficiary' : 'volunteer',
+                description: IsBeneficiary 
+                    ? 'This role allows access to beneficiary events' 
+                    : 'This role allows access to volunteer events'
+            }, { transaction: t });
+        }
 
         if (IsBeneficiary) {
-            await Beneficiary.create({
-                account_id: newAccount.account_id,
-                firstname,
-                lastname,
-                middle_initial: middlename,
-                phone_number: phoneNumber,
-                current_address: address,
-                age,
-                gender,
-                organization_name: beneficiaryType === 'organization' ? organization_name : null
-            }, { transaction: t });
+            const existingBeneficiary = await Beneficiary.findOne({ where: { account_id: accountToUpdate.account_id } });
+            if (existingBeneficiary) {
+                await existingBeneficiary.update({
+                    firstname,
+                    lastname,
+                    middle_initial: middlename,
+                    phone_number: phoneNumber,
+                    current_address: address,
+                    age,
+                    gender,
+                    organization_name: beneficiaryType === 'organization' ? organization_name : null
+                }, { transaction: t });
+            } else {
+                await Beneficiary.create({
+                    account_id: accountToUpdate.account_id,
+                    firstname,
+                    lastname,
+                    middle_initial: middlename,
+                    phone_number: phoneNumber,
+                    current_address: address,
+                    age,
+                    gender,
+                    organization_name: beneficiaryType === 'organization' ? organization_name : null
+                }, { transaction: t });
+            }
 
-            // Generate verification code
             const uniqueCode = await generateUniqueCode();
-            const ONE_MINUTE = new Date(Date.now() + 60_000);
+            const TEN_MINUTES = new Date(Date.now() + 10 * 60 * 1000);
 
-            await VerificationCodes.create({
-                account_id: newAccount.account_id,
-                code: uniqueCode,
-                expires_at: ONE_MINUTE,
-                used: false
-            }, { transaction: t });
+            const existingVerificationCode = await VerificationCodes.findOne({
+                where: { account_id: accountToUpdate.account_id },
+                order: [['createdAt', 'DESC']]
+            });
+
+            if (existingVerificationCode && !existingVerificationCode.used) {
+                await VerificationCodes.update({
+                    code: uniqueCode,
+                    expires_at: TEN_MINUTES,
+                    used: false
+                }, { where: { vc_id: existingVerificationCode.vc_id }, transaction: t });
+            } else {
+                await VerificationCodes.create({
+                    account_id: accountToUpdate.account_id,
+                    code: uniqueCode,
+                    expires_at: TEN_MINUTES,
+                    used: false
+                }, { transaction: t });
+            }
 
             await sendMail(
                 email,
@@ -102,30 +172,28 @@ export const signup = async (req, res) => {
                 { email: process.env.AUTH_MAILER, code: uniqueCode, company_name: 'uclmcares' }
             );
 
-            await generateToken(newAccount.account_id, res);
+            await generateToken(accountToUpdate.account_id, res);
 
             await t.commit();
 
             return res.json({ 
                 success: true, 
-                message: 'Beneficiary registration successful! Please verify your email.', 
-                otp_expiration: ONE_MINUTE,
+                message: isNewAccount ? 'Beneficiary registration successful! Please verify your email.' : 'Registration updated! A new verification code has been sent to your email.', 
+                otp_expiration: TEN_MINUTES,
                 user: {
-                    account_id: newAccount.account_id,
-                    email: newAccount.email,
-                    is_active: newAccount.is_active
+                    account_id: accountToUpdate.account_id,
+                    email: accountToUpdate.email,
+                    is_active: accountToUpdate.is_active
                 }
             });
         }
 
-        // Department
         const [newDepartment] = await Department.findOrCreate({
             where: { department_name: department },
             defaults: { department_name: department },
             transaction: t
         });
 
-        // CampusUsers - Determine type based on participantType or default to 'student'
         const userType = participantType || 'student';
         
         let courseId = null
@@ -133,9 +201,7 @@ export const signup = async (req, res) => {
         let newYearLevel = null
         let volunteerYearLevelId = null
 
-        // Only lookup course and yearLevel if user is NOT staff or faculty
         if (userType !== 'staff' && userType !== 'faculty') {
-            console.log('department data: ' + department)
 
             if(department === 'Senior High Department') {
                 const [strandCourse] = await StrandCourse.findOrCreate({
@@ -153,7 +219,6 @@ export const signup = async (req, res) => {
                 courseId = regularCourse.course_id
             }
 
-            // YearLevel
             const [yearLevelRecord] = await YearLevel.findOrCreate({
                 where: { year_level: yearLevel },
                 defaults: { year_level: yearLevel },
@@ -162,7 +227,6 @@ export const signup = async (req, res) => {
             newYearLevel = yearLevelRecord;
             volunteerYearLevelId = yearLevelRecord.yl_id;
         } else {
-            // For staff/faculty, get or create a default year level for Volunteer (required field)
             const [defaultYearLevel] = await YearLevel.findOrCreate({
                 where: { year_level: '1' },
                 defaults: { year_level: '1' },
@@ -171,49 +235,95 @@ export const signup = async (req, res) => {
             volunteerYearLevelId = defaultYearLevel.yl_id;
         }
 
-        // Final values for CampusUsers and Volunteer
         const finalCourseId = (userType === 'staff' || userType === 'faculty') ? null : courseId;
         const finalStrandCourseId = (userType === 'staff' || userType === 'faculty') ? null : strandCourseId;
         const finalYearLevelId = (userType === 'staff' || userType === 'faculty') ? null : (newYearLevel ? newYearLevel.yl_id : null);
 
-        const newCampusUser = await CampusUsers.create({
-            account_id: newAccount.account_id,
-            type: userType,
-            school_number: studentId || null,
-            firstname,
-            lastname,
-            middle_initial: middlename,
-            phone_number: phoneNumber,
-            current_address: address,
-            age,
-            gender,
-            school_image_id: picture_id_image,
-            strand_course_id: finalStrandCourseId,
-            course_id: finalCourseId,
-            department_id: newDepartment.department_id,
-            yl_id: finalYearLevelId
-        }, { transaction: t });
+        const existingCampusUser = await CampusUsers.findOne({ where: { account_id: accountToUpdate.account_id } });
+        let campusUserToUse;
 
-        await Volunteer.create({
-            campus_user_id: newCampusUser.campus_user_id,
-            department_id: newDepartment.department_id,
-            course_id: finalCourseId,
-            strand_course_id: finalStrandCourseId,
-            yl_id: volunteerYearLevelId,
-            profile_image: picture_id_image,
-            is_subscribed: true
-        }, { transaction: t });
+        if (existingCampusUser) {
+            await existingCampusUser.update({
+                type: userType,
+                school_number: studentId || null,
+                firstname,
+                lastname,
+                middle_initial: middlename,
+                phone_number: phoneNumber,
+                current_address: address,
+                age,
+                gender,
+                school_image_id: picture_id_image,
+                strand_course_id: finalStrandCourseId,
+                course_id: finalCourseId,
+                department_id: newDepartment.department_id,
+                yl_id: finalYearLevelId
+            }, { transaction: t });
+            campusUserToUse = existingCampusUser;
+        } else {
+            campusUserToUse = await CampusUsers.create({
+                account_id: accountToUpdate.account_id,
+                type: userType,
+                school_number: studentId || null,
+                firstname,
+                lastname,
+                middle_initial: middlename,
+                phone_number: phoneNumber,
+                current_address: address,
+                age,
+                gender,
+                school_image_id: picture_id_image,
+                strand_course_id: finalStrandCourseId,
+                course_id: finalCourseId,
+                department_id: newDepartment.department_id,
+                yl_id: finalYearLevelId
+            }, { transaction: t });
+        }
 
-        // Generate verification code
+        const existingVolunteer = await Volunteer.findOne({ where: { campus_user_id: campusUserToUse.campus_user_id } });
+        if (existingVolunteer) {
+            await existingVolunteer.update({
+                department_id: newDepartment.department_id,
+                course_id: finalCourseId,
+                strand_course_id: finalStrandCourseId,
+                yl_id: volunteerYearLevelId,
+                profile_image: picture_id_image,
+                is_subscribed: true
+            }, { transaction: t });
+        } else {
+            await Volunteer.create({
+                campus_user_id: campusUserToUse.campus_user_id,
+                department_id: newDepartment.department_id,
+                course_id: finalCourseId,
+                strand_course_id: finalStrandCourseId,
+                yl_id: volunteerYearLevelId,
+                profile_image: picture_id_image,
+                is_subscribed: true
+            }, { transaction: t });
+        }
+
         const uniqueCode = await generateUniqueCode();
-        const FIVE_MINUTES = new Date(Date.now() + 5 * 60_000);
+        const TEN_MINUTES = new Date(Date.now() + 10 * 60 * 1000);
 
-        await VerificationCodes.create({
-            account_id: newAccount.account_id,
-            code: uniqueCode,
-            expires_at: FIVE_MINUTES,
-            used: false
-        }, { transaction: t });
+        const existingVerificationCode = await VerificationCodes.findOne({
+            where: { account_id: accountToUpdate.account_id },
+            order: [['createdAt', 'DESC']]
+        });
+
+        if (existingVerificationCode && !existingVerificationCode.used) {
+            await VerificationCodes.update({
+                code: uniqueCode,
+                expires_at: TEN_MINUTES,
+                used: false
+            }, { where: { vc_id: existingVerificationCode.vc_id }, transaction: t });
+        } else {
+            await VerificationCodes.create({
+                account_id: accountToUpdate.account_id,
+                code: uniqueCode,
+                expires_at: TEN_MINUTES,
+                used: false
+            }, { transaction: t });
+        }
 
         await sendMail(
             email,
@@ -223,23 +333,22 @@ export const signup = async (req, res) => {
             { email: process.env.AUTH_MAILER, code: uniqueCode, company_name: 'uclmcares' }
         );
 
-        await generateToken(newAccount.account_id, res);
+        await generateToken(accountToUpdate.account_id, res);
 
         await t.commit();
 
         res.json({ 
             success: true, 
-            message: 'Volunteer registration successful! Please verify your email.', 
-            otp_expiration: FIVE_MINUTES,
+            message: isNewAccount ? 'Volunteer registration successful! Please verify your email.' : 'Registration updated! A new verification code has been sent to your email.', 
+            otp_expiration: TEN_MINUTES,
             user: {
-                account_id: newAccount.account_id,
-                email: newAccount.email,
-                is_active: newAccount.is_active
+                account_id: accountToUpdate.account_id,
+                email: accountToUpdate.email,
+                is_active: accountToUpdate.is_active
             }
         });
 
     } catch (error) {
-        // Rollback transaction if it hasn't been committed
         await t.rollback();
         console.error('Sign up controller failed:', error);
         res.json({ message: 'Internal Server Error' });
@@ -327,10 +436,9 @@ export const checkEmailExists = async (req, res) => {
 
         const { Accounts } = models;
         
-        // Check if email exists (including soft-deleted records)
         const account = await Accounts.findOne({ 
             where: { email: email }, 
-            paranoid: false // include soft-deleted records
+            paranoid: false
         })
         
         if (!account) {
@@ -424,7 +532,6 @@ export const forgotPassword = async (req, res) => {
             });
         }
 
-        // Check if account is deactivated
         if (accountData.is_deactivated) {
             return res.json({ 
                 success: false, 
@@ -432,13 +539,9 @@ export const forgotPassword = async (req, res) => {
             });
         }
 
-        // Generate a unique reset token
         const resetToken = await generateUniqueCode();
+        const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
         
-        // Set expiration time (1 hour from now)
-        const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-        
-        // Store reset token in database
         await ResetPassword.create({
             account_id: accountData.account_id,
             reset_token: resetToken,
@@ -448,7 +551,6 @@ export const forgotPassword = async (req, res) => {
             user_agent: req.get('User-Agent')
         });
         
-        // Send reset email
         await sendMail(
             email,
             'Password Reset Request - UCLM CARES',
@@ -507,7 +609,6 @@ export const resetPassword = async (req, res) => {
             });
         }
 
-        // Check if token is expired
         if (new Date() > resetRecord.expires_at) {
             return res.json({ 
                 success: false, 
@@ -515,17 +616,14 @@ export const resetPassword = async (req, res) => {
             });
         }
 
-        // Hash the new password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(newPassword, salt);
         
-        // Update the password
         await Accounts.update(
             { password: hashedPassword },
             { where: { account_id: account.account_id } }
         );
 
-        // Mark the reset token as used
         await ResetPassword.update(
             { 
                 used: true,
@@ -605,10 +703,8 @@ export const VerifyCode = async (req, res) => {
         const updateStatus = await VerificationCodes.update({ used: true }, { where: { vc_id: isMatch.vc_id } })
         if(!updateStatus) { return res.json({ success: false, message: 'verification code is not successfully updated the status' }) }
 
-        // Activate the account after successful verification
         await Accounts.update({ is_active: true }, { where: { account_id: accountId } });
 
-        // Return user data for local storage
         const user = await Accounts.findOne({ 
             where: { account_id: accountId },
             attributes: { exclude: ['password'] }
@@ -646,12 +742,12 @@ export const reSendCode = async (req, res) => {
         const uniqueCode = await generateUniqueCode()
         await sendMail(user.email, 'Verify Your Account', 'Verify Your Account Fallback', 'mailingTemplate.html', { email: process.env.AUTH_MAILER, code: uniqueCode, company_name: 'uclmcares' })
 
-        const FIVE_MINUTES = new Date(Date.now() + 5 * 60 * 1000) // this will set expireration to 5 minutes
+        const TEN_MINUTES = new Date(Date.now() + 10 * 60 * 1000)
 
         await VerificationCodes.update({
             account_id: accountId,
             code: uniqueCode,
-            expires_at: FIVE_MINUTES,
+            expires_at: TEN_MINUTES,
             used: false
         }, { 
             where: {
@@ -659,11 +755,10 @@ export const reSendCode = async (req, res) => {
             }
         })
 
-        // Return user data for local storage
         res.json({ 
             success: true, 
             message: "New OTP sent to your email", 
-            otp_expiration: FIVE_MINUTES,
+            otp_expiration: TEN_MINUTES,
             user: {
                 account_id: user.account_id,
                 email: user.email,
@@ -683,12 +778,6 @@ export const checkAuth = async (req, res) => {
             console.error('checkAuth: No user found in request');
             return res.status(401).json({ success: false, message: 'Unauthorized' });
         }
-        
-        console.log('checkAuth: User authenticated:', {
-            account_id: req.user.account_id,
-            email: req.user.email,
-            role: req.user.Role?.name
-        });
         
         res.json({success: true, message: 'user authenticated', user: req.user})
     } catch (error) {

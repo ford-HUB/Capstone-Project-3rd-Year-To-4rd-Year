@@ -127,13 +127,13 @@ export const updateEmailAccount = async (req, res) => {
 
         if(!emailValid) { return res.json({ message: 'your account is not found' }) }
         
-        const FIVE_MINUTES = new Date(Date.now() + 5 * 60 * 1000) 
+        const TEN_MINUTES = new Date(Date.now() + 10 * 60 * 1000) 
 
         const uniqueCode = await generateUniqueCode()
         const newVerficationCode = await VerificationCodes.update(
             {
                 code: uniqueCode,
-                expires_at: FIVE_MINUTES,
+                expires_at: TEN_MINUTES,
                 used: false
             },
             { where: { account_id: account_id } }
@@ -151,7 +151,7 @@ export const updateEmailAccount = async (req, res) => {
 
         await logParticipantActivity(account_id, 'update', 'account', `Updated account email to ${confirmedEmail}`, req.ip || req.connection.remoteAddress, req.get('user-agent'));
 
-        return res.json({ success: true, message: "New OTP sent to your email", otp_expiration: FIVE_MINUTES })
+        return res.json({ success: true, message: "New OTP sent to your email", otp_expiration: TEN_MINUTES })
 
     } catch (error) {
         res.json({ success: false, message: 'Internal Server Error' })
