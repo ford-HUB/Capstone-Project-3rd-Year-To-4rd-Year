@@ -56,10 +56,11 @@ const dropTables = async () => {
 
 const updateSchemaChanges = async () => {
   try {
-    await db.sync();
+    await db.sync({ alter: true });
     console.log("Schema synchronized");
   } catch (error) {
     console.error("Schema update failed:", error.message);
+    console.error("Full error:", error);
   }
 };
 
