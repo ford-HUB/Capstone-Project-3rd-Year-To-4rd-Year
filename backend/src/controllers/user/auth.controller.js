@@ -445,7 +445,7 @@ export const checkEmailExists = async (req, res) => {
             return res.json({ 
                 success: true, 
                 exists: false,
-                message: 'Email not found'
+                message: 'Email is available'
             });
         }
 
@@ -460,7 +460,7 @@ export const checkEmailExists = async (req, res) => {
                     is_deactivated: account.is_deactivated,
                     activeAt: account.activeAt
                 },
-                message: 'Email found'
+                message: 'Email is already verified - please directly login'
             });
         }
 
@@ -488,7 +488,7 @@ export const checkEmailExists = async (req, res) => {
                 is_deactivated: account.is_deactivated,
                 activeAt: account.activeAt
             },
-            message: 'Email found'
+            message: 'This email is already registered. Please use a different email address or contact support@uclmcares.online'
         });
     } catch (error) {
         console.error('checkEmailExists controller failed:', error.message);
