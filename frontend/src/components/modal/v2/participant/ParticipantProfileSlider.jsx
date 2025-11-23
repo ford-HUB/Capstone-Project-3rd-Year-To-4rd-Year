@@ -123,7 +123,7 @@ const ParticipantProfileSlider = ({ open, setOpen, userData }) => {
                             },
                             {
                                 name: 'My Activity Logs',
-                                path: '/participant/my-activity-logd'
+                                path: '/participant/my-activity-logs'
                             }
                         ].map((item, _i) => (
                             <NavLink
