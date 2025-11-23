@@ -35,8 +35,15 @@ const VerificationCode = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const inputRefs = useRef([]);
+    const intervalRef = useRef(null);
 
     React.useEffect(() => {
+        // Clear any existing interval
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+        }
+
         if (!otp_expiration) {
             setTimeLeft(0);
             setShowResend(true);
@@ -52,8 +59,6 @@ const VerificationCode = () => {
         }
 
         setShowResend(false);
-        setTimeLeft(0);
-        let intervalId;
 
         const updateTimer = () => {
             const now = Date.now();
@@ -62,17 +67,26 @@ const VerificationCode = () => {
             if (diff <= 0) {
                 setTimeLeft(0);
                 setShowResend(true);
-                if (intervalId) clearInterval(intervalId);
+                if (intervalRef.current) {
+                    clearInterval(intervalRef.current);
+                    intervalRef.current = null;
+                }
             } else {
                 setTimeLeft(Math.floor(diff / 1000));
             }
         };
 
+        // Initial update
         updateTimer();
-        intervalId = setInterval(updateTimer, 1000);
+        
+        // Set up interval
+        intervalRef.current = setInterval(updateTimer, 1000);
         
         return () => {
-            if (intervalId) clearInterval(intervalId);
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            }
         };
     }, [otp_expiration]);
 
@@ -181,21 +195,31 @@ const VerificationCode = () => {
         setOtp(['', '', '', '', '', '', '']);
         setError('');
         setIsSuccess(false);
-        setShowResend(false);
-        setResendLoading(true)
+        setResendLoading(true);
         inputRefs.current[0]?.focus();
         
-        // Pass rq_access for donor resend
-        const success = isDonor 
-            ? await resendCode(rq_access)
-            : await resendCode();
+        try {
+            // Pass rq_access for donor resend
+            const success = isDonor 
+                ? await resendCode(rq_access)
+                : await resendCode();
+                
+            if(!success) {
+                setShowResend(true);
+                setResendLoading(false);
+                return;
+            }
             
-        if(!success) {
-            setResendLoading(false)
-            return
+            // Only hide resend button after successful resend
+            // The timer will restart automatically when otp_expiration updates via useEffect
+            setShowResend(false);
+            setResendLoading(false);
+        } catch (error) {
+            console.error('Resend code error:', error);
+            setShowResend(true);
+            setResendLoading(false);
+            setError('Failed to resend code. Please try again.');
         }
-        
-        setResendLoading(false)
     };
 
     const handleContinue = () => {
