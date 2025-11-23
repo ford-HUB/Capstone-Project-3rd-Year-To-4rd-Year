@@ -13,7 +13,7 @@ const accountDirector = async () => {
         } = models
 
         let salt = await bcrypt.genSalt(10)
-        const hashPassword = bcrypt.hash(process.env.DIRECTOR_PASS_ACCESS, salt)
+        const hashPassword = await bcrypt.hash(process.env.DIRECTOR_PASS_ACCESS, salt)
 
         const director = await Accounts.create({
             email: process.env.DIRECTOR_EMAIL_ACCESS,
