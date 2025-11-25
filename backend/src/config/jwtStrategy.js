@@ -6,10 +6,8 @@ dotenv.config()
 
 const options = {
     jwtFromRequest: ExtractJwt.fromExtractors([
-        // Check cookies first (primary auth method for non-donor users)
         (req) => {
             const cookieToken = req?.cookies?.jwt;
-            // Log for attendance endpoints to debug 401 errors
             if (req?.path?.includes('/api/attendance/')) {
                 console.log('[JWT Extractor] Cookie check for attendance:', {
                     path: req.path,
@@ -26,7 +24,6 @@ const options = {
             }
             return cookieToken;
         },
-        // Check Authorization header (for donor endpoints)
         (req) => {
             const authHeaderExtractor = ExtractJwt.fromAuthHeaderAsBearerToken();
             const token = authHeaderExtractor(req);
@@ -38,7 +35,6 @@ const options = {
             }
             return token;
         },
-        // Check query token (skip for attendance endpoints - they have QR tokens in query)
         (req) => {
             // Skip query token extraction for attendance endpoints
             // They use 'token' query param for QR codes, not JWT tokens
