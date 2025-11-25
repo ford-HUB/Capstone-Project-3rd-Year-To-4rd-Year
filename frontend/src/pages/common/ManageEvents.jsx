@@ -14,9 +14,8 @@ import { useDonationStore } from '../../store/donation/useDonationStore.js';
 import { useAuthStore as useAuthManagementStore } from '../../store/management/useAuthStore.js';
 import { useProfileStore as useManagementProfileStore } from '../../store/management/useProfileStore.js';
 
-// Default organizer avatar image
 const getDefaultOrganizerAvatar = () => {
-  return 'https://ui-avatars.com/api/?name=Organizer&background=6366f1&color=fff&size=128';
+  return '';
 };
 
 const ManageEvents = () => {
@@ -193,14 +192,12 @@ const ManageEvents = () => {
   };
 
   const handleEditEvent = (event) => {
-    // Ensure we have all the necessary fields for EditEvent
     const rawEvent = event.rawEvent || event;
     const eventForEdit = {
       ...event,
       ...rawEvent,
       id: event.id || event.event_id,
       event_id: event.event_id || event.id,
-      // Format date for EditEvent (MM/DD/YYYY format)
       date: rawEvent.event_started 
         ? dayjs(rawEvent.event_started).format('MM/DD/YYYY')
         : event.date ? dayjs(event.date, 'DD/MM/YYYY').format('MM/DD/YYYY') : '',
@@ -503,7 +500,7 @@ const ManageEvents = () => {
                     <p className="text-gray-500">No events found</p>
                     <button
                       onClick={() => setShowCreateModal(true)}
-                      className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                      className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                     >
                       Create Your First Event
                     </button>
@@ -526,7 +523,7 @@ const ManageEvents = () => {
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <img
-                          src={getDefaultOrganizerAvatar()}
+                          src={'https://ui-avatars.com/api/?name=Organizer&background=6366f1&color=fff&size=128'}
                           alt={event.organizer}
                           className="w-8 h-8 rounded-full object-cover"
                           onError={(e) => {
@@ -583,7 +580,6 @@ const ManageEvents = () => {
           </table>
         </div>
 
-        {/* Pagination */}
         {filteredEvents.length > 0 && totalPages > 1 && (
           <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
             <div className="flex items-center justify-between">
@@ -637,15 +633,12 @@ const ManageEvents = () => {
         )}
       </div>
 
-      {/* Dropdown menu - rendered outside table to avoid clipping */}
       {openActionMenu && filteredEvents.find(e => e.id === openActionMenu) && (
         <>
-          {/* Backdrop to close menu when clicking outside */}
           <div
             className="fixed inset-0 z-40"
             onClick={() => setOpenActionMenu(null)}
           />
-          {/* Dropdown menu - using fixed positioning */}
           <div 
             className="fixed w-auto bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1"
             style={{
@@ -707,7 +700,6 @@ const ManageEvents = () => {
         </>
       )}
 
-      {/* Modals */}
       {showCreateModal && (
         <CreateEvent
           onClose={() => setShowCreateModal(false)}

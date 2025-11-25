@@ -336,7 +336,6 @@ export const generateCertificateBatch = async (event, category, department, batc
                     cert_title: event.title,
                 });
 
-                // Create notification and mail for the participant
                 try {
                     await createCertificateNotification({
                         certificate_id: certificate.certificate_id,

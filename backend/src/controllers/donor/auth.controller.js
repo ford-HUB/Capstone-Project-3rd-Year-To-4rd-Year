@@ -62,7 +62,7 @@ export const signup = async (req, res) => {
             used: false
         }, { transaction: t })
         
-        // await sendMail(email, 'Verify Your Account', 'Verify Your Account Fallback', 'mailingTemplate.html', { email: process.env.AUTH_MAILER, code: uniqueCode, company_name: 'uclmcares' })
+        await sendMail(email, 'Verify Your Account', 'Verify Your Account Fallback', 'mailingTemplate.html', { email: process.env.AUTH_MAILER, code: uniqueCode, company_name: 'uclmcares' })
         
         await generateToken(newAccount.account_id, res)
         
@@ -72,7 +72,6 @@ export const signup = async (req, res) => {
 
 
     } catch (error) {
-        // Rollback transaction if it hasn't been committed
         await t.rollback()
         res.json({ message: 'Internal Server Error' })
         console.log('signup donor failed:', error.message)

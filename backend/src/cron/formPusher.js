@@ -73,19 +73,16 @@ cron.schedule('0 */5 * * * *', async () => {
                     }
                 })
 
-                // Skip if no form link found or already mailed
                 if (!eventFormLinkRecord) {
                     console.log(`No pending form link found for event: ${attendance.Event.title}`);
                     continue;
                 }
 
-                // Get participant details
                 const participantEmail = eventRegisteredParticipant?.Volunteer?.CampusUser?.Account.email;
                 const participantName = `${eventRegisteredParticipant?.Volunteer?.CampusUser?.firstname} ${eventRegisteredParticipant?.Volunteer?.CampusUser?.lastname}`;
                 const eventName = attendance.Event.title;
                 const googleFormLink = eventFormLinkRecord.form_link;
 
-                // Send the email
                 await sendMail(
                     participantEmail,
                     `Event Evaluation Form - ${eventName}`,
@@ -98,7 +95,6 @@ cron.schedule('0 */5 * * * *', async () => {
                     }
                 );
 
-                // Update the form_mail_sent flag to prevent repeated sending
                 await FormLink.update(
                     { form_mail_sent: true },
                     { where: { formlink_id: eventFormLinkRecord.formlink_id } }
