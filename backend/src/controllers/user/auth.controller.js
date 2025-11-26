@@ -142,7 +142,7 @@ export const signup = async (req, res) => {
             }
 
             const uniqueCode = await generateUniqueCode();
-            const TEN_MINUTES = new Date(Date.now() + 10 * 60 * 1000);
+            const FIVE_MINUTES = new Date(Date.now() + 5 * 60 * 1000);
 
             const existingVerificationCode = await VerificationCodes.findOne({
                 where: { account_id: accountToUpdate.account_id },
@@ -152,14 +152,14 @@ export const signup = async (req, res) => {
             if (existingVerificationCode && !existingVerificationCode.used) {
                 await VerificationCodes.update({
                     code: uniqueCode,
-                    expires_at: TEN_MINUTES,
+                    expires_at: FIVE_MINUTES,
                     used: false
                 }, { where: { vc_id: existingVerificationCode.vc_id }, transaction: t });
             } else {
                 await VerificationCodes.create({
                     account_id: accountToUpdate.account_id,
                     code: uniqueCode,
-                    expires_at: TEN_MINUTES,
+                    expires_at: FIVE_MINUTES,
                     used: false
                 }, { transaction: t });
             }
@@ -179,7 +179,7 @@ export const signup = async (req, res) => {
             return res.json({ 
                 success: true, 
                 message: isNewAccount ? 'Beneficiary registration successful! Please verify your email.' : 'Registration updated! A new verification code has been sent to your email.', 
-                otp_expiration: TEN_MINUTES,
+                otp_expiration: FIVE_MINUTES,
                 user: {
                     account_id: accountToUpdate.account_id,
                     email: accountToUpdate.email,
@@ -303,7 +303,7 @@ export const signup = async (req, res) => {
         }
 
         const uniqueCode = await generateUniqueCode();
-        const TEN_MINUTES = new Date(Date.now() + 10 * 60 * 1000);
+        const FIVE_MINUTES = new Date(Date.now() + 5 * 60 * 1000);
 
         const existingVerificationCode = await VerificationCodes.findOne({
             where: { account_id: accountToUpdate.account_id },
@@ -313,14 +313,14 @@ export const signup = async (req, res) => {
         if (existingVerificationCode && !existingVerificationCode.used) {
             await VerificationCodes.update({
                 code: uniqueCode,
-                expires_at: TEN_MINUTES,
+                expires_at: FIVE_MINUTES,
                 used: false
             }, { where: { vc_id: existingVerificationCode.vc_id }, transaction: t });
         } else {
             await VerificationCodes.create({
                 account_id: accountToUpdate.account_id,
                 code: uniqueCode,
-                expires_at: TEN_MINUTES,
+                expires_at: FIVE_MINUTES,
                 used: false
             }, { transaction: t });
         }
@@ -340,7 +340,7 @@ export const signup = async (req, res) => {
         res.json({ 
             success: true, 
             message: isNewAccount ? 'Volunteer registration successful! Please verify your email.' : 'Registration updated! A new verification code has been sent to your email.', 
-            otp_expiration: TEN_MINUTES,
+            otp_expiration: FIVE_MINUTES,
             user: {
                 account_id: accountToUpdate.account_id,
                 email: accountToUpdate.email,
@@ -771,12 +771,12 @@ export const reSendCode = async (req, res) => {
         const uniqueCode = await generateUniqueCode()
         await sendMail(user.email, 'Verify Your Account', 'Verify Your Account Fallback', 'mailingTemplate.html', { email: process.env.AUTH_MAILER, code: uniqueCode, company_name: 'uclmcares' })
 
-        const TEN_MINUTES = new Date(Date.now() + 10 * 60 * 1000)
+        const FIVE_MINUTES = new Date(Date.now() + 5 * 60 * 1000)
 
         await VerificationCodes.update({
             account_id: accountId,
             code: uniqueCode,
-            expires_at: TEN_MINUTES,
+            expires_at: FIVE_MINUTES,
             used: false
         }, { 
             where: {
@@ -787,7 +787,7 @@ export const reSendCode = async (req, res) => {
         res.json({ 
             success: true, 
             message: "New OTP sent to your email", 
-            otp_expiration: TEN_MINUTES,
+            otp_expiration: FIVE_MINUTES,
             user: {
                 account_id: user.account_id,
                 email: user.email,

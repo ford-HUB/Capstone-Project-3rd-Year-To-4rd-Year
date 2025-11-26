@@ -53,12 +53,12 @@ export const signup = async (req, res) => {
 
         // Generate verification code
         const uniqueCode = await generateUniqueCode()
-        const TEN_MINUTES = new Date(Date.now() + 10 * 60 * 1000) // this will set expiration to 10 minutes
+        const FIVE_MINUTES = new Date(Date.now() + 5 * 60 * 1000) // this will set expiration to 5 minutes
         
         await VerificationCodes.create({
             account_id: newAccount.account_id,
             code: uniqueCode,
-            expires_at: TEN_MINUTES, 
+            expires_at: FIVE_MINUTES, 
             used: false
         }, { transaction: t })
         
@@ -68,7 +68,7 @@ export const signup = async (req, res) => {
         
         await t.commit()
         
-        res.json({ success: true, message: "Account Successfully Registered", otp_expiration: TEN_MINUTES })
+        res.json({ success: true, message: "Account Successfully Registered", otp_expiration: FIVE_MINUTES })
 
 
     } catch (error) {
@@ -215,12 +215,12 @@ export const reSendCode = async (req, res) => {
         const uniqueCode = await generateUniqueCode()
         await sendMail(user.email, 'Verify Your Account', 'Verify Your Account Fallback', 'mailingTemplate.html', { email: process.env.AUTH_MAILER, code: uniqueCode, company_name: 'uclmcares' })
 
-        const TEN_MINUTES = new Date(Date.now() + 10 * 60 * 1000) // this will set expiration to 10 minutes
+        const FIVE_MINUTES = new Date(Date.now() + 5 * 60 * 1000) // this will set expiration to 5 minutes
 
         await VerificationCodes.update({
             account_id: user.account_id,
             code: uniqueCode,
-            expires_at: TEN_MINUTES,
+            expires_at: FIVE_MINUTES,
             used: false
         }, { 
             where: {
@@ -228,7 +228,7 @@ export const reSendCode = async (req, res) => {
             }
         })
 
-        res.json({ success: true, message: "New OTP sent to your email", otp_expiration: TEN_MINUTES })
+        res.json({ success: true, message: "New OTP sent to your email", otp_expiration: FIVE_MINUTES })
         
     } catch (error) {
         res.status(500).json({ message: 'Internal Server Error' })
