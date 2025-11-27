@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Filter, CheckSquare, Square, Users, Calendar, MapPin, Printer } from 'lucide-react';
 import { useBeneficiaryRecordsStore } from '../../store/director/useBeneficiaryRecordsStore.js';
-import { apiInstance } from '../../api/_base.js';
+import { useEventStore } from '../../store/director/useEventStore.js';
 import toast from 'react-hot-toast';
 import jsPDF from 'jspdf';
+import { formatDate, formatDateTime } from '../../utils/dateUtils.js';
+import { asset } from '../../assets/asset.jsx';
 
 const BeneficiaryRecords = () => {
     const { 
@@ -12,31 +14,21 @@ const BeneficiaryRecords = () => {
         isLoading 
     } = useBeneficiaryRecordsStore();
 
-    const [events, setEvents] = useState([]);
+    const {
+        events,
+        fetchAllEvents,
+        isLoading: isLoadingEvents
+    } = useEventStore();
+
     const [selectedEventId, setSelectedEventId] = useState('');
     const [selectedBeneficiaries, setSelectedBeneficiaries] = useState(new Set());
     const [searchTerm, setSearchTerm] = useState('');
-    const [isLoadingEvents, setIsLoadingEvents] = useState(false);
     const reportButtonRef = useRef(null);
 
     // Fetch events for dropdown
     useEffect(() => {
-        const fetchEvents = async () => {
-            setIsLoadingEvents(true);
-            try {
-                const response = await apiInstance.get('/api/event/list-event');
-                if (response.data.success) {
-                    setEvents(response.data.list || []);
-                }
-            } catch (error) {
-                console.error('Failed to fetch events:', error);
-                toast.error('Failed to load events');
-            } finally {
-                setIsLoadingEvents(false);
-            }
-        };
-        fetchEvents();
-    }, []);
+        fetchAllEvents();
+    }, [fetchAllEvents]);
 
     // Fetch beneficiary records
     useEffect(() => {
@@ -88,30 +80,32 @@ const BeneficiaryRecords = () => {
         }
     };
 
-    // Format date
-    const formatDate = (dateString) => {
-        if (!dateString) return 'N/A';
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    };
 
-    // Format date and time
-    const formatDateTime = (dateString) => {
-        if (!dateString) return 'N/A';
-        return new Date(dateString).toLocaleString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+    // Helper function to convert image to base64
+    const getImageBase64 = (imagePath) => {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                try {
+                    const base64 = canvas.toDataURL('image/png');
+                    resolve(base64);
+                } catch (error) {
+                    reject(error);
+                }
+            };
+            img.onerror = () => resolve(null); // Return null on error instead of rejecting
+            img.src = imagePath;
         });
     };
 
     // Generate PDF Report
-    const generatePDFReport = () => {
+    const generatePDFReport = async () => {
         if (selectedBeneficiaries.size === 0) {
             toast.error('Please select at least one beneficiary to generate a report');
             return;
@@ -139,6 +133,12 @@ const BeneficiaryRecords = () => {
             groupedByEvent[eventId].beneficiaries.push(record);
         });
 
+        // Load images
+        const [uclmCaresLogo, uclmLogo] = await Promise.all([
+            getImageBase64(asset.logo),
+            getImageBase64(asset.uclmLogo)
+        ]);
+
         // Create PDF
         const pdf = new jsPDF('p', 'mm', 'a4');
         const pageWidth = pdf.internal.pageSize.getWidth();
@@ -156,16 +156,44 @@ const BeneficiaryRecords = () => {
             return false;
         };
 
-        // Header
-        pdf.setFontSize(20);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text('Beneficiary Records Report', pageWidth / 2, yPosition, { align: 'center' });
-        yPosition += 10;
+        // Header with logos
+        const headerHeight = 25;
+        const logoSize = 15; // mm
+        const logoY = yPosition;
+        
+        // Left logo (UCLMCARES)
+        if (uclmCaresLogo) {
+            try {
+                pdf.addImage(uclmCaresLogo, 'PNG', margin, logoY, logoSize, logoSize);
+            } catch (error) {
+                console.error('Failed to add UCLMCARES logo:', error);
+            }
+        }
 
-        pdf.setFontSize(12);
+        // Center title and date
+        pdf.setFontSize(18);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Beneficiary Records Report', pageWidth / 2, logoY + 8, { align: 'center' });
+        
+        pdf.setFontSize(10);
         pdf.setFont('helvetica', 'normal');
-        pdf.text(`Generated on: ${new Date().toLocaleString('en-US')}`, pageWidth / 2, yPosition, { align: 'center' });
-        yPosition += 15;
+        pdf.text(`Generated on: ${new Date().toLocaleString('en-US')}`, pageWidth / 2, logoY + 14, { align: 'center' });
+
+        // Right logo (UC Logo)
+        if (uclmLogo) {
+            try {
+                pdf.addImage(uclmLogo, 'PNG', pageWidth - margin - logoSize, logoY, logoSize, logoSize);
+            } catch (error) {
+                console.error('Failed to add UC logo:', error);
+            }
+        }
+
+        // Draw line under header
+        yPosition = logoY + headerHeight;
+        pdf.setLineWidth(0.5);
+        pdf.setDrawColor(200, 200, 200);
+        pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+        yPosition += 10;
 
         // Process each event
         Object.values(groupedByEvent).forEach((group, eventIndex) => {

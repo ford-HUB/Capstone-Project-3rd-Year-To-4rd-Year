@@ -1,13 +1,6 @@
-/**
- * Date utility functions
- */
 
-/**
- * Format date to a readable format
- * @param {string} dateString - ISO date string
- * @returns {string} Formatted date string
- */
 export const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
@@ -15,12 +8,9 @@ export const formatDate = (dateString) => {
     });
 };
 
-/**
- * Format date and time to a readable format
- * @param {string} dateString - ISO date string
- * @returns {string} Formatted date and time string
- */
+
 export const formatDateTime = (dateString) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleString('en-US', {
         year: 'numeric',
         month: 'short',
