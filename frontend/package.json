@@ -25,6 +25,7 @@
     "framer-motion": "^12.23.12",
     "html5-qrcode": "^2.3.8",
     "js-cookie": "^3.0.5",
+    "jspdf": "^3.0.4",
     "lucide-react": "^0.542.0",
     "motion": "^12.23.24",
     "qrcode.react": "^4.2.0",

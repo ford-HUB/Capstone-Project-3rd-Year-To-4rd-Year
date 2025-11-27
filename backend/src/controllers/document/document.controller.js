@@ -2,6 +2,7 @@ import models from "../../models/index.js";
 import { testPolicies, updateFileInSupabase } from "../../utils/fileUpdateSupabase.js";
 import supabase from "../../config/supabase.js";
 import { Op } from "sequelize";
+import { logManagementActivity, logDirectorActivity } from "../../services/activityLogService.js";
 
 const { Document, DocumentRequestApproval } = models;
 
@@ -64,6 +65,25 @@ export const uploadDocument = async (req, res) => {
                     console.error('Failed to create approval request:', approvalError);
                     // Don't fail the entire upload if approval request creation fails
                 }
+
+                // Log activity - Document uploaded by coordinator
+                const accountId = req.user.account_id
+                const roleType = req.user.Role.name
+                const shortTitle = title.length > 40 ? title.substring(0, 37) + '...' : title
+                const fileName = f.name.length > 30 ? f.name.substring(0, 27) + '...' : f.name
+                const fileSizeKB = Math.round(f.size / 1024)
+                const eventDetails = `"${shortTitle}" | ${category || 'N/A'} | File: ${fileName} | Size: ${fileSizeKB}KB`
+                const logDescription = `Uploaded document: ${eventDetails}`
+
+                await logManagementActivity(
+                    accountId,
+                    roleType.toLowerCase(),
+                    'upload',
+                    'document',
+                    logDescription.substring(0, 255),
+                    req.ip || req.connection.remoteAddress,
+                    req.get('user-agent')
+                )
             }
 
             uploadedDocuments.push(newDocument)
@@ -498,12 +518,40 @@ export const deleteDocuments = async (req, res) => {
     try {
         const { ids } = req.params
         const { Document } = models
+        const roleType = req.user.Role.name
 
-        console.log(ids)
+        // Get document info before deletion for logging (only for directors)
+        let documentsToLog = []
+        if (roleType === 'director') {
+            const documentIds = ids.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id))
+            documentsToLog = await Document.findAll({
+                where: { document_id: documentIds },
+                attributes: ['document_id', 'title', 'category']
+            })
+        }
 
         const destroyDocs = await Document.destroy({ where: { document_id: ids } })
 
         if(!destroyDocs) { return res.json({ message: 'Document failed to delete' }) }
+
+        // Log activity - Document deleted (only for directors)
+        if (roleType === 'director' && documentsToLog.length > 0) {
+            for (const doc of documentsToLog) {
+                const shortTitle = doc.title.length > 40 ? doc.title.substring(0, 37) + '...' : doc.title
+                const eventDetails = `"${shortTitle}" | ${doc.category || 'N/A'}`
+                const logDescription = `Deleted document: ${eventDetails}`
+                
+                await logDirectorActivity(
+                    req.user.account_id,
+                    'delete',
+                    'document',
+                    logDescription.substring(0, 255),
+                    req.ip || req.connection.remoteAddress,
+                    req.get('user-agent')
+                )
+            }
+        }
+
         return res.json({ success: true, message: 'Document succcessfully deleted' })
 
     } catch (error) {

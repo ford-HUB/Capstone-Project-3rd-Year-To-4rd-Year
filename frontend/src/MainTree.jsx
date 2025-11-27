@@ -17,6 +17,7 @@ import ManageUsers from './pages/director/ManageUsers'
 import SystemPerformance from './pages/director/SystemPerformance'
 import BeneficiaryRequest from './pages/director/BeneficiaryRequest'
 import BeneficiaryList from './pages/director/BeneficiaryList'
+import BeneficiaryRecords from './pages/director/BeneficiaryRecords'
 import ManagementLayout from './layouts/ManagementLayout.jsx'   
 import RequestToken from './utils/RequestToken'
 import ResetPasswordPage from './pages/auth/ResetPasswordPage'
@@ -455,6 +456,10 @@ const MainTree = [
             {
                 path: 'beneficiary-list',
                 element: <BeneficiaryList />
+            },
+            {
+                path: 'beneficiary-records',
+                element: <BeneficiaryRecords />
             },
             {
                 path: 'request-approval-document',

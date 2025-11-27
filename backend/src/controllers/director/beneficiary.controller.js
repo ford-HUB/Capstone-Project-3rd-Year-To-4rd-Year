@@ -541,3 +541,120 @@ const sendBeneficiaryNotification = async (email, action, data) => {
     
     await sendMail(email, config.subject, config.description, template, variables);
 };
+
+
+export const getBeneficiaryRecords = async (req, res) => {
+    try {
+        const { event_id, status } = req.query;
+
+        let whereClause = {
+            participant_type: 'beneficiary'
+        };
+
+        // Filter by event if provided
+        if (event_id) {
+            whereClause.event_id = parseInt(event_id);
+        }
+
+        // Filter by status if provided
+        if (status && status !== 'all') {
+            whereClause.status = status;
+        }
+
+        // Get all beneficiary registrations
+        const registrations = await EventRegistration.findAll({
+            where: whereClause,
+            include: [
+                {
+                    model: Event,
+                    attributes: [
+                        'event_id', 'title', 'description', 'event_started', 
+                        'event_ended', 'location', 'status'
+                    ]
+                },
+                {
+                    model: Beneficiary,
+                    attributes: [
+                        'beneficiary_id', 'firstname', 'lastname', 'middle_initial', 
+                        'phone_number', 'current_address', 'age', 'gender', 'organization_name'
+                    ],
+                    include: [
+                        {
+                            model: Accounts,
+                            attributes: ['email']
+                        }
+                    ]
+                }
+            ],
+            order: [['createdAt', 'DESC']]
+        });
+
+        // Transform registrations
+        const transformedRecords = registrations.map(registration => {
+            const recordData = {
+                event_registration_id: registration.event_registration_id,
+                event_id: registration.event_id,
+                participant_id: registration.participant_id,
+                participant_type: registration.participant_type,
+                registration_date: registration.registration_date,
+                status: registration.status,
+                createdAt: registration.createdAt,
+                updatedAt: registration.updatedAt,
+                event: null,
+                beneficiary: null
+            };
+
+            // Add event data
+            if (registration.Event) {
+                recordData.event = {
+                    event_id: registration.Event.event_id,
+                    title: registration.Event.title,
+                    description: registration.Event.description,
+                    event_started: registration.Event.event_started,
+                    event_ended: registration.Event.event_ended,
+                    location: registration.Event.location,
+                    status: registration.Event.status
+                };
+            }
+
+            // Add beneficiary data
+            if (registration.Beneficiary) {
+                recordData.beneficiary = {
+                    beneficiary_id: registration.Beneficiary.beneficiary_id,
+                    firstname: registration.Beneficiary.firstname,
+                    lastname: registration.Beneficiary.lastname,
+                    middle_initial: registration.Beneficiary.middle_initial,
+                    phone_number: registration.Beneficiary.phone_number,
+                    current_address: registration.Beneficiary.current_address,
+                    age: registration.Beneficiary.age,
+                    gender: registration.Beneficiary.gender,
+                    organization_name: registration.Beneficiary.organization_name,
+                    account: null
+                };
+
+                if (registration.Beneficiary.Account) {
+                    recordData.beneficiary.account = {
+                        email: registration.Beneficiary.Account.email
+                    };
+                }
+            }
+
+            return recordData;
+        });
+
+        res.json({
+            success: true,
+            records: transformedRecords,
+            count: transformedRecords.length,
+            message: transformedRecords.length === 0 ? 'No beneficiary records found' : 'Beneficiary records retrieved successfully'
+        });
+
+    } catch (error) {
+        console.error('Get beneficiary records failed:', error.message);
+        res.status(500).json({
+            success: false,
+            message: 'Internal Server Error',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+};

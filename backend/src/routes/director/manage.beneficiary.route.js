@@ -1,7 +1,7 @@
 import express from 'express';
 import { guard } from '../../middleware/guard.js';
 
-import { getPendingRegistrations, getAllRegistrations, approveRegistration, declineRegistration, getRegistrationDetails } from '../../controllers/director/beneficiary.controller.js';
+import { getPendingRegistrations, getAllRegistrations, approveRegistration, declineRegistration, getRegistrationDetails, getBeneficiaryRecords } from '../../controllers/director/beneficiary.controller.js';
 
 const manageBeneficiaryRouter = express.Router();
 
@@ -9,6 +9,8 @@ const manageBeneficiaryRouter = express.Router();
 manageBeneficiaryRouter.get('/beneficiary-requests', guard('director'), getPendingRegistrations);
 
 manageBeneficiaryRouter.get('/beneficiary-list', guard('director'), getAllRegistrations);
+
+manageBeneficiaryRouter.get('/beneficiary-records', guard('director'), getBeneficiaryRecords);
 
 manageBeneficiaryRouter.get('/beneficiary-requests/:registrationId', guard('director'), getRegistrationDetails);
 

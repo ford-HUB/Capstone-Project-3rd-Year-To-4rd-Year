@@ -456,8 +456,21 @@ export const updateDocumentRequestApprovalStatus = async (req, res) => {
             // Don't fail the request if email fails
         }
 
-        // Log activity
-        await logDirectorActivity(reviewed_by, 'update', 'document', `${status === 'approved' ? 'Approved' : 'Rejected'} document request for: ${documentRequest.Document.title}${status === 'rejected' && rejection_reason ? ` (Reason: ${rejection_reason})` : ''}`, req.ip || req.connection.remoteAddress, req.get('user-agent'));
+        // Log activity - Document approved/rejected
+        const documentTitle = documentRequest.Document.title
+        const shortTitle = documentTitle.length > 40 ? documentTitle.substring(0, 37) + '...' : documentTitle
+        const shortReason = rejection_reason && rejection_reason.length > 30 ? rejection_reason.substring(0, 27) + '...' : rejection_reason
+        const eventDetails = `"${shortTitle}" | ${documentRequest.Document.category || 'N/A'}${status === 'rejected' && shortReason ? ` | Reason: ${shortReason}` : ''}`
+        const logDescription = `${status === 'approved' ? 'Approved' : 'Rejected'} document: ${eventDetails}`
+        
+        await logDirectorActivity(
+            reviewed_by,
+            'update',
+            'document',
+            logDescription.substring(0, 255),
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        )
 
         return res.json({
             success: true,
@@ -495,11 +508,26 @@ export const deleteDocumentRequestApproval = async (req, res) => {
             });
         }
 
-        const documentTitle = documentRequest.Document?.title || 'Unknown document';
+        // Get document info before deletion
+        const document = await Document.findByPk(documentRequest.document_id)
+        const documentTitle = document?.title || documentRequest.Document?.title || 'Unknown document'
+        const documentCategory = document?.category || 'N/A'
+        
         await documentRequest.destroy();
 
-        // Log activity
-        await logDirectorActivity(req.user.account_id, 'delete', 'document', `Deleted document request approval for: ${documentTitle}`, req.ip || req.connection.remoteAddress, req.get('user-agent'));
+        // Log activity - Document request approval deleted
+        const shortTitle = documentTitle.length > 40 ? documentTitle.substring(0, 37) + '...' : documentTitle
+        const eventDetails = `"${shortTitle}" | ${documentCategory}`
+        const logDescription = `Deleted document request: ${eventDetails}`
+        
+        await logDirectorActivity(
+            req.user.account_id,
+            'delete',
+            'document',
+            logDescription.substring(0, 255),
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        )
 
         return res.json({
             success: true,
