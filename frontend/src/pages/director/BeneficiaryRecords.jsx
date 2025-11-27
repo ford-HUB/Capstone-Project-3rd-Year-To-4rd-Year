@@ -375,8 +375,8 @@ const BeneficiaryRecords = () => {
                 // Find the maximum number of lines needed for this row
                 const maxLines = Math.max(nameLines.length, emailLines.length, phoneLines.length, dateLines.length);
                 const lineHeight = 4.5;
-                const minRowHeight = 6; // Minimum row height for proper spacing
-                const rowHeight = Math.max(minRowHeight, maxLines * lineHeight + 2);
+                const minRowHeight = 7; // Minimum row height for proper spacing
+                const rowHeight = Math.max(minRowHeight, maxLines * lineHeight + 3);
                 const rowY = yPosition;
 
                 // Check if we need a new page before starting this row
@@ -402,7 +402,7 @@ const BeneficiaryRecords = () => {
                 pdf.line(colDate, currentRowY, colDate, currentRowY + rowHeight);
 
                 // Calculate vertical center for text positioning
-                const verticalPadding = 2;
+                const verticalPadding = 2.5;
                 const textStartY = currentRowY + verticalPadding;
 
                 // Draw each line of the row - with proper spacing
@@ -545,8 +545,8 @@ const BeneficiaryRecords = () => {
                 // Find the maximum number of lines needed for this row
                 const maxLines = Math.max(nameLines.length, emailLines.length, phoneLines.length, dateLines.length);
                 const lineHeight = 4.5;
-                const minRowHeight = 6; // Minimum row height for proper spacing
-                const rowHeight = Math.max(minRowHeight, maxLines * lineHeight + 2);
+                const minRowHeight = 7; // Minimum row height for proper spacing
+                const rowHeight = Math.max(minRowHeight, maxLines * lineHeight + 3);
                 const rowY = yPosition;
 
                 // Check if we need a new page before starting this row
@@ -572,7 +572,7 @@ const BeneficiaryRecords = () => {
                 pdf.line(colDate, currentRowY, colDate, currentRowY + rowHeight);
 
                 // Calculate vertical center for text positioning
-                const verticalPadding = 2;
+                const verticalPadding = 2.5;
                 const textStartY = currentRowY + verticalPadding;
 
                 // Draw each line of the row - with proper spacing
