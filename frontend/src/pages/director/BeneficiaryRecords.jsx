@@ -209,15 +209,21 @@ const BeneficiaryRecords = () => {
             pdf.text(`Beneficiaries (${beneficiaries.length})`, margin, yPosition);
             yPosition += 8;
 
-            // Table Header
+            // Table Header - Adjusted column positions
             checkNewPage(10);
-            pdf.setFontSize(10);
+            pdf.setFontSize(9);
             pdf.setFont('helvetica', 'bold');
-            pdf.text('No.', margin, yPosition);
-            pdf.text('Name', margin + 15, yPosition);
-            pdf.text('Email', margin + 60, yPosition);
-            pdf.text('Phone', margin + 100, yPosition);
-            pdf.text('Registration Date', margin + 130, yPosition);
+            const colNo = margin; // 20mm
+            const colName = margin + 8; // 28mm
+            const colEmail = margin + 50; // 70mm
+            const colPhone = margin + 90; // 110mm
+            const colDate = margin + 130; // 150mm
+            
+            pdf.text('No.', colNo, yPosition);
+            pdf.text('Name', colName, yPosition);
+            pdf.text('Email', colEmail, yPosition);
+            pdf.text('Phone', colPhone, yPosition);
+            pdf.text('Reg. Date', colDate, yPosition);
             yPosition += 6;
 
             // Draw line
@@ -227,9 +233,8 @@ const BeneficiaryRecords = () => {
 
             // Beneficiaries rows
             beneficiaries.forEach((reg, index) => {
-                checkNewPage(8);
                 pdf.setFont('helvetica', 'normal');
-                pdf.setFontSize(9);
+                pdf.setFontSize(8);
                 
                 const beneficiary = reg.beneficiary;
                 const name = `${beneficiary?.firstname || ''} ${beneficiary?.lastname || ''}`.trim() || 'N/A';
@@ -237,28 +242,58 @@ const BeneficiaryRecords = () => {
                 const phone = beneficiary?.phone_number || 'N/A';
                 const regDate = formatDateTime(reg.registration_date || reg.createdAt);
 
-                pdf.text(`${index + 1}.`, margin, yPosition);
-                pdf.text(name, margin + 15, yPosition);
-                
-                // Wrap long text
-                const maxWidth = 40;
-                const emailLines = pdf.splitTextToSize(email, maxWidth);
-                const phoneLines = pdf.splitTextToSize(phone, maxWidth);
-                const regDateLines = pdf.splitTextToSize(regDate, maxWidth);
-                
-                pdf.text(emailLines[0], margin + 60, yPosition);
-                pdf.text(phoneLines[0], margin + 100, yPosition);
-                pdf.text(regDateLines[0], margin + 130, yPosition);
-                
-                // Handle multi-line text
-                if (emailLines.length > 1 || phoneLines.length > 1 || regDateLines.length > 1) {
-                    yPosition += 4;
-                    if (emailLines.length > 1) pdf.text(emailLines[1], margin + 60, yPosition);
-                    if (phoneLines.length > 1) pdf.text(phoneLines[1], margin + 100, yPosition);
-                    if (regDateLines.length > 1) pdf.text(regDateLines[1], margin + 130, yPosition);
+                // Column widths for text wrapping (in mm)
+                const nameWidth = colEmail - colName - 2; // Space between Name and Email columns
+                const emailWidth = colPhone - colEmail - 2; // Space between Email and Phone columns
+                const phoneWidth = colDate - colPhone - 2; // Space between Phone and Date columns
+                const dateWidth = (pageWidth - margin) - colDate - 2; // Remaining space
+
+                // Split text to fit column widths
+                const nameLines = pdf.splitTextToSize(name, nameWidth);
+                const emailLines = pdf.splitTextToSize(email, emailWidth);
+                const phoneLines = pdf.splitTextToSize(phone, phoneWidth);
+                const regDateLines = pdf.splitTextToSize(regDate, dateWidth);
+
+                // Find the maximum number of lines needed for this row
+                const maxLines = Math.max(nameLines.length, emailLines.length, phoneLines.length, regDateLines.length);
+                const lineHeight = 5; // Height per line in mm
+                const rowHeight = maxLines * lineHeight + 3; // Total row height + spacing
+
+                // Check if we need a new page before starting this row
+                checkNewPage(rowHeight);
+
+                // Draw each line of the row
+                for (let lineIndex = 0; lineIndex < maxLines; lineIndex++) {
+                    const currentY = yPosition + (lineIndex * lineHeight);
+                    
+                    // Number (only on first line)
+                    if (lineIndex === 0) {
+                        pdf.text(`${index + 1}.`, colNo, currentY);
+                    }
+                    
+                    // Name
+                    if (nameLines[lineIndex]) {
+                        pdf.text(nameLines[lineIndex], colName, currentY);
+                    }
+                    
+                    // Email
+                    if (emailLines[lineIndex]) {
+                        pdf.text(emailLines[lineIndex], colEmail, currentY);
+                    }
+                    
+                    // Phone
+                    if (phoneLines[lineIndex]) {
+                        pdf.text(phoneLines[lineIndex], colPhone, currentY);
+                    }
+                    
+                    // Registration Date
+                    if (regDateLines[lineIndex]) {
+                        pdf.text(regDateLines[lineIndex], colDate, currentY);
+                    }
                 }
                 
-                yPosition += 6;
+                // Move to next row position
+                yPosition += rowHeight;
             });
 
             yPosition += 5;
