@@ -259,18 +259,20 @@ const BeneficiaryRecords = () => {
             pdf.setDrawColor(66, 133, 244);
             pdf.setLineWidth(0.5);
             
-            // Draw label (white text) - reduced padding
+            // Draw label (white text) - vertically centered
             pdf.setTextColor(255, 255, 255);
             pdf.setFontSize(10);
             pdf.setFont('helvetica', 'bold');
-            pdf.text(detail.label, labelCol + 2, currentY + 5);
+            const labelY = currentY + (rowHeight / 2) + 2;
+            pdf.text(detail.label, labelCol + 2, labelY);
             
-            // Draw value (white text, bold if needed) - reduced padding
+            // Draw value (white text, bold if needed) - vertically centered
             pdf.setFont('helvetica', detail.isBold ? 'bold' : 'normal');
             pdf.setTextColor(255, 255, 255);
             const valueLines = pdf.splitTextToSize(detail.value, tableWidth - valueCol - 4);
+            const firstValueY = currentY + (rowHeight / 2) + 2;
             valueLines.forEach((line, lineIndex) => {
-                pdf.text(line, valueCol + 2, currentY + 5 + (lineIndex * 4.5));
+                pdf.text(line, valueCol + 2, firstValueY + (lineIndex * 4.5));
             });
         });
         
@@ -325,15 +327,16 @@ const BeneficiaryRecords = () => {
             pdf.setDrawColor(66, 133, 244);
             pdf.rect(margin, headerY, pageWidth - (margin * 2), headerRowHeight, 'F');
             
-            // Draw header text in white - reduced padding
+            // Draw header text in white - vertically centered
             pdf.setTextColor(255, 255, 255);
             pdf.setFontSize(9);
             pdf.setFont('helvetica', 'bold');
-            pdf.text('No.', colNo + 1, headerY + 5);
-            pdf.text('Full Names', colName + 1, headerY + 5);
-            pdf.text('Email Address', colEmail + 1, headerY + 5);
-            pdf.text('Contact Number', colPhone + 1, headerY + 5);
-            pdf.text('Registration Date', colDate + 1, headerY + 5);
+            const headerTextY = headerY + (headerRowHeight / 2) + 2;
+            pdf.text('No.', colNo + 1, headerTextY);
+            pdf.text('Full Names', colName + 1, headerTextY);
+            pdf.text('Email Address', colEmail + 1, headerTextY);
+            pdf.text('Contact Number', colPhone + 1, headerTextY);
+            pdf.text('Registration Date', colDate + 1, headerTextY);
             
             // Reset text color to black
             pdf.setTextColor(0, 0, 0);
@@ -472,15 +475,16 @@ const BeneficiaryRecords = () => {
             pdf.setDrawColor(66, 133, 244);
             pdf.rect(margin, headerY, pageWidth - (margin * 2), headerRowHeight, 'F');
             
-            // Draw header text in white - reduced padding
+            // Draw header text in white - vertically centered
             pdf.setTextColor(255, 255, 255);
             pdf.setFontSize(9);
             pdf.setFont('helvetica', 'bold');
-            pdf.text('No.', colNo + 1, headerY + 5);
-            pdf.text('Full Names', colName + 1, headerY + 5);
-            pdf.text('Email Address', colEmail + 1, headerY + 5);
-            pdf.text('Contact Number', colPhone + 1, headerY + 5);
-            pdf.text('Registration Date', colDate + 1, headerY + 5);
+            const headerTextY = headerY + (headerRowHeight / 2) + 2;
+            pdf.text('No.', colNo + 1, headerTextY);
+            pdf.text('Full Names', colName + 1, headerTextY);
+            pdf.text('Email Address', colEmail + 1, headerTextY);
+            pdf.text('Contact Number', colPhone + 1, headerTextY);
+            pdf.text('Registration Date', colDate + 1, headerTextY);
             
             // Reset text color to black
             pdf.setTextColor(0, 0, 0);
