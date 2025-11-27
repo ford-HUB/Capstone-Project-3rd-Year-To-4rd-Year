@@ -214,7 +214,7 @@ const BeneficiaryRecords = () => {
         const labelCol = margin;
         const valueCol = margin + 50;
         const tableWidth = pageWidth - (margin * 2);
-        const rowHeight = 8;
+        const rowHeight = 7;
         
         const startDate = event?.event_started ? formatDate(event.event_started) : 'N/A';
         const endDate = event?.event_ended ? formatDate(event.event_ended) : 'N/A';
@@ -223,7 +223,7 @@ const BeneficiaryRecords = () => {
         const eventDetails = [
             { label: 'Event Title', value: event?.title || 'N/A', isBold: true },
             { label: 'Location', value: event?.location || 'N/A', isBold: false },
-            { label: 'Date', value: dateRange, isBold: false },
+            { label: 'Date', value: startDate, isBold: false },
             { label: 'Description', value: event?.description || 'N/A', isBold: false }
         ];
 
@@ -259,25 +259,25 @@ const BeneficiaryRecords = () => {
             pdf.setDrawColor(66, 133, 244);
             pdf.setLineWidth(0.5);
             
-            // Draw label (white text)
+            // Draw label (white text) - reduced padding
             pdf.setTextColor(255, 255, 255);
             pdf.setFontSize(10);
             pdf.setFont('helvetica', 'bold');
-            pdf.text(detail.label, labelCol + 2, currentY + 5.5);
+            pdf.text(detail.label, labelCol + 2, currentY + 5);
             
-            // Draw value (white text, bold if needed)
+            // Draw value (white text, bold if needed) - reduced padding
             pdf.setFont('helvetica', detail.isBold ? 'bold' : 'normal');
             pdf.setTextColor(255, 255, 255);
             const valueLines = pdf.splitTextToSize(detail.value, tableWidth - valueCol - 4);
             valueLines.forEach((line, lineIndex) => {
-                pdf.text(line, valueCol + 2, currentY + 5.5 + (lineIndex * 5));
+                pdf.text(line, valueCol + 2, currentY + 5 + (lineIndex * 4.5));
             });
         });
         
         // Reset text color to black
         pdf.setTextColor(0, 0, 0);
 
-        yPosition = tableStartY + (eventDetails.length * rowHeight) + 8;
+        yPosition = tableStartY + (eventDetails.length * rowHeight) + 10;
 
         // Separate beneficiaries into individuals and organizations
         const individualBeneficiaries = beneficiaries.filter(reg => 
@@ -305,8 +305,8 @@ const BeneficiaryRecords = () => {
 
             // Table Header with blue background
             checkNewPage(10);
-            const headerRowHeight = 8;
-            const headerY = yPosition - 5;
+            const headerRowHeight = 7;
+            const headerY = yPosition;
             
             // Define column positions and widths
             const colNo = margin;
@@ -325,15 +325,15 @@ const BeneficiaryRecords = () => {
             pdf.setDrawColor(66, 133, 244);
             pdf.rect(margin, headerY, pageWidth - (margin * 2), headerRowHeight, 'F');
             
-            // Draw header text in white
+            // Draw header text in white - reduced padding
             pdf.setTextColor(255, 255, 255);
             pdf.setFontSize(9);
             pdf.setFont('helvetica', 'bold');
-            pdf.text('No.', colNo + 2, headerY + 5.5);
-            pdf.text('Full Name', colName + 2, headerY + 5.5);
-            pdf.text('Email Address', colEmail + 2, headerY + 5.5);
-            pdf.text('Contact Number', colPhone + 2, headerY + 5.5);
-            pdf.text('Registration Date', colDate + 2, headerY + 5.5);
+            pdf.text('No.', colNo + 1, headerY + 5);
+            pdf.text('Full Names', colName + 1, headerY + 5);
+            pdf.text('Email Address', colEmail + 1, headerY + 5);
+            pdf.text('Contact Number', colPhone + 1, headerY + 5);
+            pdf.text('Registration Date', colDate + 1, headerY + 5);
             
             // Reset text color to black
             pdf.setTextColor(0, 0, 0);
@@ -371,8 +371,8 @@ const BeneficiaryRecords = () => {
 
                 // Find the maximum number of lines needed for this row
                 const maxLines = Math.max(nameLines.length, emailLines.length, phoneLines.length, dateLines.length);
-                const lineHeight = 5;
-                const rowHeight = maxLines * lineHeight + 2;
+                const lineHeight = 4.5;
+                const rowHeight = maxLines * lineHeight;
                 const rowY = yPosition;
 
                 // Check if we need a new page before starting this row
@@ -397,13 +397,13 @@ const BeneficiaryRecords = () => {
                 pdf.line(margin, currentRowY, pageWidth - margin, currentRowY);
                 pdf.line(margin, currentRowY + rowHeight, pageWidth - margin, currentRowY + rowHeight);
 
-                // Draw each line of the row - reduced padding
+                // Draw each line of the row - minimal padding
                 for (let lineIndex = 0; lineIndex < maxLines; lineIndex++) {
-                    const currentY = currentRowY + 1.5 + (lineIndex * lineHeight);
+                    const currentY = currentRowY + 1 + (lineIndex * lineHeight);
                     
                     // Number (only on first line)
                     if (lineIndex === 0) {
-                        pdf.text(`${index + 1}.`, colNo + 1, currentY);
+                        pdf.text(`${index + 1}`, colNo + 1, currentY);
                     }
                     
                     // Name
@@ -431,7 +431,7 @@ const BeneficiaryRecords = () => {
                 yPosition += rowHeight;
             });
 
-            yPosition += 8;
+            yPosition += 10;
         }
 
         // Section III: Beneficiary Information (Organizations)
@@ -452,8 +452,8 @@ const BeneficiaryRecords = () => {
 
             // Table Header with blue background
             checkNewPage(10);
-            const headerRowHeight = 8;
-            const headerY = yPosition - 5;
+            const headerRowHeight = 7;
+            const headerY = yPosition;
             
             // Define column positions and widths (same as individuals table)
             const colNo = margin;
@@ -472,15 +472,15 @@ const BeneficiaryRecords = () => {
             pdf.setDrawColor(66, 133, 244);
             pdf.rect(margin, headerY, pageWidth - (margin * 2), headerRowHeight, 'F');
             
-            // Draw header text in white
+            // Draw header text in white - reduced padding
             pdf.setTextColor(255, 255, 255);
             pdf.setFontSize(9);
             pdf.setFont('helvetica', 'bold');
-            pdf.text('No.', colNo + 2, headerY + 5.5);
-            pdf.text('Full Name', colName + 2, headerY + 5.5);
-            pdf.text('Email Address', colEmail + 2, headerY + 5.5);
-            pdf.text('Contact Number', colPhone + 2, headerY + 5.5);
-            pdf.text('Registration Date', colDate + 2, headerY + 5.5);
+            pdf.text('No.', colNo + 1, headerY + 5);
+            pdf.text('Full Names', colName + 1, headerY + 5);
+            pdf.text('Email Address', colEmail + 1, headerY + 5);
+            pdf.text('Contact Number', colPhone + 1, headerY + 5);
+            pdf.text('Registration Date', colDate + 1, headerY + 5);
             
             // Reset text color to black
             pdf.setTextColor(0, 0, 0);
@@ -520,8 +520,8 @@ const BeneficiaryRecords = () => {
 
                 // Find the maximum number of lines needed for this row
                 const maxLines = Math.max(nameLines.length, emailLines.length, phoneLines.length, dateLines.length);
-                const lineHeight = 5;
-                const rowHeight = maxLines * lineHeight + 2;
+                const lineHeight = 4.5;
+                const rowHeight = maxLines * lineHeight;
                 const rowY = yPosition;
 
                 // Check if we need a new page before starting this row
@@ -546,13 +546,13 @@ const BeneficiaryRecords = () => {
                 pdf.line(margin, currentRowY, pageWidth - margin, currentRowY);
                 pdf.line(margin, currentRowY + rowHeight, pageWidth - margin, currentRowY + rowHeight);
 
-                // Draw each line of the row - reduced padding
+                // Draw each line of the row - minimal padding
                 for (let lineIndex = 0; lineIndex < maxLines; lineIndex++) {
-                    const currentY = currentRowY + 1.5 + (lineIndex * lineHeight);
+                    const currentY = currentRowY + 1 + (lineIndex * lineHeight);
                     
                     // Number (only on first line)
                     if (lineIndex === 0) {
-                        pdf.text(`${index + 1}.`, colNo + 1, currentY);
+                        pdf.text(`${index + 1}`, colNo + 1, currentY);
                     }
                     
                     // Name
@@ -580,7 +580,7 @@ const BeneficiaryRecords = () => {
                 yPosition += rowHeight;
             });
 
-            yPosition += 8;
+            yPosition += 10;
         }
 
         // Section III: Supporting Documentation
@@ -606,7 +606,7 @@ const BeneficiaryRecords = () => {
                     
                     // Add caption
                     pdf.setFontSize(9);
-                    pdf.setFont('helvetica', 'italic');
+                    pdf.setFont('helvetica', 'bold');
                     pdf.text('Figure 1: Event Venue & Participants', margin, yPosition);
                     yPosition += 8;
                 } catch (error) {
@@ -619,7 +619,15 @@ const BeneficiaryRecords = () => {
         checkNewPage(40);
         pdf.setFontSize(14);
         pdf.setFont('helvetica', 'bold');
-        pdf.text('IV. Concluding Remarks', margin, yPosition);
+        const concludingRemarksTitle = 'IV. Concluding Remarks';
+        const concludingRemarksTitleWidth = pdf.getTextWidth(concludingRemarksTitle);
+        pdf.text(concludingRemarksTitle, margin, yPosition);
+        
+        // Draw underline
+        pdf.setLineWidth(0.5);
+        pdf.setDrawColor(0, 0, 0);
+        pdf.line(margin, yPosition + 1, margin + concludingRemarksTitleWidth, yPosition + 1);
+        
         yPosition += 8;
 
         pdf.setFontSize(10);
