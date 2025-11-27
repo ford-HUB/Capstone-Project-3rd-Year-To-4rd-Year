@@ -93,12 +93,14 @@ export const addEvent = async (req, res) => {
         // Log activity - Event created
         const accountId = req.user.account_id
         const roleType = req.user.Role.name
-        const eventDetails = `Event: ${title} | Location: ${location} | Start: ${new Date(event_started).toLocaleString()} | End: ${new Date(event_ended).toLocaleString()} | Max Participants: ${max_participants} | Category: ${category_name}${department ? ` | Department: ${department}` : ''} | Beneficiary Applicable: ${beneficiary_applicable ? 'Yes' : 'No'}${beneficiary_applicable && max_beneficiaries ? ` | Max Beneficiaries: ${max_beneficiaries}` : ''}`
+        const shortTitle = title.length > 50 ? title.substring(0, 47) + '...' : title
+        const eventDetails = `"${shortTitle}" | ${category_name} | ${location.substring(0, 30)} | Max: ${max_participants}${beneficiary_applicable ? ' | Beneficiary: Yes' : ''}`
+        const description = `Created event: ${eventDetails}`
         
         if (roleType === 'director') {
-            await logDirectorActivity(accountId, 'create', 'event', `Created new event - ${eventDetails}`, req.ip || req.connection.remoteAddress, req.get('user-agent'))
+            await logDirectorActivity(accountId, 'create', 'event', description.substring(0, 255), req.ip || req.connection.remoteAddress, req.get('user-agent'))
         } else {
-            await logManagementActivity(accountId, roleType.toLowerCase(), 'create', 'event', `Created new event - ${eventDetails}`, req.ip || req.connection.remoteAddress, req.get('user-agent'))
+            await logManagementActivity(accountId, roleType.toLowerCase(), 'create', 'event', description.substring(0, 255), req.ip || req.connection.remoteAddress, req.get('user-agent'))
         }
         
         // Process matching in background (non-blocking)
@@ -299,12 +301,14 @@ export const updateEvent = async (req, res) => {
         // Log activity - Event updated
         const accountId = req.user.account_id
         const roleType = req.user.Role.name
-        const eventDetails = `Event ID: ${eventExist.event_id} | Title: ${title} | Location: ${location} | Start: ${new Date(event_started).toLocaleString()} | End: ${new Date(event_ended).toLocaleString()} | Max Participants: ${max_participants} | Category: ${category_name}${department ? ` | Department: ${department}` : ''} | Beneficiary Applicable: ${beneficiary_applicable ? 'Yes' : 'No'}${beneficiary_applicable && max_beneficiaries ? ` | Max Beneficiaries: ${max_beneficiaries}` : ''} | Status: ${status}`
+        const shortTitle = title.length > 40 ? title.substring(0, 37) + '...' : title
+        const eventDetails = `ID: ${eventExist.event_id} | "${shortTitle}" | ${category_name} | Status: ${status}`
+        const description = `Updated event: ${eventDetails}`
         
         if (roleType === 'director') {
-            await logDirectorActivity(accountId, 'update', 'event', `Updated event - ${eventDetails}`, req.ip || req.connection.remoteAddress, req.get('user-agent'))
+            await logDirectorActivity(accountId, 'update', 'event', description.substring(0, 255), req.ip || req.connection.remoteAddress, req.get('user-agent'))
         } else {
-            await logManagementActivity(accountId, roleType.toLowerCase(), 'update', 'event', `Updated event - ${eventDetails}`, req.ip || req.connection.remoteAddress, req.get('user-agent'))
+            await logManagementActivity(accountId, roleType.toLowerCase(), 'update', 'event', description.substring(0, 255), req.ip || req.connection.remoteAddress, req.get('user-agent'))
         }
         
         // Process matching in background (non-blocking)
@@ -703,12 +707,14 @@ export const destroyEventId = async (req, res) => {
         // Log activity - Event deleted
         const accountId = req.user.account_id
         const roleType = req.user.Role.name
-        const eventDetails = `Event ID: ${eventId} | Title: ${eventTitle} | Location: ${eventLocation} | Category: ${eventCategory} | Start Date: ${eventStartDate}`
+        const shortTitle = eventTitle.length > 50 ? eventTitle.substring(0, 47) + '...' : eventTitle
+        const eventDetails = `ID: ${eventId} | "${shortTitle}" | ${eventCategory}`
+        const description = `Deleted event: ${eventDetails}`
         
         if (roleType === 'director') {
-            await logDirectorActivity(accountId, 'delete', 'event', `Deleted event - ${eventDetails}`, req.ip || req.connection.remoteAddress, req.get('user-agent'))
+            await logDirectorActivity(accountId, 'delete', 'event', description.substring(0, 255), req.ip || req.connection.remoteAddress, req.get('user-agent'))
         } else {
-            await logManagementActivity(accountId, roleType.toLowerCase(), 'delete', 'event', `Deleted event - ${eventDetails}`, req.ip || req.connection.remoteAddress, req.get('user-agent'))
+            await logManagementActivity(accountId, roleType.toLowerCase(), 'delete', 'event', description.substring(0, 255), req.ip || req.connection.remoteAddress, req.get('user-agent'))
         }
         
         // Emit socket event to notify all connected clients about the deletion
@@ -741,12 +747,12 @@ export const destroyEvents = async (req, res) => {
         // Log activity - All events deleted
         const accountId = req.user.account_id
         const roleType = req.user.Role.name
-        const eventDetails = `Total events deleted: ${eventCount}`
+        const description = `Deleted all events (${eventCount} total)`
 
         if (roleType === 'director') {
-            await logDirectorActivity(accountId, 'delete', 'event', `Deleted all events - ${eventDetails}`, req.ip || req.connection.remoteAddress, req.get('user-agent'))
+            await logDirectorActivity(accountId, 'delete', 'event', description.substring(0, 255), req.ip || req.connection.remoteAddress, req.get('user-agent'))
         } else {
-            await logManagementActivity(accountId, roleType.toLowerCase(), 'delete', 'event', `Deleted all events - ${eventDetails}`, req.ip || req.connection.remoteAddress, req.get('user-agent'))
+            await logManagementActivity(accountId, roleType.toLowerCase(), 'delete', 'event', description.substring(0, 255), req.ip || req.connection.remoteAddress, req.get('user-agent'))
         }
 
         res.json({ success: true, message: 'All Events Successfully Destroyed' })
@@ -851,12 +857,16 @@ export const removeEventRegistration = async (req, res) => {
         // Log activity - Event registration removed
         const accountId = req.user.account_id
         const roleType = req.user.Role.name
-        const eventDetails = `Event: ${registration.Event.title} | Participant: ${participantName} (${registration.participant_type})${reason ? ` | Reason: ${reason}` : ''}`
+        const shortEventTitle = registration.Event.title.length > 40 ? registration.Event.title.substring(0, 37) + '...' : registration.Event.title
+        const shortParticipantName = participantName.length > 30 ? participantName.substring(0, 27) + '...' : participantName
+        const shortReason = reason && reason.length > 30 ? reason.substring(0, 27) + '...' : reason
+        const eventDetails = `"${shortEventTitle}" | ${shortParticipantName} (${registration.participant_type})${shortReason ? ` | ${shortReason}` : ''}`
+        const description = `Removed registration: ${eventDetails}`
 
         if (roleType === 'director') {
-            await logDirectorActivity(accountId, 'delete', 'event', `Removed event registration - ${eventDetails}`, req.ip || req.connection.remoteAddress, req.get('user-agent'))
+            await logDirectorActivity(accountId, 'delete', 'event', description.substring(0, 255), req.ip || req.connection.remoteAddress, req.get('user-agent'))
         } else {
-            await logManagementActivity(accountId, roleType.toLowerCase(), 'delete', 'event', `Removed event registration - ${eventDetails}`, req.ip || req.connection.remoteAddress, req.get('user-agent'))
+            await logManagementActivity(accountId, roleType.toLowerCase(), 'delete', 'event', description.substring(0, 255), req.ip || req.connection.remoteAddress, req.get('user-agent'))
         }
 
         // Send email notification if participant email exists
