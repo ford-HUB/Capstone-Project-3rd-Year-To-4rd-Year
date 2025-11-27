@@ -42,11 +42,11 @@ export const updatePaymentStatusSchema = Joi.object({
 
 export const donationPaymentSchema = Joi.object({
     amount: Joi.number()
-        .positive()
+        .min(10)
         .required()
         .messages({
             'number.base': 'Amount must be a number.',
-            'number.positive': 'Amount must be greater than 0.',
+            'number.min': 'Minimum donation amount is ₱10.',
             'any.required': 'Amount is required.'
         }),
     description: Joi.string()

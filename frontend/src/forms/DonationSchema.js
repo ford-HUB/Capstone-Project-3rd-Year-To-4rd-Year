@@ -36,6 +36,16 @@ export const donationSchema = z.object({
   message: 'Please select or enter an amount',
   path: ['amount']
 }).refine((data) => {
+  // Minimum amount validation - must be at least 10
+  if (data.amount || data.customAmount) {
+    const amountValue = parseFloat(data.customAmount || data.amount);
+    return !isNaN(amountValue) && amountValue >= 10;
+  }
+  return true;
+}, {
+  message: 'Minimum donation amount is ₱10',
+  path: ['amount']
+}).refine((data) => {
   // Payment method specific validations
   if (data.paymentMethod === 'card') {
     return data.cardNumber && data.expiryDate && data.cvv && data.cardName;
@@ -78,6 +88,15 @@ export const amountStepSchema = z.object({
   return data.amount || data.customAmount;
 }, {
   message: 'Please select or enter an amount',
+  path: ['amount']
+}).refine((data) => {
+  if (data.amount || data.customAmount) {
+    const amountValue = parseFloat(data.customAmount || data.amount);
+    return !isNaN(amountValue) && amountValue >= 10;
+  }
+  return true;
+}, {
+  message: 'Minimum donation amount is ₱10',
   path: ['amount']
 });
 

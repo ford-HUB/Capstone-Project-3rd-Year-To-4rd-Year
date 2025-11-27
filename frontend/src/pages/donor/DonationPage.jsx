@@ -190,12 +190,12 @@ const DonationPage = () => {
         if (!formData.amount && !formData.customAmount) {
           newErrors.amount = 'Please select or enter an amount';
         } else {
-          // Validate that the amount is greater than zero
+          // Validate that the amount is at least 10
           const amountValue = parseFloat(formData.customAmount || formData.amount);
-          if (isNaN(amountValue) || amountValue <= 0) {
-            newErrors.amount = 'Please enter an amount greater than zero';
+          if (isNaN(amountValue) || amountValue < 10) {
+            newErrors.amount = 'Minimum donation amount is ₱10';
             if (formData.customAmount) {
-              newErrors.customAmount = 'Amount must be greater than zero';
+              newErrors.customAmount = 'Minimum donation amount is ₱10';
             }
           }
         }
@@ -228,8 +228,8 @@ const DonationPage = () => {
     try {
       const amount = parseFloat(formData.customAmount || formData.amount);
       
-      if (amount <= 0) {
-        toast.error('Please enter a valid donation amount');
+      if (amount < 10) {
+        toast.error('Minimum donation amount is ₱10');
         return;
       }
       

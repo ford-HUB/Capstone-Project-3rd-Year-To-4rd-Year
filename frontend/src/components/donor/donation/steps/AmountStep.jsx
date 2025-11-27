@@ -5,8 +5,8 @@ const AmountStep = ({ formData, handleAmountSelect, handleInputChange, errors, p
     const value = e.target.value;
     const numValue = parseFloat(value);
     
-    // Clear invalid values (zero, negative, or empty) on blur
-    if (value === '' || isNaN(numValue) || numValue <= 0) {
+    // Clear invalid values (less than minimum, negative, or empty) on blur
+    if (value === '' || isNaN(numValue) || numValue < 10) {
       handleInputChange({
         target: {
           name: 'customAmount',
@@ -68,9 +68,9 @@ const AmountStep = ({ formData, handleAmountSelect, handleInputChange, errors, p
               }
             }}
             disabled={!!formData.amount}
-            min="0.01"
+            min="10"
             step="0.01"
-            placeholder={formData.amount ? "Select a preset amount or clear selection" : "Enter custom amount"}
+            placeholder={formData.amount ? "Select a preset amount or clear selection" : "Enter custom amount (minimum ₱10)"}
             className={`w-full pl-8 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
               formData.amount 
                 ? 'bg-gray-100 cursor-not-allowed text-gray-400 border-gray-200' 
