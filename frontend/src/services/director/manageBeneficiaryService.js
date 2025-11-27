@@ -63,3 +63,29 @@ export const getBeneficiaryRecords = async (eventId = null, status = null) => {
         throw error;
     }
 }
+
+/**
+ * Log report generation activity
+ * @param {string} reportType - Type of report (e.g., 'beneficiary', 'donation', 'attendance')
+ * @param {Object} reportDetails - Additional details about the report
+ * @returns {Promise<Object>} Response
+ */
+export const logReportGeneration = async (reportType, reportDetails = {}) => {
+    try {
+        const response = await apiInstance.post('/api/director/manage-beneficiary/log-report-generation', {
+            reportType,
+            reportDetails
+        });
+        return {
+            success: response.data.success,
+            message: response.data.message
+        };
+    } catch (error) {
+        console.error('[Director Service] Log report generation failed:', error);
+        // Don't throw error - logging failure shouldn't break report generation
+        return {
+            success: false,
+            message: 'Failed to log report generation'
+        };
+    }
+}

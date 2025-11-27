@@ -1,7 +1,7 @@
 import express from 'express';
 import { guard } from '../../middleware/guard.js';
 
-import { getPendingRegistrations, getAllRegistrations, approveRegistration, declineRegistration, getRegistrationDetails, getBeneficiaryRecords } from '../../controllers/director/beneficiary.controller.js';
+import { getPendingRegistrations, getAllRegistrations, approveRegistration, declineRegistration, getRegistrationDetails, getBeneficiaryRecords, logReportGeneration } from '../../controllers/director/beneficiary.controller.js';
 
 const manageBeneficiaryRouter = express.Router();
 
@@ -17,5 +17,7 @@ manageBeneficiaryRouter.get('/beneficiary-requests/:registrationId', guard('dire
 manageBeneficiaryRouter.post('/beneficiary-requests/:registrationId/approve', guard('director'), approveRegistration);
 
 manageBeneficiaryRouter.post('/beneficiary-requests/:registrationId/decline', guard('director'), declineRegistration);
+
+manageBeneficiaryRouter.post('/log-report-generation', guard('director'), logReportGeneration);
 
 export default manageBeneficiaryRouter;

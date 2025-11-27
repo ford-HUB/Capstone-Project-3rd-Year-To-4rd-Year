@@ -569,7 +569,8 @@ export const getBeneficiaryRecords = async (req, res) => {
                     model: Event,
                     attributes: [
                         'event_id', 'title', 'description', 'event_started', 
-                        'event_ended', 'location', 'status'
+                        'event_ended', 'location', 'status', 'event_image',
+                        'funds_donation', 'goods_donation'
                     ]
                 },
                 {
@@ -613,7 +614,10 @@ export const getBeneficiaryRecords = async (req, res) => {
                     event_started: registration.Event.event_started,
                     event_ended: registration.Event.event_ended,
                     location: registration.Event.location,
-                    status: registration.Event.status
+                    status: registration.Event.status,
+                    event_image: registration.Event.event_image,
+                    funds_donation: registration.Event.funds_donation,
+                    goods_donation: registration.Event.goods_donation
                 };
             }
 
@@ -655,6 +659,59 @@ export const getBeneficiaryRecords = async (req, res) => {
             success: false,
             message: 'Internal Server Error',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+};
+
+/**
+ * Log report generation activity
+ */
+export const logReportGeneration = async (req, res) => {
+    try {
+        const { reportType, reportDetails } = req.body;
+        
+        // Validate report type
+        if (!reportType) {
+            return res.json({
+                success: false,
+                message: 'Report type is required'
+            });
+        }
+
+        // Create description based on report type and details
+        let description = `Generated ${reportType} report`;
+        if (reportDetails) {
+            if (reportDetails.eventTitle) {
+                description += ` for event: ${reportDetails.eventTitle}`;
+            }
+            if (reportDetails.recordCount) {
+                description += ` (${reportDetails.recordCount} record(s))`;
+            }
+            if (reportDetails.eventCount) {
+                description += ` (${reportDetails.eventCount} event(s))`;
+            }
+        }
+
+        // Log activity
+        await logDirectorActivity(
+            req.user.account_id,
+            'create',
+            'report',
+            description,
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        );
+
+        return res.json({
+            success: true,
+            message: 'Report generation logged successfully'
+        });
+
+    } catch (error) {
+        console.error('logReportGeneration failed:', error.message);
+        return res.status(500).json({
+            success: false,
+            message: 'Internal Server Error'
         });
     }
 };
