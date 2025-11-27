@@ -195,33 +195,62 @@ const BeneficiaryRecords = () => {
         yPosition += 10;
 
         // Section I: Event Details
-        checkNewPage(20);
+        checkNewPage(30);
         pdf.setFontSize(14);
         pdf.setFont('helvetica', 'bold');
         pdf.text('I. Event Details', margin, yPosition);
         yPosition += 8;
 
-        pdf.setFontSize(10);
-        pdf.setFont('helvetica', 'normal');
+        // Event Details Table
+        const tableStartY = yPosition;
+        const labelCol = margin;
+        const valueCol = margin + 50;
+        const tableWidth = pageWidth - (margin * 2);
+        const rowHeight = 8;
         
         const startDate = event?.event_started ? formatDate(event.event_started) : 'N/A';
         const endDate = event?.event_ended ? formatDate(event.event_ended) : 'N/A';
         
         const eventDetails = [
-            `Event Title: ${event?.title || 'N/A'}`,
-            `Location: ${event?.location || 'N/A'}`,
-            `Start Date: ${startDate}`,
-            `End Date: ${endDate}`,
-            `Description: ${event?.description || 'N/A'}`
+            { label: 'Event Title', value: event?.title || 'N/A' },
+            { label: 'Location', value: event?.location || 'N/A' },
+            { label: 'Start Date', value: startDate },
+            { label: 'Description', value: event?.description || 'N/A' }
         ];
 
-        eventDetails.forEach(detail => {
-            checkNewPage(7);
-            pdf.text(detail, margin, yPosition);
-            yPosition += 6;
+        // Draw table borders
+        pdf.setDrawColor(200, 200, 200);
+        pdf.setLineWidth(0.3);
+        
+        // Draw outer border
+        pdf.rect(margin, tableStartY, tableWidth, eventDetails.length * rowHeight);
+        
+        // Draw rows
+        eventDetails.forEach((detail, index) => {
+            const currentY = tableStartY + (index * rowHeight);
+            
+            // Draw horizontal line between rows
+            if (index > 0) {
+                pdf.line(margin, currentY, margin + tableWidth, currentY);
+            }
+            
+            // Draw vertical line between label and value columns
+            pdf.line(valueCol, tableStartY, valueCol, tableStartY + (eventDetails.length * rowHeight));
+            
+            // Draw label
+            pdf.setFontSize(10);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text(detail.label, labelCol + 2, currentY + 5.5);
+            
+            // Draw value
+            pdf.setFont('helvetica', 'normal');
+            const valueLines = pdf.splitTextToSize(detail.value, tableWidth - valueCol - 4);
+            valueLines.forEach((line, lineIndex) => {
+                pdf.text(line, valueCol + 2, currentY + 5.5 + (lineIndex * 5));
+            });
         });
 
-        yPosition += 8;
+        yPosition = tableStartY + (eventDetails.length * rowHeight) + 8;
 
         // Separate beneficiaries into individuals and organizations
         const individualBeneficiaries = beneficiaries.filter(reg => 
