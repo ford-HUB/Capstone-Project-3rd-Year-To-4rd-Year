@@ -7,6 +7,7 @@ import { sendMail } from "../../services/mailService.js"
 import { capitalizeFirstLetter } from "../../utils/eventUtils.js"
 import { notifyEventDeleted, notifyEventAvailableForDonations } from "../../socket.js"
 import { logDirectorActivity, logManagementActivity } from "../../services/activityLogService.js"
+import dayjs from "dayjs"
 
 
 export const addEvent = async (req, res) => {
@@ -93,8 +94,10 @@ export const addEvent = async (req, res) => {
         // Log activity - Event created
         const accountId = req.user.account_id
         const roleType = req.user.Role.name
-        const shortTitle = title.length > 50 ? title.substring(0, 47) + '...' : title
-        const eventDetails = `"${shortTitle}" | ${category_name} | ${location.substring(0, 30)} | Max: ${max_participants}${beneficiary_applicable ? ' | Beneficiary: Yes' : ''}`
+        const shortTitle = title.length > 40 ? title.substring(0, 37) + '...' : title
+        const startTime = dayjs(event_started).format('MMM D, h:mm A')
+        const endTime = dayjs(event_ended).format('MMM D, h:mm A')
+        const eventDetails = `"${shortTitle}" | ${category_name} | Start: ${startTime} | End: ${endTime} | Max: ${max_participants}`
         const logDescription = `Created event: ${eventDetails}`
         
         if (roleType === 'director') {
@@ -301,8 +304,10 @@ export const updateEvent = async (req, res) => {
         // Log activity - Event updated
         const accountId = req.user.account_id
         const roleType = req.user.Role.name
-        const shortTitle = title.length > 40 ? title.substring(0, 37) + '...' : title
-        const eventDetails = `ID: ${eventExist.event_id} | "${shortTitle}" | ${category_name} | Status: ${status}`
+        const shortTitle = title.length > 35 ? title.substring(0, 32) + '...' : title
+        const startTime = dayjs(event_started).format('MMM D, h:mm A')
+        const endTime = dayjs(event_ended).format('MMM D, h:mm A')
+        const eventDetails = `"${shortTitle}" | ${category_name} | Start: ${startTime} | End: ${endTime} | Status: ${status}`
         const logDescription = `Updated event: ${eventDetails}`
         
         if (roleType === 'director') {
@@ -697,8 +702,8 @@ export const destroyEventId = async (req, res) => {
         const eventTitle = event.title
         const eventId = event.event_id
         const eventCategory = event.Categories?.[0]?.name || 'N/A'
-        const eventLocation = event.location || 'N/A'
-        const eventStartDate = event.event_started ? new Date(event.event_started).toLocaleString() : 'N/A'
+        const eventStartTime = event.event_started ? dayjs(event.event_started).format('MMM D, h:mm A') : 'N/A'
+        const eventEndTime = event.event_ended ? dayjs(event.event_ended).format('MMM D, h:mm A') : 'N/A'
 
         await Event.destroy({ where: { event_id: event.event_id }, transaction: t })
         
@@ -707,8 +712,8 @@ export const destroyEventId = async (req, res) => {
         // Log activity - Event deleted
         const accountId = req.user.account_id
         const roleType = req.user.Role.name
-        const shortTitle = eventTitle.length > 50 ? eventTitle.substring(0, 47) + '...' : eventTitle
-        const eventDetails = `ID: ${eventId} | "${shortTitle}" | ${eventCategory}`
+        const shortTitle = eventTitle.length > 40 ? eventTitle.substring(0, 37) + '...' : eventTitle
+        const eventDetails = `"${shortTitle}" | ${eventCategory} | Start: ${eventStartTime} | End: ${eventEndTime}`
         const logDescription = `Deleted event: ${eventDetails}`
         
         if (roleType === 'director') {

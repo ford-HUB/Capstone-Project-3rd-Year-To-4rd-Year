@@ -138,6 +138,14 @@ const DirectorSidebarPanel = ({ sidebarCollapsed }) => {
                   List
                 </NavLink>
 
+                <NavLink to="/director/beneficiary-records" end className={({ isActive }) => {
+                  return `block px-3 py-2 rounded-md hover:bg-gray-50
+                  ${isActive ? 'text-blue-600 bg-gray-50 rounded-md': 'text-gray-800'}`
+                }}
+                >
+                  Records
+                </NavLink>
+
                 <NavLink to="/director/beneficiary-request" end className={({ isActive }) => {
                   return `block px-3 py-2 rounded-md hover:bg-gray-50
                   ${isActive ? 'text-blue-600 bg-gray-50 rounded-md': 'text-gray-800'}`
