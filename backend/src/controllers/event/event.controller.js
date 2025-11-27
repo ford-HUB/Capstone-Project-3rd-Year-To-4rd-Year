@@ -299,7 +299,6 @@ export const updateEvent = async (req, res) => {
         // Log activity - Event updated
         const accountId = req.user.account_id
         const roleType = req.user.Role.name
-        const category_name = category === 'Others' ? capitalizeFirstLetter(specified_category.trim()) : category.trim()
         const eventDetails = `Event ID: ${eventExist.event_id} | Title: ${title} | Location: ${location} | Start: ${new Date(event_started).toLocaleString()} | End: ${new Date(event_ended).toLocaleString()} | Max Participants: ${max_participants} | Category: ${category_name}${department ? ` | Department: ${department}` : ''} | Beneficiary Applicable: ${beneficiary_applicable ? 'Yes' : 'No'}${beneficiary_applicable && max_beneficiaries ? ` | Max Beneficiaries: ${max_beneficiaries}` : ''} | Status: ${status}`
         
         if (roleType === 'director') {
