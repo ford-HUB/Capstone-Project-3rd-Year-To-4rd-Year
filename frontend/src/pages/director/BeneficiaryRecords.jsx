@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import jsPDF from 'jspdf';
 import { formatDate, formatDateTime } from '../../utils/dateUtils.js';
 import { asset } from '../../assets/asset.jsx';
+import MultiEventReportConfirmationModal from '../../components/modal/v2/director/MultiEventReportConfirmationModal.jsx';
 
 const BeneficiaryRecords = () => {
     const { 
@@ -23,6 +24,8 @@ const BeneficiaryRecords = () => {
     const [selectedEventId, setSelectedEventId] = useState('');
     const [selectedBeneficiaries, setSelectedBeneficiaries] = useState(new Set());
     const [searchTerm, setSearchTerm] = useState('');
+    const [showMultiEventModal, setShowMultiEventModal] = useState(false);
+    const [pendingGroupedByEvent, setPendingGroupedByEvent] = useState(null);
     const reportButtonRef = useRef(null);
 
     // Fetch events for dropdown
@@ -104,6 +107,202 @@ const BeneficiaryRecords = () => {
         });
     };
 
+    // Generate a single PDF for one event
+    const generateSingleEventPDF = async (event, beneficiaries, logos) => {
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const margin = 20;
+        let yPosition = margin;
+
+        // Helper function to add new page if needed
+        const checkNewPage = (requiredHeight) => {
+            if (yPosition + requiredHeight > pageHeight - margin) {
+                pdf.addPage();
+                yPosition = margin;
+                return true;
+            }
+            return false;
+        };
+
+        // Header with logos
+        const headerHeight = 25;
+        const logoSize = 15; // mm
+        const logoY = yPosition;
+        
+        // Left logo (UCLMCARES)
+        if (logos.uclmCaresLogo) {
+            try {
+                pdf.addImage(logos.uclmCaresLogo, 'PNG', margin, logoY, logoSize, logoSize);
+            } catch (error) {
+                console.error('Failed to add UCLMCARES logo:', error);
+            }
+        }
+
+        // Center title and date
+        pdf.setFontSize(18);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Beneficiary Records Report', pageWidth / 2, logoY + 8, { align: 'center' });
+        
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(`Generated on: ${new Date().toLocaleString('en-US')}`, pageWidth / 2, logoY + 14, { align: 'center' });
+
+        // Right logo (UC Logo)
+        if (logos.uclmLogo) {
+            try {
+                pdf.addImage(logos.uclmLogo, 'PNG', pageWidth - margin - logoSize, logoY, logoSize, logoSize);
+            } catch (error) {
+                console.error('Failed to add UC logo:', error);
+            }
+        }
+
+        // Draw line under header
+        yPosition = logoY + headerHeight;
+        pdf.setLineWidth(0.5);
+        pdf.setDrawColor(200, 200, 200);
+        pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+        yPosition += 10;
+
+        // Event Details Section
+        pdf.setFontSize(16);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Event Details', margin, yPosition);
+        yPosition += 8;
+
+        pdf.setFontSize(11);
+        pdf.setFont('helvetica', 'normal');
+        
+        const eventDetails = [
+            `Event Title: ${event?.title || 'N/A'}`,
+            `Location: ${event?.location || 'N/A'}`,
+            `Start Date: ${formatDateTime(event?.event_started)}`,
+            `End Date: ${formatDateTime(event?.event_ended)}`,
+            `Description: ${event?.description || 'N/A'}`
+        ];
+
+        eventDetails.forEach(detail => {
+            checkNewPage(7);
+            pdf.text(detail, margin, yPosition);
+            yPosition += 6;
+        });
+
+        yPosition += 5;
+
+        // Beneficiaries List
+        checkNewPage(15);
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(`Beneficiaries (${beneficiaries.length})`, margin, yPosition);
+        yPosition += 8;
+
+        // Table Header
+        checkNewPage(10);
+        pdf.setFontSize(9);
+        pdf.setFont('helvetica', 'bold');
+        const colNo = margin;
+        const colName = margin + 8;
+        const colEmail = margin + 50;
+        const colPhone = margin + 90;
+        const colDate = margin + 130;
+        
+        pdf.text('No.', colNo, yPosition);
+        pdf.text('Name', colName, yPosition);
+        pdf.text('Email', colEmail, yPosition);
+        pdf.text('Phone', colPhone, yPosition);
+        pdf.text('Reg. Date', colDate, yPosition);
+        yPosition += 6;
+
+        // Draw line
+        pdf.setLineWidth(0.5);
+        pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+        yPosition += 3;
+
+        // Beneficiaries rows
+        beneficiaries.forEach((reg, index) => {
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(8);
+            
+            const beneficiary = reg.beneficiary;
+            const name = `${beneficiary?.firstname || ''} ${beneficiary?.lastname || ''}`.trim() || 'N/A';
+            const email = beneficiary?.account?.email || 'N/A';
+            const phone = beneficiary?.phone_number || 'N/A';
+            const regDate = formatDateTime(reg.registration_date || reg.createdAt);
+
+            // Column widths for text wrapping (in mm)
+            const nameWidth = colEmail - colName - 2;
+            const emailWidth = colPhone - colEmail - 2;
+            const phoneWidth = colDate - colPhone - 2;
+            const dateWidth = (pageWidth - margin) - colDate - 2;
+
+            // Split text to fit column widths
+            const nameLines = pdf.splitTextToSize(name, nameWidth);
+            const emailLines = pdf.splitTextToSize(email, emailWidth);
+            const phoneLines = pdf.splitTextToSize(phone, phoneWidth);
+            const regDateLines = pdf.splitTextToSize(regDate, dateWidth);
+
+            // Find the maximum number of lines needed for this row
+            const maxLines = Math.max(nameLines.length, emailLines.length, phoneLines.length, regDateLines.length);
+            const lineHeight = 5;
+            const rowHeight = maxLines * lineHeight + 3;
+
+            // Check if we need a new page before starting this row
+            checkNewPage(rowHeight);
+
+            // Draw each line of the row
+            for (let lineIndex = 0; lineIndex < maxLines; lineIndex++) {
+                const currentY = yPosition + (lineIndex * lineHeight);
+                
+                // Number (only on first line)
+                if (lineIndex === 0) {
+                    pdf.text(`${index + 1}.`, colNo, currentY);
+                }
+                
+                // Name
+                if (nameLines[lineIndex]) {
+                    pdf.text(nameLines[lineIndex], colName, currentY);
+                }
+                
+                // Email
+                if (emailLines[lineIndex]) {
+                    pdf.text(emailLines[lineIndex], colEmail, currentY);
+                }
+                
+                // Phone
+                if (phoneLines[lineIndex]) {
+                    pdf.text(phoneLines[lineIndex], colPhone, currentY);
+                }
+                
+                // Registration Date
+                if (regDateLines[lineIndex]) {
+                    pdf.text(regDateLines[lineIndex], colDate, currentY);
+                }
+            }
+            
+            // Move to next row position
+            yPosition += rowHeight;
+        });
+
+        // Footer
+        const totalPages = pdf.internal.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+            pdf.setPage(i);
+            pdf.setFontSize(8);
+            pdf.setFont('helvetica', 'italic');
+            pdf.text(
+                `Page ${i} of ${totalPages}`,
+                pageWidth / 2,
+                pageHeight - 10,
+                { align: 'center' }
+            );
+        }
+
+        // Generate safe filename
+        const safeEventTitle = (event?.title || 'Event').replace(/[^a-z0-9]/gi, '_').substring(0, 30);
+        const fileName = `Beneficiary_Records_${safeEventTitle}_${new Date().toISOString().split('T')[0]}.pdf`;
+        pdf.save(fileName);
+    };
+
     // Generate PDF Report
     const generatePDFReport = async () => {
         if (selectedBeneficiaries.size === 0) {
@@ -133,218 +332,52 @@ const BeneficiaryRecords = () => {
             groupedByEvent[eventId].beneficiaries.push(record);
         });
 
+        // Check if beneficiaries are from multiple events
+        const eventCount = Object.keys(groupedByEvent).length;
+        
+        if (eventCount > 1) {
+            // Show confirmation modal for multiple events
+            setPendingGroupedByEvent(groupedByEvent);
+            setShowMultiEventModal(true);
+            return;
+        }
+
+        // Single event - generate directly
+        const event = Object.values(groupedByEvent)[0].event;
+        const beneficiaries = Object.values(groupedByEvent)[0].beneficiaries;
+
         // Load images
         const [uclmCaresLogo, uclmLogo] = await Promise.all([
             getImageBase64(asset.logo),
             getImageBase64(asset.uclmLogo)
         ]);
 
-        // Create PDF
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
-        const margin = 20;
-        let yPosition = margin;
-
-        // Helper function to add new page if needed
-        const checkNewPage = (requiredHeight) => {
-            if (yPosition + requiredHeight > pageHeight - margin) {
-                pdf.addPage();
-                yPosition = margin;
-                return true;
-            }
-            return false;
-        };
-
-        // Header with logos
-        const headerHeight = 25;
-        const logoSize = 15; // mm
-        const logoY = yPosition;
-        
-        // Left logo (UCLMCARES)
-        if (uclmCaresLogo) {
-            try {
-                pdf.addImage(uclmCaresLogo, 'PNG', margin, logoY, logoSize, logoSize);
-            } catch (error) {
-                console.error('Failed to add UCLMCARES logo:', error);
-            }
-        }
-
-        // Center title and date
-        pdf.setFontSize(18);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text('Beneficiary Records Report', pageWidth / 2, logoY + 8, { align: 'center' });
-        
-        pdf.setFontSize(10);
-        pdf.setFont('helvetica', 'normal');
-        pdf.text(`Generated on: ${new Date().toLocaleString('en-US')}`, pageWidth / 2, logoY + 14, { align: 'center' });
-
-        // Right logo (UC Logo)
-        if (uclmLogo) {
-            try {
-                pdf.addImage(uclmLogo, 'PNG', pageWidth - margin - logoSize, logoY, logoSize, logoSize);
-            } catch (error) {
-                console.error('Failed to add UC logo:', error);
-            }
-        }
-
-        // Draw line under header
-        yPosition = logoY + headerHeight;
-        pdf.setLineWidth(0.5);
-        pdf.setDrawColor(200, 200, 200);
-        pdf.line(margin, yPosition, pageWidth - margin, yPosition);
-        yPosition += 10;
-
-        // Process each event
-        Object.values(groupedByEvent).forEach((group, eventIndex) => {
-            if (eventIndex > 0) {
-                checkNewPage(30);
-                yPosition += 10;
-            }
-
-            const event = group.event;
-            const beneficiaries = group.beneficiaries;
-
-            // Event Details Section
-            pdf.setFontSize(16);
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('Event Details', margin, yPosition);
-            yPosition += 8;
-
-            pdf.setFontSize(11);
-            pdf.setFont('helvetica', 'normal');
-            
-            const eventDetails = [
-                `Event Title: ${event?.title || 'N/A'}`,
-                `Location: ${event?.location || 'N/A'}`,
-                `Start Date: ${formatDateTime(event?.event_started)}`,
-                `End Date: ${formatDateTime(event?.event_ended)}`,
-                `Description: ${event?.description || 'N/A'}`
-            ];
-
-            eventDetails.forEach(detail => {
-                checkNewPage(7);
-                pdf.text(detail, margin, yPosition);
-                yPosition += 6;
-            });
-
-            yPosition += 5;
-
-            // Beneficiaries List
-            checkNewPage(15);
-            pdf.setFontSize(14);
-            pdf.setFont('helvetica', 'bold');
-            pdf.text(`Beneficiaries (${beneficiaries.length})`, margin, yPosition);
-            yPosition += 8;
-
-            // Table Header - Adjusted column positions
-            checkNewPage(10);
-            pdf.setFontSize(9);
-            pdf.setFont('helvetica', 'bold');
-            const colNo = margin; // 20mm
-            const colName = margin + 8; // 28mm
-            const colEmail = margin + 50; // 70mm
-            const colPhone = margin + 90; // 110mm
-            const colDate = margin + 130; // 150mm
-            
-            pdf.text('No.', colNo, yPosition);
-            pdf.text('Name', colName, yPosition);
-            pdf.text('Email', colEmail, yPosition);
-            pdf.text('Phone', colPhone, yPosition);
-            pdf.text('Reg. Date', colDate, yPosition);
-            yPosition += 6;
-
-            // Draw line
-            pdf.setLineWidth(0.5);
-            pdf.line(margin, yPosition, pageWidth - margin, yPosition);
-            yPosition += 3;
-
-            // Beneficiaries rows
-            beneficiaries.forEach((reg, index) => {
-                pdf.setFont('helvetica', 'normal');
-                pdf.setFontSize(8);
-                
-                const beneficiary = reg.beneficiary;
-                const name = `${beneficiary?.firstname || ''} ${beneficiary?.lastname || ''}`.trim() || 'N/A';
-                const email = beneficiary?.account?.email || 'N/A';
-                const phone = beneficiary?.phone_number || 'N/A';
-                const regDate = formatDateTime(reg.registration_date || reg.createdAt);
-
-                // Column widths for text wrapping (in mm)
-                const nameWidth = colEmail - colName - 2; // Space between Name and Email columns
-                const emailWidth = colPhone - colEmail - 2; // Space between Email and Phone columns
-                const phoneWidth = colDate - colPhone - 2; // Space between Phone and Date columns
-                const dateWidth = (pageWidth - margin) - colDate - 2; // Remaining space
-
-                // Split text to fit column widths
-                const nameLines = pdf.splitTextToSize(name, nameWidth);
-                const emailLines = pdf.splitTextToSize(email, emailWidth);
-                const phoneLines = pdf.splitTextToSize(phone, phoneWidth);
-                const regDateLines = pdf.splitTextToSize(regDate, dateWidth);
-
-                // Find the maximum number of lines needed for this row
-                const maxLines = Math.max(nameLines.length, emailLines.length, phoneLines.length, regDateLines.length);
-                const lineHeight = 5; // Height per line in mm
-                const rowHeight = maxLines * lineHeight + 3; // Total row height + spacing
-
-                // Check if we need a new page before starting this row
-                checkNewPage(rowHeight);
-
-                // Draw each line of the row
-                for (let lineIndex = 0; lineIndex < maxLines; lineIndex++) {
-                    const currentY = yPosition + (lineIndex * lineHeight);
-                    
-                    // Number (only on first line)
-                    if (lineIndex === 0) {
-                        pdf.text(`${index + 1}.`, colNo, currentY);
-                    }
-                    
-                    // Name
-                    if (nameLines[lineIndex]) {
-                        pdf.text(nameLines[lineIndex], colName, currentY);
-                    }
-                    
-                    // Email
-                    if (emailLines[lineIndex]) {
-                        pdf.text(emailLines[lineIndex], colEmail, currentY);
-                    }
-                    
-                    // Phone
-                    if (phoneLines[lineIndex]) {
-                        pdf.text(phoneLines[lineIndex], colPhone, currentY);
-                    }
-                    
-                    // Registration Date
-                    if (regDateLines[lineIndex]) {
-                        pdf.text(regDateLines[lineIndex], colDate, currentY);
-                    }
-                }
-                
-                // Move to next row position
-                yPosition += rowHeight;
-            });
-
-            yPosition += 5;
-        });
-
-        // Footer
-        const totalPages = pdf.internal.getNumberOfPages();
-        for (let i = 1; i <= totalPages; i++) {
-            pdf.setPage(i);
-            pdf.setFontSize(8);
-            pdf.setFont('helvetica', 'italic');
-            pdf.text(
-                `Page ${i} of ${totalPages}`,
-                pageWidth / 2,
-                pageHeight - 10,
-                { align: 'center' }
-            );
-        }
-
-        // Save PDF
-        const fileName = `Beneficiary_Records_${new Date().toISOString().split('T')[0]}.pdf`;
-        pdf.save(fileName);
+        await generateSingleEventPDF(event, beneficiaries, { uclmCaresLogo, uclmLogo });
         toast.success('PDF report generated successfully');
+    };
+
+    // Handle confirmation from modal - generate separate PDFs
+    const handleConfirmMultiEventReport = async () => {
+        if (!pendingGroupedByEvent) return;
+
+        // Load images once
+        const [uclmCaresLogo, uclmLogo] = await Promise.all([
+            getImageBase64(asset.logo),
+            getImageBase64(asset.uclmLogo)
+        ]);
+
+        const logos = { uclmCaresLogo, uclmLogo };
+        const eventEntries = Object.entries(pendingGroupedByEvent);
+        
+        // Generate PDF for each event
+        for (const [eventId, group] of eventEntries) {
+            await generateSingleEventPDF(group.event, group.beneficiaries, logos);
+            // Small delay between downloads to avoid browser blocking
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
+        toast.success(`Successfully generated ${eventEntries.length} PDF report(s)`);
+        setPendingGroupedByEvent(null);
     };
 
     const selectedCount = selectedBeneficiaries.size;
@@ -531,6 +564,17 @@ const BeneficiaryRecords = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Multi-Event Confirmation Modal */}
+            <MultiEventReportConfirmationModal
+                open={showMultiEventModal}
+                setOpen={setShowMultiEventModal}
+                groupedByEvent={pendingGroupedByEvent || {}}
+                onConfirm={handleConfirmMultiEventReport}
+                onCancel={() => {
+                    setPendingGroupedByEvent(null);
+                }}
+            />
         </div>
     );
 };
