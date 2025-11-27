@@ -13,71 +13,144 @@ const FRONTEND_URL = process.env.NODE_ENV === 'development'
     : process.env.FRONTEND_URL_PROD
 
 export const signup = async (req, res) => {
-    const t = await db.transaction()
-    try {
-        const { fullname, email, password, confirmPassword } = req.validatedBody
-        const { Accounts, VerificationCodes, Role, Donor } = models
+    const t = await db.transaction();
 
-        const isEmailExist = await Accounts.findOne({ where: { email: email } })
-        if(isEmailExist) {
-            await t.rollback()
-            return res.json({ success: false, message: 'your email is already registered' })
+    try {
+        const { fullname, email, password, confirmPassword } = req.validatedBody;
+        const { Accounts, VerificationCodes, Role, Donor } = models;
+
+        const existingAccount = await Accounts.findOne({ where: { email } });
+        let accountToUse = existingAccount;
+        let isNewAccount = false;
+        let existingVerificationCode = null;
+
+        if (existingAccount) {
+            if (existingAccount.is_active) {
+                await t.rollback();
+                return res.json({ message: 'Your email account already exists and is verified' });
+            }
+
+            existingVerificationCode = await VerificationCodes.findOne({
+                where: { account_id: existingAccount.account_id },
+                order: [['createdAt', 'DESC']]
+            });
+
+            if (existingVerificationCode && existingVerificationCode.used) {
+                await t.rollback();
+                return res.json({ message: 'Your email account already exists. Please contact support if you need assistance.' });
+            }
+
+            const now = new Date();
+            const isCodeExpired = existingVerificationCode && now > existingVerificationCode.expires_at;
+            const canReuse = !existingVerificationCode || (existingVerificationCode && !existingVerificationCode.used && isCodeExpired);
+
+            if (canReuse) {
+                accountToUse = existingAccount;
+                isNewAccount = false;
+            } else if (existingVerificationCode && !existingVerificationCode.used && !isCodeExpired) {
+                await t.rollback();
+                return res.status(400).json({ message: 'A verification code has already been sent. Please check your email or wait for it to expire.' });
+            }
+        } else {
+            isNewAccount = true;
         }
 
-        const truePassword = password || confirmPassword
+        const truePassword = password || confirmPassword;
+        const salt = await bcrypt.genSalt(10);
+        const hashPassword = await bcrypt.hash(truePassword, salt);
 
-        let salt = await bcrypt.genSalt(10)
-        const hashPassword = await bcrypt.hash(truePassword, salt)
+        let accountToUpdate;
+        if (isNewAccount) {
+            accountToUpdate = await Accounts.create({
+                email,
+                password: hashPassword,
+                is_active: false
+            }, { transaction: t });
+        } else {
+            await Accounts.update(
+                { password: hashPassword, is_active: false },
+                { where: { account_id: accountToUse.account_id }, transaction: t }
+            );
+            accountToUpdate = accountToUse;
+        }
 
-        const newAccount = await Accounts.create({
-            email: email,
-            password: hashPassword,
-        }, { transaction: t })
+        const existingRole = await Role.findOne({ where: { account_id: accountToUpdate.account_id } });
+        if (existingRole) {
+            await existingRole.update({
+                name: 'donor',
+                description: 'this role allowed to donate'
+            }, { transaction: t });
+        } else {
+            await Role.create({
+                account_id: accountToUpdate.account_id,
+                name: 'donor',
+                description: 'this role allowed to donate'
+            }, { transaction: t });
+        }
 
-        await Role.create({
-            account_id: newAccount.account_id,
-            name: 'donor',
-            description: 'this role allowed to donate'
-        }, { transaction: t })
+        const existingDonor = await Donor.findOne({ where: { account_id: accountToUpdate.account_id } });
+        if (existingDonor) {
+            await existingDonor.update({
+                provider_id: accountToUpdate.account_id.toString(),
+                auth_provider: 'local',
+                fullname: fullname,
+                is_verified: false
+            }, { transaction: t });
+        } else {
+            await Donor.create({
+                account_id: accountToUpdate.account_id,
+                provider_id: accountToUpdate.account_id.toString(),
+                auth_provider: 'local',
+                fullname: fullname,
+                is_verified: false
+            }, { transaction: t });
+        }
 
-        await Donor.create({
-            account_id: newAccount.account_id,
-            provider_id: newAccount.account_id.toString(),
-            auth_provider: 'local',
-            fullname: fullname,
-            is_verified: false
-        }, { transaction: t })
+        const uniqueCode = await generateUniqueCode();
+        const FIVE_MINUTES = new Date(Date.now() + 5 * 60 * 1000);
 
-        // Generate verification code
-        const uniqueCode = await generateUniqueCode()
-        const FIVE_MINUTES = new Date(Date.now() + 5 * 60 * 1000)
-        
-        await VerificationCodes.create({
-            account_id: newAccount.account_id,
-            code: uniqueCode,
-            expires_at: FIVE_MINUTES, 
-            used: false
-        }, { transaction: t })
-        
+        if (existingVerificationCode && !existingVerificationCode.used) {
+            await VerificationCodes.update({
+                code: uniqueCode,
+                expires_at: FIVE_MINUTES,
+                used: false
+            }, { where: { vc_id: existingVerificationCode.vc_id }, transaction: t });
+        } else {
+            await VerificationCodes.create({
+                account_id: accountToUpdate.account_id,
+                code: uniqueCode,
+                expires_at: FIVE_MINUTES,
+                used: false
+            }, { transaction: t });
+        }
+
         await sendMail(email, 'Verify Your Account', 'Verify Your Account Fallback', 'mailingTemplate.html', { 
             email: process.env.AUTH_MAILER, 
             code: uniqueCode, 
             company_name: 'uclmcares' 
-        })
-        
-        await generateToken(newAccount.account_id, res)
-        
-        await t.commit()
-        
-        res.json({ success: true, message: "Account Successfully Registered", otp_expiration: FIVE_MINUTES })
+        });
 
+        await generateToken(accountToUpdate.account_id, res);
+
+        await t.commit();
+
+        res.json({ 
+            success: true, 
+            message: isNewAccount ? 'Account Successfully Registered! Please verify your email.' : 'Registration updated! A new verification code has been sent to your email.', 
+            otp_expiration: FIVE_MINUTES,
+            user: {
+                account_id: accountToUpdate.account_id,
+                email: accountToUpdate.email,
+                is_active: accountToUpdate.is_active
+            }
+        });
 
     } catch (error) {
-        await t.rollback()
-        res.status(500).json({ success: false, message: 'Internal Server Error' })
-        console.error('signup donor failed:', error.message)
+        await t.rollback();
+        console.error('signup donor failed:', error.message);
+        res.json({ message: 'Internal Server Error' });
     }
-}
+};
 
 export const login = async (req, res) => {
     try {
