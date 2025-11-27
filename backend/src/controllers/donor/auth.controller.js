@@ -3,7 +3,7 @@ import { db } from "../../config/db.js"
 import { generateUniqueCode } from "../../utils/generateUniqueCode.js"
 import { generateToken } from "../../utils/generateToken.js"
 import { clearJwtCookie } from "../../utils/clearJwtCookie.js"
-import { decrypt } from "../../utils/crypto.js"
+import { decryptRqAccess } from "../../utils/crypto.js"
 import { sendMail } from "../../services/mailService.js"
 import { logDonorActivity } from "../../services/activityLogService.js";
 import bcrypt from 'bcrypt'
@@ -16,15 +16,12 @@ export const signup = async (req, res) => {
     const t = await db.transaction()
     try {
         const { fullname, email, password, confirmPassword } = req.validatedBody
-
-        console.log(email)
-
         const { Accounts, VerificationCodes, Role, Donor } = models
 
         const isEmailExist = await Accounts.findOne({ where: { email: email } })
         if(isEmailExist) {
             await t.rollback()
-            return res.json({ message: 'your email is already registered' })
+            return res.json({ success: false, message: 'your email is already registered' })
         }
 
         const truePassword = password || confirmPassword
@@ -53,7 +50,7 @@ export const signup = async (req, res) => {
 
         // Generate verification code
         const uniqueCode = await generateUniqueCode()
-        const FIVE_MINUTES = new Date(Date.now() + 5 * 60 * 1000) // this will set expiration to 5 minutes
+        const FIVE_MINUTES = new Date(Date.now() + 5 * 60 * 1000)
         
         await VerificationCodes.create({
             account_id: newAccount.account_id,
@@ -62,7 +59,11 @@ export const signup = async (req, res) => {
             used: false
         }, { transaction: t })
         
-        await sendMail(email, 'Verify Your Account', 'Verify Your Account Fallback', 'mailingTemplate.html', { email: process.env.AUTH_MAILER, code: uniqueCode, company_name: 'uclmcares' })
+        await sendMail(email, 'Verify Your Account', 'Verify Your Account Fallback', 'mailingTemplate.html', { 
+            email: process.env.AUTH_MAILER, 
+            code: uniqueCode, 
+            company_name: 'uclmcares' 
+        })
         
         await generateToken(newAccount.account_id, res)
         
@@ -73,8 +74,8 @@ export const signup = async (req, res) => {
 
     } catch (error) {
         await t.rollback()
-        res.json({ message: 'Internal Server Error' })
-        console.log('signup donor failed:', error.message)
+        res.status(500).json({ success: false, message: 'Internal Server Error' })
+        console.error('signup donor failed:', error.message)
     }
 }
 
@@ -85,13 +86,13 @@ export const login = async (req, res) => {
         const { Accounts, VerificationCodes } = models
 
         const isValid = await Accounts.findOne({ where: { email: email } })
-        if(!isValid) { return res.json({ message: 'Invalid Credentials' }) }
+        if(!isValid) { return res.json({ success: false, message: 'Invalid Credentials' }) }
         
         const isVerified = await VerificationCodes.findOne({ where: { account_id: isValid.account_id } })
-        if(!isVerified || !isVerified.used) { return res.json({ message: 'Account Not Verified' }) }
+        if(!isVerified || !isVerified.used) { return res.json({ success: false, message: 'Account Not Verified' }) }
 
         const isMatch = await bcrypt.compare(password, isValid.password)
-        if(!isMatch) { return res.json({ message: 'Invalid Credentials' }) }
+        if(!isMatch) { return res.json({ success: false, message: 'Invalid Credentials' }) }
 
         // Set user as active
         await Accounts.update({ is_active: true }, { where: { account_id: isValid.account_id } })
@@ -101,7 +102,7 @@ export const login = async (req, res) => {
         res.json({ success: true, message: 'Login Successfully' })
 
     } catch (error) {
-        res.status(500).json({ message: 'Internal Server Error' })
+        res.status(500).json({ success: false, message: 'Internal Server Error' })
         console.error('login controller failed :', error.message)
     }
 }
@@ -129,11 +130,10 @@ export const logout = async (req, res) => {
             });
         });
     } catch (error) {
-        res.status(500).json({ message: 'Internal Server Error' });
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
         console.error('logout controller failed :', error.message);
     }
 }
-
 
 export const VerifyCode = async (req, res) => {
     try {
@@ -142,37 +142,30 @@ export const VerifyCode = async (req, res) => {
         const { VerificationCodes, Accounts } = models
 
         if (!rq_access) {
-            return res.json({ message: 'rq_access parameter is required' })
+            return res.json({ success: false, message: 'rq_access parameter is required' })
         }
 
         // Decrypt rq_access to get the email
-        let decrypted_data;
-        try {
-            decrypted_data = decrypt(rq_access);
-            
-            // Check if decryption was successful
-            if (!decrypted_data) {
-                return res.json({ message: 'Invalid verification link. Please request a new verification email.' })
-            }
-        } catch (decryptError) {
-            console.error('Decryption error:', decryptError.message);
-            return res.status(500).json({ message: 'Server configuration error: CRYPTO_SECRET_KEY is not set' })
+        const decryptResult = decryptRqAccess(rq_access);
+        if (decryptResult.error) {
+            return res.status(decryptResult.error.includes('Server configuration') ? 500 : 400)
+                .json({ success: false, message: decryptResult.error })
         }
 
-        const user = await Accounts.findOne({ where: { email: decrypted_data } })
-        if (!user) { return res.json({ message: 'User not found' }) }
+        const user = await Accounts.findOne({ where: { email: decryptResult.data } })
+        if (!user) { return res.json({ success: false, message: 'User not found' }) }
 
         const isMatch = await VerificationCodes.findOne({ where: { account_id: user.account_id, code: code } })
-        if(!isMatch) { return res.json({ message: 'Verification Code Does not Match' }) }
+        if(!isMatch) { return res.json({ success: false, message: 'Verification Code Does not Match' }) }
 
-        if(isMatch.used) { return res.json({ message: 'Verification Code Already Used, Please attempt resend code' }) }
+        if(isMatch.used) { return res.json({ success: false, message: 'Verification Code Already Used, Please attempt resend code' }) }
 
-        const now = Date.now()
+        const now = new Date()
         const expiresAt = new Date(isMatch.expires_at)
-        if(now > expiresAt) { return res.json({ message: 'Verification Code is Expired' }) }
+        if(now > expiresAt) { return res.json({ success: false, message: 'Verification Code is Expired' }) }
 
         const updateStatus = await VerificationCodes.update({ used: true }, { where: { vc_id: isMatch.vc_id } })
-        if(!updateStatus) { return res.json({ message: 'verification code is not successfully updated the status' }) }
+        if(updateStatus[0] === 0) { return res.json({ success: false, message: 'verification code is not successfully updated the status' }) }
 
         // Activate the account after successful verification
         await Accounts.update({ is_active: true }, { where: { account_id: user.account_id } });
@@ -180,11 +173,10 @@ export const VerifyCode = async (req, res) => {
         res.json({ success: true, message: 'Verification Code Accepted - Account Activated!' })
 
     } catch (error) {
-        res.status(500).json({ message: 'Internal Server Error' })
+        res.status(500).json({ success: false, message: 'Internal Server Error' })
         console.error('VerifyCode controller failed :', error.message)
     }
 }
-
 
 export const reSendCode = async (req, res) => {
     try {
@@ -196,46 +188,54 @@ export const reSendCode = async (req, res) => {
         }
         
         // Decrypt rq_access to get the email
-        let decrypted_data;
-        try {
-            decrypted_data = decrypt(rq_access);
-            
-            // Check if decryption was successful
-            if (!decrypted_data) {
-                return res.json({ success: false, message: 'Invalid verification link. Please request a new verification email.' })
-            }
-        } catch (decryptError) {
-            console.error('Decryption error:', decryptError.message);
-            return res.status(500).json({ success: false, message: 'Server configuration error: CRYPTO_SECRET_KEY is not set' })
+        const decryptResult = decryptRqAccess(rq_access);
+        if (decryptResult.error) {
+            return res.status(decryptResult.error.includes('Server configuration') ? 500 : 400)
+                .json({ success: false, message: decryptResult.error })
         }
 
-        const user = await Accounts.findOne({ where: { email: decrypted_data } })
+        const user = await Accounts.findOne({ where: { email: decryptResult.data } })
         if(!user) { return res.json({ success: false, message: 'User not found' }) }
 
         const uniqueCode = await generateUniqueCode()
-        await sendMail(user.email, 'Verify Your Account', 'Verify Your Account Fallback', 'mailingTemplate.html', { email: process.env.AUTH_MAILER, code: uniqueCode, company_name: 'uclmcares' })
+        const FIVE_MINUTES = new Date(Date.now() + 5 * 60 * 1000)
 
-        const FIVE_MINUTES = new Date(Date.now() + 5 * 60 * 1000) // this will set expiration to 5 minutes
-
-        await VerificationCodes.update({
-            account_id: user.account_id,
-            code: uniqueCode,
-            expires_at: FIVE_MINUTES,
-            used: false
-        }, { 
-            where: {
-                account_id: user.account_id
-            }
+        await sendMail(user.email, 'Verify Your Account', 'Verify Your Account Fallback', 'mailingTemplate.html', { 
+            email: process.env.AUTH_MAILER, 
+            code: uniqueCode, 
+            company_name: 'uclmcares' 
         })
+
+        // Check if verification code exists for this account
+        const existingVerificationCode = await VerificationCodes.findOne({
+            where: { account_id: user.account_id },
+            order: [['createdAt', 'DESC']]
+        })
+
+        if (existingVerificationCode && !existingVerificationCode.used) {
+            await VerificationCodes.update({
+                code: uniqueCode,
+                expires_at: FIVE_MINUTES,
+                used: false
+            }, { 
+                where: { vc_id: existingVerificationCode.vc_id }
+            })
+        } else {
+            await VerificationCodes.create({
+                account_id: user.account_id,
+                code: uniqueCode,
+                expires_at: FIVE_MINUTES,
+                used: false
+            })
+        }
 
         res.json({ success: true, message: "New OTP sent to your email", otp_expiration: FIVE_MINUTES })
         
     } catch (error) {
-        res.status(500).json({ message: 'Internal Server Error' })
+        res.status(500).json({ success: false, message: 'Internal Server Error' })
         console.error('Resend Code controller failed :', error.message)
     }
 }
-
 
 export const checkAuth = async (req, res) => {
     try {

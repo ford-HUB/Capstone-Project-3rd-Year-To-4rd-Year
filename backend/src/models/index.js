@@ -97,6 +97,9 @@ CampusUsers.belongsTo(YearLevel, { foreignKey: "yl_id" });
 CampusUsers.hasOne(VerificationCodes, { foreignKey: 'account_id', onDelete: 'CASCADE', hooks:true })
 VerificationCodes.belongsTo(CampusUsers, { foreignKey: 'account_id' })
 
+Accounts.hasOne(VerificationCodes, { foreignKey: 'account_id', onDelete: 'CASCADE', hooks: true })
+VerificationCodes.belongsTo(Accounts, { foreignKey: 'account_id' })
+
 Department.hasMany(Coordinator, { foreignKey: 'department_id', onDelete: "CASCADE", hooks: true })
 Coordinator.belongsTo(Department, { foreignKey: 'department_id' })
 
