@@ -402,7 +402,7 @@ const BeneficiaryRecords = () => {
                 pdf.line(colDate, currentRowY, colDate, currentRowY + rowHeight);
 
                 // Calculate vertical center for text positioning
-                const verticalPadding = 2.5;
+                const verticalPadding = 3;
                 const textStartY = currentRowY + verticalPadding;
 
                 // Draw each line of the row - with proper spacing
