@@ -196,10 +196,18 @@ const BeneficiaryRecords = () => {
 
         // Section I: Event Details
         checkNewPage(30);
-        pdf.setFontSize(14);
+        pdf.setFontSize(16);
         pdf.setFont('helvetica', 'bold');
-        pdf.text('I. Event Details', margin, yPosition);
-        yPosition += 8;
+        const eventDetailsTitle = 'I. Event Details';
+        const titleWidth = pdf.getTextWidth(eventDetailsTitle);
+        pdf.text(eventDetailsTitle, margin, yPosition);
+        
+        // Draw underline
+        pdf.setLineWidth(0.5);
+        pdf.setDrawColor(0, 0, 0);
+        pdf.line(margin, yPosition + 1, margin + titleWidth, yPosition + 1);
+        
+        yPosition += 10;
 
         // Event Details Table
         const tableStartY = yPosition;
@@ -210,17 +218,23 @@ const BeneficiaryRecords = () => {
         
         const startDate = event?.event_started ? formatDate(event.event_started) : 'N/A';
         const endDate = event?.event_ended ? formatDate(event.event_ended) : 'N/A';
+        const dateRange = `${startDate} - ${endDate}`;
         
         const eventDetails = [
-            { label: 'Event Title', value: event?.title || 'N/A' },
-            { label: 'Location', value: event?.location || 'N/A' },
-            { label: 'Start Date', value: startDate },
-            { label: 'Description', value: event?.description || 'N/A' }
+            { label: 'Event Title', value: event?.title || 'N/A', isBold: true },
+            { label: 'Location', value: event?.location || 'N/A', isBold: false },
+            { label: 'Date', value: dateRange, isBold: false },
+            { label: 'Description', value: event?.description || 'N/A', isBold: false }
         ];
 
+        // Draw blue background for table
+        pdf.setFillColor(66, 133, 244); // Blue color
+        pdf.setDrawColor(66, 133, 244);
+        pdf.rect(margin, tableStartY, tableWidth, eventDetails.length * rowHeight, 'F');
+        
         // Draw table borders
-        pdf.setDrawColor(200, 200, 200);
-        pdf.setLineWidth(0.3);
+        pdf.setDrawColor(66, 133, 244);
+        pdf.setLineWidth(0.5);
         
         // Draw outer border
         pdf.rect(margin, tableStartY, tableWidth, eventDetails.length * rowHeight);
@@ -231,24 +245,37 @@ const BeneficiaryRecords = () => {
             
             // Draw horizontal line between rows
             if (index > 0) {
+                pdf.setDrawColor(255, 255, 255);
+                pdf.setLineWidth(0.3);
                 pdf.line(margin, currentY, margin + tableWidth, currentY);
+                pdf.setDrawColor(66, 133, 244);
+                pdf.setLineWidth(0.5);
             }
             
             // Draw vertical line between label and value columns
+            pdf.setDrawColor(255, 255, 255);
+            pdf.setLineWidth(0.3);
             pdf.line(valueCol, tableStartY, valueCol, tableStartY + (eventDetails.length * rowHeight));
+            pdf.setDrawColor(66, 133, 244);
+            pdf.setLineWidth(0.5);
             
-            // Draw label
+            // Draw label (white text)
+            pdf.setTextColor(255, 255, 255);
             pdf.setFontSize(10);
             pdf.setFont('helvetica', 'bold');
             pdf.text(detail.label, labelCol + 2, currentY + 5.5);
             
-            // Draw value
-            pdf.setFont('helvetica', 'normal');
+            // Draw value (white text, bold if needed)
+            pdf.setFont('helvetica', detail.isBold ? 'bold' : 'normal');
+            pdf.setTextColor(255, 255, 255);
             const valueLines = pdf.splitTextToSize(detail.value, tableWidth - valueCol - 4);
             valueLines.forEach((line, lineIndex) => {
                 pdf.text(line, valueCol + 2, currentY + 5.5 + (lineIndex * 5));
             });
         });
+        
+        // Reset text color to black
+        pdf.setTextColor(0, 0, 0);
 
         yPosition = tableStartY + (eventDetails.length * rowHeight) + 8;
 
@@ -263,10 +290,18 @@ const BeneficiaryRecords = () => {
         // Section II: Beneficiary Information (Individuals)
         if (individualBeneficiaries.length > 0) {
             checkNewPage(25);
-            pdf.setFontSize(14);
+            pdf.setFontSize(16);
             pdf.setFont('helvetica', 'bold');
-            pdf.text('II. Beneficiary Information (Individuals)', margin, yPosition);
-            yPosition += 8;
+            const individualsTitle = 'II. Beneficiary Information (Individuals)';
+            const individualsTitleWidth = pdf.getTextWidth(individualsTitle);
+            pdf.text(individualsTitle, margin, yPosition);
+            
+            // Draw underline
+            pdf.setLineWidth(0.5);
+            pdf.setDrawColor(0, 0, 0);
+            pdf.line(margin, yPosition + 1, margin + individualsTitleWidth, yPosition + 1);
+            
+            yPosition += 10;
 
             // Table Header with blue background
             checkNewPage(10);
@@ -337,7 +372,7 @@ const BeneficiaryRecords = () => {
                 // Find the maximum number of lines needed for this row
                 const maxLines = Math.max(nameLines.length, emailLines.length, phoneLines.length, dateLines.length);
                 const lineHeight = 5;
-                const rowHeight = maxLines * lineHeight + 4;
+                const rowHeight = maxLines * lineHeight + 2;
                 const rowY = yPosition;
 
                 // Check if we need a new page before starting this row
@@ -362,33 +397,33 @@ const BeneficiaryRecords = () => {
                 pdf.line(margin, currentRowY, pageWidth - margin, currentRowY);
                 pdf.line(margin, currentRowY + rowHeight, pageWidth - margin, currentRowY + rowHeight);
 
-                // Draw each line of the row
+                // Draw each line of the row - reduced padding
                 for (let lineIndex = 0; lineIndex < maxLines; lineIndex++) {
-                    const currentY = currentRowY + 3 + (lineIndex * lineHeight);
+                    const currentY = currentRowY + 1.5 + (lineIndex * lineHeight);
                     
                     // Number (only on first line)
                     if (lineIndex === 0) {
-                        pdf.text(`${index + 1}.`, colNo + 2, currentY);
+                        pdf.text(`${index + 1}.`, colNo + 1, currentY);
                     }
                     
                     // Name
                     if (nameLines[lineIndex]) {
-                        pdf.text(nameLines[lineIndex], colName + 2, currentY);
+                        pdf.text(nameLines[lineIndex], colName + 1, currentY);
                     }
                     
                     // Email
                     if (emailLines[lineIndex]) {
-                        pdf.text(emailLines[lineIndex], colEmail + 2, currentY);
+                        pdf.text(emailLines[lineIndex], colEmail + 1, currentY);
                     }
                     
                     // Phone
                     if (phoneLines[lineIndex]) {
-                        pdf.text(phoneLines[lineIndex], colPhone + 2, currentY);
+                        pdf.text(phoneLines[lineIndex], colPhone + 1, currentY);
                     }
                     
                     // Registration Date
                     if (dateLines[lineIndex]) {
-                        pdf.text(dateLines[lineIndex], colDate + 2, currentY);
+                        pdf.text(dateLines[lineIndex], colDate + 1, currentY);
                     }
                 }
                 
@@ -402,10 +437,18 @@ const BeneficiaryRecords = () => {
         // Section III: Beneficiary Information (Organizations)
         if (organizationBeneficiaries.length > 0) {
             checkNewPage(25);
-            pdf.setFontSize(14);
+            pdf.setFontSize(16);
             pdf.setFont('helvetica', 'bold');
-            pdf.text('III. Beneficiary Information (Organizations)', margin, yPosition);
-            yPosition += 8;
+            const organizationsTitle = 'III. Beneficiary Information (Organizations)';
+            const organizationsTitleWidth = pdf.getTextWidth(organizationsTitle);
+            pdf.text(organizationsTitle, margin, yPosition);
+            
+            // Draw underline
+            pdf.setLineWidth(0.5);
+            pdf.setDrawColor(0, 0, 0);
+            pdf.line(margin, yPosition + 1, margin + organizationsTitleWidth, yPosition + 1);
+            
+            yPosition += 10;
 
             // Table Header with blue background
             checkNewPage(10);
@@ -478,7 +521,7 @@ const BeneficiaryRecords = () => {
                 // Find the maximum number of lines needed for this row
                 const maxLines = Math.max(nameLines.length, emailLines.length, phoneLines.length, dateLines.length);
                 const lineHeight = 5;
-                const rowHeight = maxLines * lineHeight + 4;
+                const rowHeight = maxLines * lineHeight + 2;
                 const rowY = yPosition;
 
                 // Check if we need a new page before starting this row
@@ -503,33 +546,33 @@ const BeneficiaryRecords = () => {
                 pdf.line(margin, currentRowY, pageWidth - margin, currentRowY);
                 pdf.line(margin, currentRowY + rowHeight, pageWidth - margin, currentRowY + rowHeight);
 
-                // Draw each line of the row
+                // Draw each line of the row - reduced padding
                 for (let lineIndex = 0; lineIndex < maxLines; lineIndex++) {
-                    const currentY = currentRowY + 3 + (lineIndex * lineHeight);
+                    const currentY = currentRowY + 1.5 + (lineIndex * lineHeight);
                     
                     // Number (only on first line)
                     if (lineIndex === 0) {
-                        pdf.text(`${index + 1}.`, colNo + 2, currentY);
+                        pdf.text(`${index + 1}.`, colNo + 1, currentY);
                     }
                     
                     // Name
                     if (nameLines[lineIndex]) {
-                        pdf.text(nameLines[lineIndex], colName + 2, currentY);
+                        pdf.text(nameLines[lineIndex], colName + 1, currentY);
                     }
                     
                     // Email
                     if (emailLines[lineIndex]) {
-                        pdf.text(emailLines[lineIndex], colEmail + 2, currentY);
+                        pdf.text(emailLines[lineIndex], colEmail + 1, currentY);
                     }
                     
                     // Phone
                     if (phoneLines[lineIndex]) {
-                        pdf.text(phoneLines[lineIndex], colPhone + 2, currentY);
+                        pdf.text(phoneLines[lineIndex], colPhone + 1, currentY);
                     }
                     
                     // Registration Date
                     if (dateLines[lineIndex]) {
-                        pdf.text(dateLines[lineIndex], colDate + 2, currentY);
+                        pdf.text(dateLines[lineIndex], colDate + 1, currentY);
                     }
                 }
                 
