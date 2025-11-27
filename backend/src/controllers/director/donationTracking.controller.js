@@ -2,6 +2,7 @@ import models from "../../models/index.js";
 import { Op } from 'sequelize';
 import { sendMail } from '../../services/mailService.js';
 import { buildDateFilterFromQuery } from '../../utils/dateFilter.util.js';
+import { logDirectorActivity } from "../../services/activityLogService.js";
 
 export const getOpenDonationEvents = async (req, res) => {
     try {
@@ -351,6 +352,16 @@ export const getDonationList = async (req, res) => {
                 remark: donation.remark
             };
         });
+
+        // Log activity - View donation list
+        await logDirectorActivity(
+            req.user.account_id,
+            'access',
+            'donation',
+            'Viewed donation list',
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        )
 
         res.json({
             success: true,
@@ -791,6 +802,16 @@ export const bulkUpdateDonationStatus = async (req, res) => {
             }
         }
 
+        // Log activity - Bulk update donation status
+        await logDirectorActivity(
+            req.user.account_id,
+            'update',
+            'donation',
+            `Bulk updated ${updateResult[0]} donation(s) to status: ${status}`,
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        )
+
         res.json({
             success: true,
             message: `Successfully updated ${updateResult[0]} donations to ${status}. ${emailsSent} emails sent.`,
@@ -950,6 +971,17 @@ export const exportDonations = async (req, res) => {
             order: [['createdAt', 'DESC']]
         });
         
+        // Log activity - Export donations
+        const exportCount = donations.length
+        await logDirectorActivity(
+            req.user.account_id,
+            'download',
+            'donation',
+            `Exported ${exportCount} donation record(s)`,
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        )
+
         res.json({
             success: true,
             data: donations,

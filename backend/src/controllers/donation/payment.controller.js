@@ -1,6 +1,7 @@
 import { paymongo } from "../../config/paymongo.js";
 import models from "../../models/index.js";
 import { emitDonationUpdate, notifyNewDonation } from "../../socket.js";
+import { logDonorActivity } from "../../services/activityLogService.js";
 
 export const getAvailablePaymentMethods = async (req, res) => {
     try {
@@ -131,6 +132,17 @@ export const donationPay = async (req, res) => {
         })
 
         if(!paymentMethod) { return res.json({ message: 'payment method failed to insert' }) }
+
+        // Log activity - Make donation payment
+        const eventTitle = event.title || `Event ID: ${event_id}`
+        await logDonorActivity(
+            req.user.account_id,
+            'create',
+            'donation',
+            `Initiated money donation (${amount} ${linkedAccount.currency}) for event: ${eventTitle}`,
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        )
 
         return res.json({ 
             success: true, 

@@ -2,6 +2,7 @@ import QRCode from 'qrcode'
 import { Op } from 'sequelize';
 import { generateQrToken } from '../../utils/generateQrToken.js';
 import models from "../../models/index.js";
+import { logParticipantActivity, logBeneficiaryActivity, logManagementActivity, logDirectorActivity } from "../../services/activityLogService.js";
 
 export const ScanQRAttendance = async (req, res) => {
     try {
@@ -13,7 +14,29 @@ export const ScanQRAttendance = async (req, res) => {
 
         const isQrValid = await EventQRCode.findOne({ where: { token: token } })
 
-        if(!isQrValid) { return res.json({ success: false, message: 'qr code cannot be found' }) }
+        if(!isQrValid) {
+            // Log failed QR scan attempt
+            const roleName = req.user.Role.name
+            const failedLogDescription = `Failed QR scan attempt - Invalid token for event ID: ${eventId}`
+            const ipAddress = req.ip || req.connection.remoteAddress
+            const userAgent = req.get('user-agent')
+            
+            try {
+                if (roleName === 'volunteer') {
+                    await logParticipantActivity(accountId, 'access', 'attendance', failedLogDescription, ipAddress, userAgent)
+                } else if (roleName === 'beneficiary') {
+                    await logBeneficiaryActivity(accountId, 'access', 'attendance', failedLogDescription, ipAddress, userAgent)
+                } else if (roleName === 'staff' || roleName === 'coordinator' || roleName === 'assistant_coordinator') {
+                    await logManagementActivity(accountId, roleName.toLowerCase(), 'access', 'attendance', failedLogDescription, ipAddress, userAgent)
+                } else if (roleName === 'director') {
+                    await logDirectorActivity(accountId, 'access', 'attendance', failedLogDescription, ipAddress, userAgent)
+                }
+            } catch (logError) {
+                console.error('Failed to log failed QR scan:', logError.message)
+            }
+            
+            return res.json({ success: false, message: 'qr code cannot be found' })
+        }
 
         let participant_id
         let participant
@@ -62,7 +85,29 @@ export const ScanQRAttendance = async (req, res) => {
             ]
         })
 
-        if(!isRegistered) { return res.json({ success: false, message: 'You are not registered from this event' }) }
+        if(!isRegistered) {
+            // Log failed QR scan attempt - Not registered
+            const roleName = req.user.Role.name
+            const failedLogDescription = `Failed QR scan attempt - Not registered for event ID: ${eventId}`
+            const ipAddress = req.ip || req.connection.remoteAddress
+            const userAgent = req.get('user-agent')
+            
+            try {
+                if (roleName === 'volunteer') {
+                    await logParticipantActivity(accountId, 'access', 'attendance', failedLogDescription, ipAddress, userAgent)
+                } else if (roleName === 'beneficiary') {
+                    await logBeneficiaryActivity(accountId, 'access', 'attendance', failedLogDescription, ipAddress, userAgent)
+                } else if (roleName === 'staff' || roleName === 'coordinator' || roleName === 'assistant_coordinator') {
+                    await logManagementActivity(accountId, roleName.toLowerCase(), 'access', 'attendance', failedLogDescription, ipAddress, userAgent)
+                } else if (roleName === 'director') {
+                    await logDirectorActivity(accountId, 'access', 'attendance', failedLogDescription, ipAddress, userAgent)
+                }
+            } catch (logError) {
+                console.error('Failed to log failed QR scan:', logError.message)
+            }
+            
+            return res.json({ success: false, message: 'You are not registered from this event' })
+        }
 
         const eventStatus = isRegistered.Event.status
 
@@ -114,6 +159,28 @@ export const ScanQRAttendance = async (req, res) => {
         })
 
         const AttentType = type === 'in' ? 'Time-In' : 'Time-Out'
+        const eventTitle = attendace.Event?.title || `Event ID: ${eventId}`
+
+        // Log activity - Time In/Out based on role
+        const roleName = req.user.Role.name
+        const logDescription = `${AttentType} recorded for event: ${eventTitle}`
+        const ipAddress = req.ip || req.connection.remoteAddress
+        const userAgent = req.get('user-agent')
+
+        try {
+            if (roleName === 'volunteer') {
+                await logParticipantActivity(accountId, 'access', 'attendance', logDescription, ipAddress, userAgent)
+            } else if (roleName === 'beneficiary') {
+                await logBeneficiaryActivity(accountId, 'access', 'attendance', logDescription, ipAddress, userAgent)
+            } else if (roleName === 'staff' || roleName === 'coordinator' || roleName === 'assistant_coordinator') {
+                await logManagementActivity(accountId, roleName.toLowerCase(), 'access', 'attendance', logDescription, ipAddress, userAgent)
+            } else if (roleName === 'director') {
+                await logDirectorActivity(accountId, 'access', 'attendance', logDescription, ipAddress, userAgent)
+            }
+        } catch (logError) {
+            console.error('Failed to log attendance activity:', logError.message)
+            // Don't fail the request if logging fails
+        }
 
         console.log('event data: ', attendace.Event)
 
@@ -168,6 +235,24 @@ export const generateBothQR = async (req, res) => {
         result[type] = newQr.qrcode_url;
       }
   
+      // Log activity - Generate QR codes
+      const eventTitle = event.title || `Event ID: ${eventId}`
+      const userRole = req.user.Role.name
+      const logDescription = `Generated QR codes for event: ${eventTitle}`
+      const ipAddress = req.ip || req.connection.remoteAddress
+      const userAgent = req.get('user-agent')
+
+      try {
+          if (userRole === 'director') {
+              await logDirectorActivity(req.user.account_id, 'create', 'attendance', logDescription, ipAddress, userAgent)
+          } else if (userRole === 'staff' || userRole === 'coordinator' || userRole === 'assistant_coordinator') {
+              await logManagementActivity(req.user.account_id, userRole.toLowerCase(), 'create', 'attendance', logDescription, ipAddress, userAgent)
+          }
+      } catch (logError) {
+          console.error('Failed to log QR generation:', logError.message)
+          // Don't fail the request if logging fails
+      }
+
       return res.json({ success: true, timeInQr: result.in, timeOutQr: result.out,
       });
     } catch (error) {
@@ -203,12 +288,12 @@ export const attendanceLog = async (req, res) => {
             department
         } = req.query
 
-        const userRole = req.user.Role.name
+        const attendanceLogViewerRole = req.user.Role.name
         const now = new Date()
         let departmentFilter = null
 
         // Get department filter based on user role
-        if (userRole === 'coordinator' || userRole === 'assistant_coordinator') {
+        if (attendanceLogViewerRole === 'coordinator' || attendanceLogViewerRole === 'assistant_coordinator') {
             const coordinatorAccount = await Accounts.findOne({
                 where: { account_id: req.user.account_id },
                 include: [{
@@ -385,6 +470,23 @@ export const attendanceLog = async (req, res) => {
                 message: 'There is no records of attendance log right now',
                 attendanceData: []
             })
+        }
+
+        // Log activity - View attendance log
+        const attendanceLogViewerRoleForLog = req.user.Role.name
+        const logDescription = `Viewed attendance log${event_id ? ` for event ID: ${event_id}` : ''}`
+        const ipAddress = req.ip || req.connection.remoteAddress
+        const userAgent = req.get('user-agent')
+
+        try {
+            if (attendanceLogViewerRoleForLog === 'director') {
+                await logDirectorActivity(req.user.account_id, 'access', 'attendance', logDescription, ipAddress, userAgent)
+            } else if (attendanceLogViewerRoleForLog === 'staff' || attendanceLogViewerRoleForLog === 'coordinator' || attendanceLogViewerRoleForLog === 'assistant_coordinator') {
+                await logManagementActivity(req.user.account_id, attendanceLogViewerRoleForLog.toLowerCase(), 'access', 'attendance', logDescription, ipAddress, userAgent)
+            }
+        } catch (logError) {
+            console.error('Failed to log attendance log view:', logError.message)
+            // Don't fail the request if logging fails
         }
 
         return res.json({ success: true, attendanceData: validData })

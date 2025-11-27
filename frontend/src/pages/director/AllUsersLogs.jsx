@@ -137,7 +137,7 @@ const AllUsersLogs = () => {
                                                     <div className="flex-1">
                                                         <div className="flex items-center justify-between mb-2">
                                                             <div className="flex items-center gap-3">
-                                                                <h3 className="font-semibold text-gray-900">
+                                                                <h3 className={`font-semibold ${logGroup.mainEvent.action?.toLowerCase() === 'delete' ? 'text-red-600' : 'text-gray-900'}`}>
                                                                     {logGroup.mainEvent.module.charAt(0).toUpperCase() + logGroup.mainEvent.module.slice(1)} - {logGroup.mainEvent.action.charAt(0).toUpperCase() + logGroup.mainEvent.action.slice(1)}
                                                                 </h3>
                                                                 <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadgeColor(role)}`}>

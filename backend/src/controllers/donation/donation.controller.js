@@ -470,6 +470,16 @@ export const getMyDonations = async (req, res) => {
             };
         });
 
+        // Log activity - View my donations
+        await logDonorActivity(
+            accountId,
+            'access',
+            'donation',
+            'Viewed my donations',
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        )
+
         return res.json({
             success: true,
             data: formattedData,
@@ -592,6 +602,16 @@ export const getMyDonationHistory = async (req, res) => {
                 goodsTypes: d.GoodsDonation?.type_goods?.join(', ') || ''
             };
         });
+
+        // Log activity - View donation history
+        await logDonorActivity(
+            accountId,
+            'access',
+            'donation',
+            'Viewed donation history',
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        )
 
         return res.json({
             success: true,

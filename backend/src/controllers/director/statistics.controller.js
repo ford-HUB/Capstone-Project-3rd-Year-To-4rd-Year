@@ -1,6 +1,7 @@
 import models from "../../models/index.js";
 import { Op } from 'sequelize';
 import { buildDateFilterFromQuery } from '../../utils/dateFilter.util.js';
+import { logDirectorActivity } from "../../services/activityLogService.js";
 
 /**
  * Get comprehensive statistics for the director dashboard
@@ -228,6 +229,16 @@ export const getComprehensiveStats = async (req, res) => {
             },
             lastUpdated: new Date()
         };
+
+        // Log activity - View statistics
+        await logDirectorActivity(
+            req.user.account_id,
+            'access',
+            'statistics',
+            'Viewed comprehensive statistics',
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        )
 
         res.json({
             success: true,

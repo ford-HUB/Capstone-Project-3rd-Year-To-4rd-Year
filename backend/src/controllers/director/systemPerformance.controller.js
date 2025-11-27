@@ -1,6 +1,7 @@
 import { getSystemStats, getMatchingPerformanceStats, logSystemHealth } from '../../utils/performanceMonitor.js';
 import { db } from '../../config/db.js';
 import { Op } from 'sequelize';
+import { logDirectorActivity } from "../../services/activityLogService.js";
 
 export const getSystemPerformance = async (req, res) => {
     try {
@@ -100,6 +101,16 @@ export const getSystemPerformance = async (req, res) => {
             systemHealth: systemHealth
         };
 
+        // Log activity - View system performance
+        await logDirectorActivity(
+            req.user.account_id,
+            'access',
+            'system',
+            'Viewed system performance metrics',
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        )
+
         res.json({
             success: true,
             data: performanceData
@@ -131,6 +142,16 @@ export const getPerformanceHistory = async (req, res) => {
             EventRegistration,
             Attendance
         });
+
+        // Log activity - View performance history
+        await logDirectorActivity(
+            req.user.account_id,
+            'access',
+            'system',
+            `Viewed performance history for ${hours} hours`,
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        )
 
         res.json({
             success: true,

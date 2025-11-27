@@ -1,4 +1,5 @@
 import models from "../../models/index.js";
+import { logParticipantActivity } from "../../services/activityLogService.js";
 
 export const uploadEventProof = async (req, res) => {
     try {
@@ -66,6 +67,17 @@ export const uploadEventProof = async (req, res) => {
             proof_uploaded_at: new Date(),
             proof_images: imageUrls
         });
+
+        // Log activity - Upload event proof
+        const eventTitle = event.title || `Event ID: ${event_id}`
+        await logParticipantActivity(
+            req.user.account_id,
+            'upload',
+            'document',
+            `Uploaded event proof for event: ${eventTitle}`,
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        )
 
         return res.json({
             success: true,

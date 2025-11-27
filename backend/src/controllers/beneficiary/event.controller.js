@@ -2,6 +2,7 @@ import models from "../../models/index.js";
 import { db } from "../../config/db.js";
 import { Op } from "sequelize";
 import { getBeneficiaryLocationEvents, runBeneficiaryMatchingAI } from "../../services/beneficiaryMatchingService.js";
+import { logBeneficiaryActivity } from "../../services/activityLogService.js";
 
 const extractCityFromAddress = (address) => {
     if (!address) return '';
@@ -177,6 +178,17 @@ export const registerBeneficiaryForEvent = async (req, res) => {
 
         await t.commit();
 
+        // Log activity - Register for event
+        const eventTitle = event.title || `Event ID: ${event_id}`
+        await logBeneficiaryActivity(
+            account_id,
+            'register',
+            'event',
+            `Registered for event: ${eventTitle}`,
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        )
+
         return res.json({
             success: true,
             message: 'Registration completed successfully',
@@ -286,6 +298,17 @@ export const cancelBeneficiaryRegistration = async (req, res) => {
         });
 
         await t.commit();
+
+        // Log activity - Cancel event registration
+        const eventTitle = event.title || `Event ID: ${eventId}`
+        await logBeneficiaryActivity(
+            account_id,
+            'update',
+            'event',
+            `Cancelled registration for event: ${eventTitle}`,
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        )
 
         return res.json({
             success: true,

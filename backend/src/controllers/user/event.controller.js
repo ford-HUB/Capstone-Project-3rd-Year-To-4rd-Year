@@ -2,6 +2,7 @@ import models from "../../models/index.js"
 import { db } from "../../config/db.js"
 import { Op } from "sequelize"
 import { runMatchingAI } from "../../services/matchingService.js"
+import { logParticipantActivity } from "../../services/activityLogService.js"
 
 export const addInterest = async (req, res) => {
     const t = await db.transaction()
@@ -269,6 +270,20 @@ export const register_event = async (req, res) => {
 
         await t.commit()
 
+        // Get event title for logging
+        const eventForLog = await Event.findByPk(event_id, { attributes: ['title'] })
+        const eventTitle = eventForLog?.title || `Event ID: ${event_id}`
+
+        // Log activity - Register for event
+        await logParticipantActivity(
+            user.account_id,
+            'register',
+            'event',
+            `Registered for event: ${eventTitle}`,
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        )
+
         res.json({ success: true, message: 'You Successfully Registered an Event' })
 
     } catch (error) {
@@ -372,6 +387,17 @@ export const event_registration = async (req, res) => {
 
         await t.commit()
 
+        // Log activity - Register for event with emergency contact
+        const eventTitle = isStatusValid.title || `Event ID: ${event_id}`
+        await logParticipantActivity(
+            account_id,
+            'register',
+            'event',
+            `Registered for event: ${eventTitle}`,
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        )
+
         return res.json({ 
             success: true, 
             message: 'Registration completed',
@@ -454,6 +480,17 @@ export const cancel_registration = async (req, res) => {
         })
 
         await t.commit()
+
+        // Log activity - Cancel event registration
+        const eventTitle = eventValid.title || `Event ID: ${event_id}`
+        await logParticipantActivity(
+            account_id,
+            'update',
+            'event',
+            `Cancelled registration for event: ${eventTitle}`,
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        )
         
         return res.json({ 
             success: true, 

@@ -111,7 +111,7 @@ const MyLogs = () => {
 
                                                     <div className="flex-1">
                                                         <div className="flex items-center justify-between mb-2">
-                                                            <h3 className="font-semibold text-gray-900">
+                                                            <h3 className={`font-semibold ${logGroup.mainEvent.action?.toLowerCase() === 'delete' ? 'text-red-600' : 'text-gray-900'}`}>
                                                                 {logGroup.mainEvent.module.charAt(0).toUpperCase() + logGroup.mainEvent.module.slice(1)} - {logGroup.mainEvent.action.charAt(0).toUpperCase() + logGroup.mainEvent.action.slice(1)}
                                                             </h3>
                                                             <div className="text-right">

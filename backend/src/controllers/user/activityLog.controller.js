@@ -2,6 +2,7 @@ import {
     getActivityLogsByAccount, 
     groupLogsForTimeline 
 } from "../../services/activityLogService.js";
+import { logParticipantActivity } from "../../services/activityLogService.js";
 
 export const getMyActivityLogs = async (req, res) => {
     try {
@@ -11,6 +12,16 @@ export const getMyActivityLogs = async (req, res) => {
         const result = await getActivityLogsByAccount(accountId, role);
 
         const groupedLogs = groupLogsForTimeline(result.logs || []);
+
+        // Log activity - View activity logs
+        await logParticipantActivity(
+            accountId,
+            'access',
+            'activity',
+            'Viewed activity logs',
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        )
 
         return res.json({
             success: true,

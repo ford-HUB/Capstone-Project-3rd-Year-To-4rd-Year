@@ -18,20 +18,28 @@ const EventPeriod = ({ events }) => {
   const start = firstEvent?.eventDetails?.event_started || firstEvent?.eventDetails?.event_time;
   const end = firstEvent?.eventDetails?.event_ended || null;
 
+  const formatEventPeriod = () => {
+    if (!start) return "N/A";
+    
+    const startDate = dayjs(start);
+    const startFormatted = `${startDate.format("MMM D")}, ${startDate.format("h:mm A")}`;
+    
+    if (!end) return startFormatted;
+    
+    const endDate = dayjs(end);
+    const endFormatted = `${endDate.format("MMM D")}, ${endDate.format("h:mm A")}`;
+    
+    return `${startFormatted} - ${endFormatted}`;
+  };
+
   return (
     <div className="flex items-center justify-between mb-6">
       <div className="text-sm text-gray-600">
         <span>Event Period: </span>
         <span className="font-medium">
-          {start ? dayjs(start).format("h:mm A") : "N/A"}
+          {formatEventPeriod()}
         </span>
       </div>
-      {end && (
-        <div className="text-sm text-gray-600">
-          <span>to: </span>
-          <span className="font-medium">{dayjs(end).format("h:mm A")}</span>
-        </div>
-      )}
     </div>
   );
 };
