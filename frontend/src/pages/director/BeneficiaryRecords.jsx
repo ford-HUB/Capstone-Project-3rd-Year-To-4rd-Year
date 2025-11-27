@@ -304,14 +304,14 @@ const BeneficiaryRecords = () => {
             
             // Define column positions and widths
             const colNo = margin;
-            const colNoWidth = 10;
-            const colName = margin + 10;
-            const colNameWidth = 45;
-            const colEmail = margin + 55;
-            const colEmailWidth = 40;
-            const colPhone = margin + 95;
-            const colPhoneWidth = 40;
-            const colDate = margin + 135;
+            const colNoWidth = 12;
+            const colName = margin + 12;
+            const colNameWidth = 50;
+            const colEmail = margin + 62;
+            const colEmailWidth = 45;
+            const colPhone = margin + 107;
+            const colPhoneWidth = 35;
+            const colDate = margin + 142;
             const colDateWidth = pageWidth - margin - colDate;
             
             // Draw blue header background
@@ -382,13 +382,7 @@ const BeneficiaryRecords = () => {
                 pdf.setDrawColor(200, 200, 200);
                 pdf.setLineWidth(0.3);
                 
-                // Draw vertical lines between columns
-                pdf.line(colName, currentRowY, colName, currentRowY + rowHeight);
-                pdf.line(colEmail, currentRowY, colEmail, currentRowY + rowHeight);
-                pdf.line(colPhone, currentRowY, colPhone, currentRowY + rowHeight);
-                pdf.line(colDate, currentRowY, colDate, currentRowY + rowHeight);
-                
-                // Draw horizontal lines (top and bottom of row)
+                // Draw horizontal lines (top and bottom of row) - no vertical lines
                 pdf.line(margin, currentRowY, pageWidth - margin, currentRowY);
                 pdf.line(margin, currentRowY + rowHeight, pageWidth - margin, currentRowY + rowHeight);
 
@@ -452,14 +446,14 @@ const BeneficiaryRecords = () => {
             
             // Define column positions and widths (same as individuals table)
             const colNo = margin;
-            const colNoWidth = 10;
-            const colName = margin + 10;
-            const colNameWidth = 45;
-            const colEmail = margin + 55;
-            const colEmailWidth = 40;
-            const colPhone = margin + 95;
-            const colPhoneWidth = 40;
-            const colDate = margin + 135;
+            const colNoWidth = 12;
+            const colName = margin + 12;
+            const colNameWidth = 50;
+            const colEmail = margin + 62;
+            const colEmailWidth = 45;
+            const colPhone = margin + 107;
+            const colPhoneWidth = 35;
+            const colDate = margin + 142;
             const colDateWidth = pageWidth - margin - colDate;
             
             // Draw blue header background
@@ -532,13 +526,7 @@ const BeneficiaryRecords = () => {
                 pdf.setDrawColor(200, 200, 200);
                 pdf.setLineWidth(0.3);
                 
-                // Draw vertical lines between columns
-                pdf.line(colName, currentRowY, colName, currentRowY + rowHeight);
-                pdf.line(colEmail, currentRowY, colEmail, currentRowY + rowHeight);
-                pdf.line(colPhone, currentRowY, colPhone, currentRowY + rowHeight);
-                pdf.line(colDate, currentRowY, colDate, currentRowY + rowHeight);
-                
-                // Draw horizontal lines (top and bottom of row)
+                // Draw horizontal lines (top and bottom of row) - no vertical lines
                 pdf.line(margin, currentRowY, pageWidth - margin, currentRowY);
                 pdf.line(margin, currentRowY + rowHeight, pageWidth - margin, currentRowY + rowHeight);
 
