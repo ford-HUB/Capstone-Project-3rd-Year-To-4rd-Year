@@ -375,7 +375,8 @@ const BeneficiaryRecords = () => {
                 // Find the maximum number of lines needed for this row
                 const maxLines = Math.max(nameLines.length, emailLines.length, phoneLines.length, dateLines.length);
                 const lineHeight = 4.5;
-                const rowHeight = maxLines * lineHeight;
+                const minRowHeight = 6; // Minimum row height for proper spacing
+                const rowHeight = Math.max(minRowHeight, maxLines * lineHeight + 2);
                 const rowY = yPosition;
 
                 // Check if we need a new page before starting this row
@@ -400,9 +401,13 @@ const BeneficiaryRecords = () => {
                 pdf.line(colPhone, currentRowY, colPhone, currentRowY + rowHeight);
                 pdf.line(colDate, currentRowY, colDate, currentRowY + rowHeight);
 
-                // Draw each line of the row - with spacing
+                // Calculate vertical center for text positioning
+                const verticalPadding = 2;
+                const textStartY = currentRowY + verticalPadding;
+
+                // Draw each line of the row - with proper spacing
                 for (let lineIndex = 0; lineIndex < maxLines; lineIndex++) {
-                    const currentY = currentRowY + 1 + (lineIndex * lineHeight);
+                    const currentY = textStartY + (lineIndex * lineHeight);
                     
                     // Number (only on first line) - with spacing
                     if (lineIndex === 0) {
@@ -540,7 +545,8 @@ const BeneficiaryRecords = () => {
                 // Find the maximum number of lines needed for this row
                 const maxLines = Math.max(nameLines.length, emailLines.length, phoneLines.length, dateLines.length);
                 const lineHeight = 4.5;
-                const rowHeight = maxLines * lineHeight;
+                const minRowHeight = 6; // Minimum row height for proper spacing
+                const rowHeight = Math.max(minRowHeight, maxLines * lineHeight + 2);
                 const rowY = yPosition;
 
                 // Check if we need a new page before starting this row
@@ -565,9 +571,13 @@ const BeneficiaryRecords = () => {
                 pdf.line(colPhone, currentRowY, colPhone, currentRowY + rowHeight);
                 pdf.line(colDate, currentRowY, colDate, currentRowY + rowHeight);
 
-                // Draw each line of the row - with spacing
+                // Calculate vertical center for text positioning
+                const verticalPadding = 2;
+                const textStartY = currentRowY + verticalPadding;
+
+                // Draw each line of the row - with proper spacing
                 for (let lineIndex = 0; lineIndex < maxLines; lineIndex++) {
-                    const currentY = currentRowY + 1 + (lineIndex * lineHeight);
+                    const currentY = textStartY + (lineIndex * lineHeight);
                     
                     // Number (only on first line) - with spacing
                     if (lineIndex === 0) {
