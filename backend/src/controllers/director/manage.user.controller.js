@@ -198,15 +198,20 @@ export const softDeleteUserAccount = async (req, res) => {
             // Silent fail for notification
         }
 
-        // Log activity
+        // Log activity - Soft delete user account
+        const shortEmail = account.email.length > 40 ? account.email.substring(0, 37) + '...' : account.email
+        const shortReason = reason && reason.length > 30 ? reason.substring(0, 27) + '...' : reason
+        const eventDetails = `Email: ${shortEmail}${shortReason ? ` | Reason: ${shortReason}` : ''}`
+        const logDescription = `Soft deleted user account: ${eventDetails}`
+        
         await logDirectorActivity(
             req.user.account_id,
             'delete',
             'account',
-            `Successfully soft deleted user account: ${account.email}${reason ? ` (Reason: ${reason})` : ''}`,
+            logDescription.substring(0, 255),
             req.ip || req.connection.remoteAddress,
             req.get('user-agent')
-        );
+        )
 
         return res.json({ success: true, message: 'Account successfully soft deleted' })
 
@@ -234,15 +239,20 @@ export const deactivateUserAccount = async (req, res) => {
             // Silent fail for notification
         }
 
-        // Log activity
+        // Log activity - Deactivate user account
+        const shortEmail = account.email.length > 40 ? account.email.substring(0, 37) + '...' : account.email
+        const shortReason = reason && reason.length > 30 ? reason.substring(0, 27) + '...' : reason
+        const eventDetails = `Email: ${shortEmail}${shortReason ? ` | Reason: ${shortReason}` : ''}`
+        const logDescription = `Deactivated user account: ${eventDetails}`
+        
         await logDirectorActivity(
             req.user.account_id,
             'update',
             'account',
-            `Successfully deactivated user account: ${account.email}${reason ? ` (Reason: ${reason})` : ''}`,
+            logDescription.substring(0, 255),
             req.ip || req.connection.remoteAddress,
             req.get('user-agent')
-        );
+        )
 
         return res.json({ success: true, message: 'Account successfully deactivated' })
     } catch (error) {
@@ -266,15 +276,18 @@ export const restoreUserAccount = async (req, res) => {
             // Silent fail for notification
         }
 
-        // Log activity
+        // Log activity - Restore user account
+        const shortEmail = account.email.length > 40 ? account.email.substring(0, 37) + '...' : account.email
+        const logDescription = `Restored user account: ${shortEmail}`
+        
         await logDirectorActivity(
             req.user.account_id,
             'update',
             'account',
-            `Successfully restored and activated user account: ${account.email}`,
+            logDescription.substring(0, 255),
             req.ip || req.connection.remoteAddress,
             req.get('user-agent')
-        );
+        )
 
         return res.json({ success: true, message: 'Account successfully restored and activated' })
     } catch (error) {
@@ -332,15 +345,18 @@ export const restoreSoftDeletedUser = async (req, res) => {
             // Silent fail for notification
         }
 
-        // Log activity
+        // Log activity - Restore soft-deleted user account
+        const shortEmail = account.email.length > 40 ? account.email.substring(0, 37) + '...' : account.email
+        const logDescription = `Restored archived user account: ${shortEmail}`
+        
         await logDirectorActivity(
             req.user.account_id,
             'update',
             'account',
-            `Successfully restored soft-deleted user account from archive: ${account.email}`,
+            logDescription.substring(0, 255),
             req.ip || req.connection.remoteAddress,
             req.get('user-agent')
-        );
+        )
 
         return res.json({ success: true, message: 'Account successfully restored' })
     } catch (error) {

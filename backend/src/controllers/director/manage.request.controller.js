@@ -109,11 +109,22 @@ export const ApprovedRequest = async (req, res) => {
             console.log('Approval email failed:', err.message)
         }
 
-        const activityMessage = isAlreadyApproved 
-            ? `Re-sent verification token for ${requestedStaff.fullname} (${requestedStaff.requested_role}) - previous token expired`
-            : `Approved role request for ${requestedStaff.fullname} (${requestedStaff.requested_role})`
+        // Log activity - Approve role request
+        const shortName = requestedStaff.fullname.length > 30 ? requestedStaff.fullname.substring(0, 27) + '...' : requestedStaff.fullname
+        const roleName = formatRoleName(requestedStaff.requested_role)
+        const eventDetails = `${shortName} | ${roleName}`
+        const logDescription = isAlreadyApproved 
+            ? `Re-sent token: ${eventDetails}`
+            : `Approved request: ${eventDetails}`
         
-        await logDirectorActivity(req.user.account_id, 'update', 'account', activityMessage, req.ip || req.connection.remoteAddress, req.get('user-agent'));
+        await logDirectorActivity(
+            req.user.account_id,
+            'update',
+            'account',
+            logDescription.substring(0, 255),
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        )
 
         res.json({ success: true, message: isAlreadyApproved ? 'Verification token has been re-sent successfully' : 'status successfully updated' })
 
@@ -168,7 +179,21 @@ export const rejectRequest = async (req, res) => {
 
         await t.commit()
 
-        await logDirectorActivity(req.user.account_id, 'update', 'account', `Rejected role request for ${isExist.fullname} (${isExist.requested_role})${reason ? ` (Reason: ${reason})` : ''}`, req.ip || req.connection.remoteAddress, req.get('user-agent'));
+        // Log activity - Reject role request
+        const shortName = isExist.fullname.length > 30 ? isExist.fullname.substring(0, 27) + '...' : isExist.fullname
+        const roleName = formatRoleName(isExist.requested_role)
+        const shortReason = reason && reason.length > 30 ? reason.substring(0, 27) + '...' : reason
+        const eventDetails = `${shortName} | ${roleName}${shortReason ? ` | Reason: ${shortReason}` : ''}`
+        const logDescription = `Rejected request: ${eventDetails}`
+        
+        await logDirectorActivity(
+            req.user.account_id,
+            'update',
+            'account',
+            logDescription.substring(0, 255),
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        )
 
         return res.json({ success: true, message: 'Request successfully rejected' })
     } catch (error) {
@@ -230,7 +255,20 @@ export const AcceptRejectedRequest = async (req, res) => {
             console.log('Approval email failed:', err.message)
         }
 
-        await logDirectorActivity(req.user.account_id, 'update', 'account', `Accepted previously rejected role request for ${rejectedRequest.fullname} (${rejectedRequest.requested_role})`, req.ip || req.connection.remoteAddress, req.get('user-agent'));
+        // Log activity - Accept previously rejected request
+        const shortName = rejectedRequest.fullname.length > 30 ? rejectedRequest.fullname.substring(0, 27) + '...' : rejectedRequest.fullname
+        const roleName = formatRoleName(rejectedRequest.requested_role)
+        const eventDetails = `${shortName} | ${roleName}`
+        const logDescription = `Accepted rejected request: ${eventDetails}`
+        
+        await logDirectorActivity(
+            req.user.account_id,
+            'update',
+            'account',
+            logDescription.substring(0, 255),
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        )
 
         res.json({ success: true, message: 'Rejected request successfully approved' })
 

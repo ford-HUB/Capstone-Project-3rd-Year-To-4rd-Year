@@ -86,6 +86,25 @@ export const uploadDocument = async (req, res) => {
                 )
             }
 
+            // Log activity - Document uploaded by director
+            if (req.user.Role.name === 'director') {
+                const accountId = req.user.account_id
+                const shortTitle = title.length > 40 ? title.substring(0, 37) + '...' : title
+                const fileName = f.name.length > 30 ? f.name.substring(0, 27) + '...' : f.name
+                const fileSizeKB = Math.round(f.size / 1024)
+                const eventDetails = `"${shortTitle}" | ${category || 'N/A'} | File: ${fileName} | Size: ${fileSizeKB}KB`
+                const logDescription = `Uploaded document: ${eventDetails}`
+
+                await logDirectorActivity(
+                    accountId,
+                    'upload',
+                    'document',
+                    logDescription.substring(0, 255),
+                    req.ip || req.connection.remoteAddress,
+                    req.get('user-agent')
+                )
+            }
+
             uploadedDocuments.push(newDocument)
         }
 

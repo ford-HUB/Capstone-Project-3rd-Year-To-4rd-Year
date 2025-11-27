@@ -318,8 +318,19 @@ export const createDocumentRequestApproval = async (req, res) => {
             due_date: due_date ? new Date(due_date) : null
         });
 
-        // Log activity
-        await logDirectorActivity(requested_by, 'create', 'document', `Created document request approval for document: ${document.title} (Type: ${request_type})`, req.ip || req.connection.remoteAddress, req.get('user-agent'));
+        // Log activity - Create document request approval
+        const shortTitle = document.title.length > 40 ? document.title.substring(0, 37) + '...' : document.title
+        const eventDetails = `"${shortTitle}" | Type: ${request_type} | Priority: ${priority || 'medium'}`
+        const logDescription = `Created document request: ${eventDetails}`
+        
+        await logDirectorActivity(
+            requested_by,
+            'create',
+            'document',
+            logDescription.substring(0, 255),
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        )
 
         return res.status(201).json({
             success: true,
