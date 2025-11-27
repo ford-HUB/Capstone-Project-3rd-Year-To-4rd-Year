@@ -319,24 +319,32 @@ const BeneficiaryRecords = () => {
             pdf.setDrawColor(66, 133, 244);
             pdf.rect(margin, headerY, pageWidth - (margin * 2), headerRowHeight, 'F');
             
-            // Draw header text in white - vertically centered
+            // Draw header text in white - vertically centered with spacing
             pdf.setTextColor(255, 255, 255);
             pdf.setFontSize(9);
             pdf.setFont('helvetica', 'bold');
             const headerTextY = headerY + (headerRowHeight / 2) + 2;
-            pdf.text('No.', colNo + 1, headerTextY);
-            pdf.text('Full Names', colName + 1, headerTextY);
-            pdf.text('Email Address', colEmail + 1, headerTextY);
-            pdf.text('Contact Number', colPhone + 1, headerTextY);
-            pdf.text('Registration Date', colDate + 1, headerTextY);
+            pdf.text('No.', colNo + 2, headerTextY);
+            pdf.text('Full Names', colName + 2, headerTextY);
+            pdf.text('Email Address', colEmail + 2, headerTextY);
+            pdf.text('Contact Number', colPhone + 2, headerTextY);
+            pdf.text('Registration Date', colDate + 2, headerTextY);
             
             // Reset text color to black
             pdf.setTextColor(0, 0, 0);
             
-            // Draw header border
+            // Draw header border and vertical lines
             pdf.setDrawColor(66, 133, 244);
             pdf.setLineWidth(0.5);
             pdf.rect(margin, headerY, pageWidth - (margin * 2), headerRowHeight);
+            
+            // Draw vertical lines in header
+            pdf.setDrawColor(255, 255, 255);
+            pdf.setLineWidth(0.3);
+            pdf.line(colName, headerY, colName, headerY + headerRowHeight);
+            pdf.line(colEmail, headerY, colEmail, headerY + headerRowHeight);
+            pdf.line(colPhone, headerY, colPhone, headerY + headerRowHeight);
+            pdf.line(colDate, headerY, colDate, headerY + headerRowHeight);
             
             yPosition = headerY + headerRowHeight;
 
@@ -382,43 +390,56 @@ const BeneficiaryRecords = () => {
                 pdf.setDrawColor(200, 200, 200);
                 pdf.setLineWidth(0.3);
                 
-                // Draw horizontal lines (top and bottom of row) - no vertical lines
+                // Draw horizontal lines (top and bottom of row)
                 pdf.line(margin, currentRowY, pageWidth - margin, currentRowY);
                 pdf.line(margin, currentRowY + rowHeight, pageWidth - margin, currentRowY + rowHeight);
+                
+                // Draw vertical lines between columns
+                pdf.line(colName, currentRowY, colName, currentRowY + rowHeight);
+                pdf.line(colEmail, currentRowY, colEmail, currentRowY + rowHeight);
+                pdf.line(colPhone, currentRowY, colPhone, currentRowY + rowHeight);
+                pdf.line(colDate, currentRowY, colDate, currentRowY + rowHeight);
 
-                // Draw each line of the row - minimal padding
+                // Draw each line of the row - with spacing
                 for (let lineIndex = 0; lineIndex < maxLines; lineIndex++) {
                     const currentY = currentRowY + 1 + (lineIndex * lineHeight);
                     
-                    // Number (only on first line)
+                    // Number (only on first line) - with spacing
                     if (lineIndex === 0) {
-                        pdf.text(`${index + 1}`, colNo + 1, currentY);
+                        pdf.text(`${index + 1}`, colNo + 2, currentY);
                     }
                     
-                    // Name
+                    // Name - with spacing
                     if (nameLines[lineIndex]) {
-                        pdf.text(nameLines[lineIndex], colName + 1, currentY);
+                        pdf.text(nameLines[lineIndex], colName + 2, currentY);
                     }
                     
-                    // Email
+                    // Email - with spacing
                     if (emailLines[lineIndex]) {
-                        pdf.text(emailLines[lineIndex], colEmail + 1, currentY);
+                        pdf.text(emailLines[lineIndex], colEmail + 2, currentY);
                     }
                     
-                    // Phone
+                    // Phone - with spacing
                     if (phoneLines[lineIndex]) {
-                        pdf.text(phoneLines[lineIndex], colPhone + 1, currentY);
+                        pdf.text(phoneLines[lineIndex], colPhone + 2, currentY);
                     }
                     
-                    // Registration Date
+                    // Registration Date - with spacing
                     if (dateLines[lineIndex]) {
-                        pdf.text(dateLines[lineIndex], colDate + 1, currentY);
+                        pdf.text(dateLines[lineIndex], colDate + 2, currentY);
                     }
                 }
                 
                 // Move to next row position
                 yPosition += rowHeight;
             });
+            
+            // Draw outer border around entire table
+            const tableStartY = headerY;
+            const tableEndY = yPosition;
+            pdf.setDrawColor(200, 200, 200);
+            pdf.setLineWidth(0.5);
+            pdf.rect(margin, tableStartY, pageWidth - (margin * 2), tableEndY - tableStartY);
 
             yPosition += 10;
         }
@@ -461,24 +482,32 @@ const BeneficiaryRecords = () => {
             pdf.setDrawColor(66, 133, 244);
             pdf.rect(margin, headerY, pageWidth - (margin * 2), headerRowHeight, 'F');
             
-            // Draw header text in white - vertically centered
+            // Draw header text in white - vertically centered with spacing
             pdf.setTextColor(255, 255, 255);
             pdf.setFontSize(9);
             pdf.setFont('helvetica', 'bold');
             const headerTextY = headerY + (headerRowHeight / 2) + 2;
-            pdf.text('No.', colNo + 1, headerTextY);
-            pdf.text('Full Names', colName + 1, headerTextY);
-            pdf.text('Email Address', colEmail + 1, headerTextY);
-            pdf.text('Contact Number', colPhone + 1, headerTextY);
-            pdf.text('Registration Date', colDate + 1, headerTextY);
+            pdf.text('No.', colNo + 2, headerTextY);
+            pdf.text('Full Names', colName + 2, headerTextY);
+            pdf.text('Email Address', colEmail + 2, headerTextY);
+            pdf.text('Contact Number', colPhone + 2, headerTextY);
+            pdf.text('Registration Date', colDate + 2, headerTextY);
             
             // Reset text color to black
             pdf.setTextColor(0, 0, 0);
             
-            // Draw header border
+            // Draw header border and vertical lines
             pdf.setDrawColor(66, 133, 244);
             pdf.setLineWidth(0.5);
             pdf.rect(margin, headerY, pageWidth - (margin * 2), headerRowHeight);
+            
+            // Draw vertical lines in header
+            pdf.setDrawColor(255, 255, 255);
+            pdf.setLineWidth(0.3);
+            pdf.line(colName, headerY, colName, headerY + headerRowHeight);
+            pdf.line(colEmail, headerY, colEmail, headerY + headerRowHeight);
+            pdf.line(colPhone, headerY, colPhone, headerY + headerRowHeight);
+            pdf.line(colDate, headerY, colDate, headerY + headerRowHeight);
             
             yPosition = headerY + headerRowHeight;
 
@@ -526,43 +555,56 @@ const BeneficiaryRecords = () => {
                 pdf.setDrawColor(200, 200, 200);
                 pdf.setLineWidth(0.3);
                 
-                // Draw horizontal lines (top and bottom of row) - no vertical lines
+                // Draw horizontal lines (top and bottom of row)
                 pdf.line(margin, currentRowY, pageWidth - margin, currentRowY);
                 pdf.line(margin, currentRowY + rowHeight, pageWidth - margin, currentRowY + rowHeight);
+                
+                // Draw vertical lines between columns
+                pdf.line(colName, currentRowY, colName, currentRowY + rowHeight);
+                pdf.line(colEmail, currentRowY, colEmail, currentRowY + rowHeight);
+                pdf.line(colPhone, currentRowY, colPhone, currentRowY + rowHeight);
+                pdf.line(colDate, currentRowY, colDate, currentRowY + rowHeight);
 
-                // Draw each line of the row - minimal padding
+                // Draw each line of the row - with spacing
                 for (let lineIndex = 0; lineIndex < maxLines; lineIndex++) {
                     const currentY = currentRowY + 1 + (lineIndex * lineHeight);
                     
-                    // Number (only on first line)
+                    // Number (only on first line) - with spacing
                     if (lineIndex === 0) {
-                        pdf.text(`${index + 1}`, colNo + 1, currentY);
+                        pdf.text(`${index + 1}`, colNo + 2, currentY);
                     }
                     
-                    // Name
+                    // Name - with spacing
                     if (nameLines[lineIndex]) {
-                        pdf.text(nameLines[lineIndex], colName + 1, currentY);
+                        pdf.text(nameLines[lineIndex], colName + 2, currentY);
                     }
                     
-                    // Email
+                    // Email - with spacing
                     if (emailLines[lineIndex]) {
-                        pdf.text(emailLines[lineIndex], colEmail + 1, currentY);
+                        pdf.text(emailLines[lineIndex], colEmail + 2, currentY);
                     }
                     
-                    // Phone
+                    // Phone - with spacing
                     if (phoneLines[lineIndex]) {
-                        pdf.text(phoneLines[lineIndex], colPhone + 1, currentY);
+                        pdf.text(phoneLines[lineIndex], colPhone + 2, currentY);
                     }
                     
-                    // Registration Date
+                    // Registration Date - with spacing
                     if (dateLines[lineIndex]) {
-                        pdf.text(dateLines[lineIndex], colDate + 1, currentY);
+                        pdf.text(dateLines[lineIndex], colDate + 2, currentY);
                     }
                 }
                 
                 // Move to next row position
                 yPosition += rowHeight;
             });
+            
+            // Draw outer border around entire table
+            const tableStartY = headerY;
+            const tableEndY = yPosition;
+            pdf.setDrawColor(200, 200, 200);
+            pdf.setLineWidth(0.5);
+            pdf.rect(margin, tableStartY, pageWidth - (margin * 2), tableEndY - tableStartY);
 
             yPosition += 10;
         }
