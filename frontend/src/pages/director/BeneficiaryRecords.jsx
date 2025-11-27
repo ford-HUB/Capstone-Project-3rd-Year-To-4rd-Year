@@ -421,13 +421,12 @@ const BeneficiaryRecords = () => {
                                 <th className="pb-3 px-4 font-semibold text-gray-600">Beneficiary</th>
                                 <th className="pb-3 px-4 font-semibold text-gray-600">Event</th>
                                 <th className="pb-3 px-4 font-semibold text-gray-600">Registration Date</th>
-                                <th className="pb-3 px-4 font-semibold text-gray-600">Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan="5" className="py-8 text-center">
+                                    <td colSpan="4" className="py-8 text-center">
                                         <div className="flex justify-center">
                                             <span className="loading loading-spinner loading-md"></span>
                                         </div>
@@ -482,24 +481,11 @@ const BeneficiaryRecords = () => {
                                         <td className="py-4 px-4 text-gray-600">
                                             {formatDateTime(record.registration_date || record.createdAt)}
                                         </td>
-                                        <td className="py-4 px-4">
-                                            <span className={`px-3 py-1 rounded-full text-sm ${
-                                                record.status === 'registered' 
-                                                    ? 'bg-green-100 text-green-800' 
-                                                    : record.status === 'pending'
-                                                    ? 'bg-yellow-100 text-yellow-800'
-                                                    : 'bg-red-100 text-red-800'
-                                            }`}>
-                                                {record.status === 'registered' ? 'Registered' : 
-                                                 record.status === 'pending' ? 'Pending' : 
-                                                 record.status}
-                                            </span>
-                                        </td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="5" className="py-8 text-center text-gray-500">
+                                    <td colSpan="4" className="py-8 text-center text-gray-500">
                                         <div className="flex flex-col items-center gap-2">
                                             <Users className="w-12 h-12 text-gray-300" />
                                             <p className="text-lg font-medium">No records found</p>
