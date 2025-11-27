@@ -7,7 +7,7 @@ import { generateToken } from "../../utils/generateToken.js";
 import { clearJwtCookie } from "../../utils/clearJwtCookie.js";
 import { decrypt } from "../../utils/crypto.js";
 import { emitUserActivityUpdate } from "../../socket.js";
-import { logParticipantActivity, logBeneficiaryActivity } from "../../services/activityLogService.js";
+import { logParticipantActivity, logBeneficiaryActivity, logManagementActivity } from "../../services/activityLogService.js";
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -372,12 +372,39 @@ export const login = async (req, res) => {
 
         if(roleType.name !== 'volunteer') {
             const isMatch = await bcrypt.compare(password, isValid.password)
-            if(!isMatch) { return res.json({ message: 'Invalid Credentials' }) }
+            if(!isMatch) { 
+                // Log failed login attempt for staff, coordinator, assistant_coordinator
+                if(['staff', 'coordinator', 'assistant_coordinator'].includes(roleType.name)) {
+                    await logManagementActivity(
+                        isValid.account_id,
+                        roleType.name.toLowerCase(),
+                        'access',
+                        'account',
+                        `Failed login attempt - Incorrect password for email: ${email}`,
+                        req.ip || req.connection.remoteAddress,
+                        req.get('user-agent')
+                    )
+                }
+                return res.json({ message: 'Invalid Credentials' }) 
+            }
             await Accounts.update({ is_active: true }, { where: { account_id: isValid.account_id } })
             const role = await Role.findOne({ where: { account_id: isValid.account_id } })
             console.log(role.name)
             console.log(email)
             await generateToken(isValid.account_id, res)
+            
+            // Log successful login activity for staff, coordinator, assistant_coordinator
+            if(['staff', 'coordinator', 'assistant_coordinator'].includes(role.name)) {
+                await logManagementActivity(
+                    isValid.account_id,
+                    role.name.toLowerCase(),
+                    'access',
+                    'account',
+                    'Successfully logged in to the system',
+                    req.ip || req.connection.remoteAddress,
+                    req.get('user-agent')
+                )
+            }
             
             // Emit socket event for user login
             try {
