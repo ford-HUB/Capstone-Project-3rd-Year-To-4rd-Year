@@ -223,17 +223,16 @@ const BeneficiaryRecords = () => {
         const eventDetails = [
             { label: 'Event Title', value: event?.title || 'N/A', isBold: true },
             { label: 'Location', value: event?.location || 'N/A', isBold: false },
-            { label: 'Date', value: startDate, isBold: false },
+            { label: 'Date', value: dateRange, isBold: false },
             { label: 'Description', value: event?.description || 'N/A', isBold: false }
         ];
 
-        // Draw blue background for table
-        pdf.setFillColor(66, 133, 244); // Blue color
-        pdf.setDrawColor(66, 133, 244);
+        // Draw white background for table
+        pdf.setFillColor(255, 255, 255);
         pdf.rect(margin, tableStartY, tableWidth, eventDetails.length * rowHeight, 'F');
         
         // Draw table borders
-        pdf.setDrawColor(66, 133, 244);
+        pdf.setDrawColor(200, 200, 200);
         pdf.setLineWidth(0.5);
         
         // Draw outer border
@@ -245,39 +244,32 @@ const BeneficiaryRecords = () => {
             
             // Draw horizontal line between rows
             if (index > 0) {
-                pdf.setDrawColor(255, 255, 255);
+                pdf.setDrawColor(200, 200, 200);
                 pdf.setLineWidth(0.3);
                 pdf.line(margin, currentY, margin + tableWidth, currentY);
-                pdf.setDrawColor(66, 133, 244);
-                pdf.setLineWidth(0.5);
             }
             
             // Draw vertical line between label and value columns
-            pdf.setDrawColor(255, 255, 255);
+            pdf.setDrawColor(200, 200, 200);
             pdf.setLineWidth(0.3);
             pdf.line(valueCol, tableStartY, valueCol, tableStartY + (eventDetails.length * rowHeight));
-            pdf.setDrawColor(66, 133, 244);
-            pdf.setLineWidth(0.5);
             
-            // Draw label (white text) - vertically centered
-            pdf.setTextColor(255, 255, 255);
+            // Draw label (black text) - vertically centered
+            pdf.setTextColor(0, 0, 0);
             pdf.setFontSize(10);
             pdf.setFont('helvetica', 'bold');
             const labelY = currentY + (rowHeight / 2) + 2;
             pdf.text(detail.label, labelCol + 2, labelY);
             
-            // Draw value (white text, bold if needed) - vertically centered
+            // Draw value (black text, bold if needed) - vertically centered
             pdf.setFont('helvetica', detail.isBold ? 'bold' : 'normal');
-            pdf.setTextColor(255, 255, 255);
+            pdf.setTextColor(0, 0, 0);
             const valueLines = pdf.splitTextToSize(detail.value, tableWidth - valueCol - 4);
             const firstValueY = currentY + (rowHeight / 2) + 2;
             valueLines.forEach((line, lineIndex) => {
                 pdf.text(line, valueCol + 2, firstValueY + (lineIndex * 4.5));
             });
         });
-        
-        // Reset text color to black
-        pdf.setTextColor(0, 0, 0);
 
         yPosition = tableStartY + (eventDetails.length * rowHeight) + 10;
 
