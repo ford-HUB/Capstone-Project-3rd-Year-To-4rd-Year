@@ -402,7 +402,7 @@ const BeneficiaryRecords = () => {
                 pdf.line(colDate, currentRowY, colDate, currentRowY + rowHeight);
 
                 // Calculate vertical center for text positioning
-                const verticalPadding = 3;
+                const verticalPadding = 3.5;
                 const textStartY = currentRowY + verticalPadding;
 
                 // Draw each line of the row - with proper spacing
@@ -624,7 +624,15 @@ const BeneficiaryRecords = () => {
             checkNewPage(60);
             pdf.setFontSize(14);
             pdf.setFont('helvetica', 'bold');
-            pdf.text('III. Supporting Documentation', margin, yPosition);
+            const supportingDocTitle = 'III. Supporting Documentation';
+            const supportingDocTitleWidth = pdf.getTextWidth(supportingDocTitle);
+            pdf.text(supportingDocTitle, margin, yPosition);
+            
+            // Draw underline
+            pdf.setLineWidth(0.5);
+            pdf.setDrawColor(0, 0, 0);
+            pdf.line(margin, yPosition + 1, margin + supportingDocTitleWidth, yPosition + 1);
+            
             yPosition += 8;
 
             // Load event image
