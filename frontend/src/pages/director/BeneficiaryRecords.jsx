@@ -328,7 +328,7 @@ const BeneficiaryRecords = () => {
             pdf.text('Full Names', colName + 2, headerTextY);
             pdf.text('Email Address', colEmail + 2, headerTextY);
             pdf.text('Contact Number', colPhone + 2, headerTextY);
-            pdf.text('Registration Date', colDate + 2, headerTextY);
+            pdf.text('Reg. Date', colDate + 2, headerTextY);
             
             // Reset text color to black
             pdf.setTextColor(0, 0, 0);
