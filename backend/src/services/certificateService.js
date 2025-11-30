@@ -76,14 +76,14 @@ export const generateCertificateBatch = async (event, category, department, batc
                 reg.participant_type === att.participant_type
             );
 
-            if (!registration) return false;
-
             const isManagementRole = ['director', 'staff', 'coordinator', 'assistant_coordinator'].includes(att.participant_type);
             
             if (isManagementRole) {
-                return true; // Management roles only need attendance
+                // Management roles only need attendance - registration is optional
+                return true;
             } else {
-                // Volunteers need attendance + proof upload + requirements upload
+                // Volunteers need attendance + registration + proof upload + requirements upload
+                if (!registration) return false;
                 return registration.proof_uploaded === true && 
                        registration.proof_images && 
                        registration.proof_images.length > 0;

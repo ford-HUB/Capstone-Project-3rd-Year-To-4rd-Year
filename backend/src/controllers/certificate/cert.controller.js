@@ -110,37 +110,65 @@ export const getUserCertificates = async (req, res) => {
 
         let participant
         let participant_id
+        let participant_type
 
         switch(req.user.Role.name) {
             case 'volunteer': 
                 const campusUser = await CampusUsers.findOne({ where: { account_id: req.user.account_id } })
+                if (!campusUser) {
+                    return res.json({ success: false, message: 'Campus user not found', certificates: [] })
+                }
                 participant = await Volunteer.findOne({ where: { campus_user_id: campusUser.campus_user_id } })
+                if (!participant) {
+                    return res.json({ success: false, message: 'Volunteer not found', certificates: [] })
+                }
                 participant_id = participant.volunteer_id
+                participant_type = 'volunteer'
                 break
             
             case 'director':
-                participant = await Director.findOne({ where: req.user.account_id })
+                participant = await Director.findOne({ where: { account_id: req.user.account_id } })
+                if (!participant) {
+                    return res.json({ success: false, message: 'Director not found', certificates: [] })
+                }
                 participant_id = participant.director_id
+                participant_type = 'director'
                 break
             
             case 'staff':
                 participant = await Staff.findOne({ where: { account_id: req.user.account_id } })
+                if (!participant) {
+                    return res.json({ success: false, message: 'Staff not found', certificates: [] })
+                }
                 participant_id = participant.staff_id
+                participant_type = 'staff'
                 break
             
             case 'coordinator':
             case 'assistant_coordinator':
                 participant = await Coordinator.findOne({ where: { account_id: req.user.account_id } })
+                if (!participant) {
+                    return res.json({ success: false, message: 'Coordinator not found', certificates: [] })
+                }
                 participant_id = participant.coordinator_id
+                participant_type = req.user.Role.name === 'assistant_coordinator' ? 'assistant_coordinator' : 'coordinator'
                 break
 
             default:
                 console.log('role type is out of our scope')
-                break
+                return res.json({ success: false, message: 'Role type is out of our scope', certificates: [] })
+        }
+
+        // Ensure participant_id is defined before querying
+        if (!participant_id || !participant_type) {
+            return res.json({ success: false, message: 'Participant information not found', certificates: [] })
         }
 
         const certificateData = await Certificate.findAll({ 
-            where: { participant_id: participant_id, participant_type: req.user.Role.name === 'volunteer' ? 'volunteer': req.user.Role.name },
+            where: { 
+                participant_id: participant_id, 
+                participant_type: participant_type 
+            },
             include: [
                 { 
                     model: Event,
