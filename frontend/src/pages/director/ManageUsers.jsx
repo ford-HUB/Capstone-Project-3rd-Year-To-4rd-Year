@@ -192,11 +192,10 @@ const ManageUsers = () => {
             }
             
             let department = "";
-            if (Array.isArray(user.department) && user.departments.length > 0) {
-                department = user.department_name || "";
-            } else if (user.departments && typeof user.departments === 'object') {
-                department = user.departments?.department_name || "";
-            } else if (user.type === 'beneficiary' && user.details?.organization_name) {
+            if (user.departments) {
+                    department = user.departments[0]?.department_name || "";
+            }
+            if (!department && user.type === 'beneficiary' && user.details?.organization_name) {
                 department = user.details.organization_name;
             }
             

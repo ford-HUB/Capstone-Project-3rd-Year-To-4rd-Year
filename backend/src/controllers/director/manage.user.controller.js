@@ -26,7 +26,7 @@ export const ListUsers = async (req, res) => {
                     include: [
                         {
                             model: Department,
-                            attributes: ['department_id', 'department_name']
+                            required: false
                         },
                         {
                             model: Course,
@@ -49,7 +49,7 @@ export const ListUsers = async (req, res) => {
                     include: [
                       {
                         model: Department,
-                        attributes: ['department_id', 'department_name']
+                        required: false
                       }
                     ], attributes: ['firstname','lastname','phone_number', 'profile_image', 'signature_img']
                 },
@@ -108,16 +108,16 @@ export const ListUsers = async (req, res) => {
 
             if (account.CampusUsers) {
                 userData.details = {
-                    firstname: account.CampusUsers.firstname,
-                    lastname: account.CampusUsers.lastname,
-                    phone_number: account.CampusUsers.phone_number,
-                    course: account.CampusUsers.Course,
+                    firstname: account.CampusUsersfirstname,
+                    lastname: account.CampusUser.lastname,
+                    phone_number: account.CampusUser.phone_number,
+                    course: account.CampusUser.Course,
                     year_level: account.CampusUsers.YearLevel,
-                    school_number: account.CampusUsers.school_number,
-                    school_image_id: account.CampusUsers.school_image_id,
-                    type: account.CampusUsers.type
+                    school_number: account.CampusUser.school_number,
+                    school_image_id: account.CampusUser.school_image_id,
+                    type: account.CampusUser.type
                 };
-                userData.departments = account.CampusUsers.Department
+                userData.departments = account.CampusUser.Department || null
             } 
             else if (account.Staff) {
                 userData.details = {
@@ -127,7 +127,7 @@ export const ListUsers = async (req, res) => {
                     profile_image: account.Staff.profile_image,
                     signature_img: account.Staff.signature_img
                 };
-                userData.departments = account.Staff.Department || [];
+                userData.departments = null;
             }
             else if(account.Coordinator) {
                 userData.details = {
