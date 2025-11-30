@@ -13,7 +13,7 @@ attendRouter.get('/scanQr/attendance', guard('volunteer', 'director', 'staff', '
 attendRouter.get('/attendance-log', guard('director', 'staff', 'coordinator', 'assistant_coordinator'), attendanceLog)
 attendRouter.get('/attendance-records', guard('director', 'staff', 'coordinator', 'assistant_coordinator'), attendanceRecords)
 attendRouter.get('/attendance-statistics', guard('director', 'staff', 'coordinator', 'assistant_coordinator'), attendanceStatistics)
-attendRouter.get('/generateBothQRCODE', generateBothQR)
+attendRouter.get('/generateBothQRCODE', guard('director', 'staff', 'coordinator', 'assistant_coordinator'), generateBothQR)
 
 attendRouter.get('/testing', (req, res) => {
     res.send("routes working")

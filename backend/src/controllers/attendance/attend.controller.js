@@ -242,15 +242,10 @@ export const generateBothQR = async (req, res) => {
       const ipAddress = req.ip || req.connection.remoteAddress
       const userAgent = req.get('user-agent')
 
-      try {
-          if (userRole === 'director') {
-              await logDirectorActivity(req.user.account_id, 'create', 'attendance', logDescription, ipAddress, userAgent)
-          } else if (userRole === 'staff' || userRole === 'coordinator' || userRole === 'assistant_coordinator') {
-              await logManagementActivity(req.user.account_id, userRole.toLowerCase(), 'create', 'attendance', logDescription, ipAddress, userAgent)
-          }
-      } catch (logError) {
-          console.error('Failed to log QR generation:', logError.message)
-          // Don't fail the request if logging fails
+      if (userRole === 'director') {
+          await logDirectorActivity(req.user.account_id, 'create', 'attendance', logDescription, ipAddress, userAgent)
+      } else if (userRole === 'staff' || userRole === 'coordinator' || userRole === 'assistant_coordinator') {
+          await logManagementActivity(req.user.account_id, userRole.toLowerCase(), 'create', 'attendance', logDescription, ipAddress, userAgent)
       }
 
       return res.json({ success: true, timeInQr: result.in, timeOutQr: result.out,
