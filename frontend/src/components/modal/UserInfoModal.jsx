@@ -4,6 +4,7 @@ import { X, Mail, Phone, Shield, Building, Calendar, User, Image, FileText, Grad
 const UserInfoModal = ({ open, setOpen, userData }) => {
     if (!open || !userData) return null;
 
+
     return (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-xl w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto">
@@ -239,7 +240,7 @@ const UserInfoModal = ({ open, setOpen, userData }) => {
                         </div>
                     )}
 
-                    {(userData.type === 'student' || userData.type === 'staff' || userData.type === 'faculty' || userData.type === 'alumni') && userData.details?.school_image_id && (
+                    {userData.details?.school_image_id && (
                         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                             <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
                                 <IdCard className="w-4 h-4" />
