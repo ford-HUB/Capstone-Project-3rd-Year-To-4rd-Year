@@ -117,7 +117,7 @@ export const ListUsers = async (req, res) => {
                     school_image_id: account.CampusUser.school_image_id,
                     type: account.CampusUser.type
                 };
-                userData.departments = account.CampusUser.Department || null
+                userData.departments = account.CampusUser.Departments || null
             } 
             else if (account.Staff) {
                 userData.details = {
