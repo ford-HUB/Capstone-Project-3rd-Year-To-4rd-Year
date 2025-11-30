@@ -100,7 +100,7 @@ export const getEventProofStatus = async (req, res) => {
     try {
         const { event_id } = req.params;
 
-        const { EventRegistration, Accounts, Student, Volunteer } = models
+        const { EventRegistration, Event, Accounts, Student, Volunteer } = models
 
         const account = await Accounts.findByPk(req.user.account_id)
 
