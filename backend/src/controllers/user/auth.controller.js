@@ -387,7 +387,7 @@ export const login = async (req, res) => {
                 }
                 return res.json({ message: 'Invalid Credentials' }) 
             }
-            await Accounts.update({ is_active: true }, { where: { account_id: isValid.account_id } })
+            await Accounts.update({ is_active: true, activeAt: new Date() }, { where: { account_id: isValid.account_id } })
             await generateToken(isValid.account_id, res)
             
             if(['staff', 'coordinator', 'assistant_coordinator'].includes(roleType.name)) {
@@ -432,7 +432,7 @@ export const login = async (req, res) => {
         const isMatch = await bcrypt.compare(password, isValid.password)
         if(!isMatch) { return res.json({ message: 'Invalid Credentials' }) }
 
-        await Accounts.update({ is_active: true }, { where: { account_id: isValid.account_id } })
+        await Accounts.update({ is_active: true, activeAt: new Date() }, { where: { account_id: isValid.account_id } })
         await generateToken(isValid.account_id, res)
 
         await logParticipantActivity(

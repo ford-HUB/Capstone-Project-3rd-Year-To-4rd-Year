@@ -396,7 +396,7 @@ export const generateCertificateBatch = async (event, category, department, batc
                         : (staffDataInfo?.staff_id || null),
                     cert_title: event.title,
                 });
-
+                
                 try {
                     await createCertificateNotification({
                         certificate_id: certificate.certificate_id,

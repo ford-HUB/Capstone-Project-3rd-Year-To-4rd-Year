@@ -2,6 +2,7 @@ import { create } from "zustand"
 import toast from "react-hot-toast"
 import { useVerificationStore } from "./useVerificationStore.js"
 import { loginUser, signupUser, logoutUser, currentUser, verifyCode, resendCode, forgotPassword, resetPassword, checkEmailForPasswordReset } from "../../services/donor/authService.js"
+import { emitUserLogin, emitUserLogout, emitUserActivity, startActivityTracking, stopActivityTracking, initSocket, isSocketConnected, waitForSocketConnection } from "../../api/socket.js"
 
 export const useDonorAuthStore = create((set) => ({
     authenticatedUser: null,
@@ -13,6 +14,18 @@ export const useDonorAuthStore = create((set) => ({
             if(!response.success){ 
                 toast.error(response.message) 
                 return false
+            }
+
+            // Emit socket event for user login and start activity tracking
+            try {
+                emitUserLogin(response.userId || 'unknown', {
+                    email: formData.email,
+                    role: response.role || 'donor',
+                    loginTime: new Date()
+                });
+                startActivityTracking(response.userId || 'unknown');
+            } catch (socketError) {
+                console.log('Socket emit failed:', socketError.message);
             }
 
             toast.success(response.message)
@@ -48,6 +61,13 @@ export const useDonorAuthStore = create((set) => ({
 
     logout: async () => {
         try {
+            // Stop activity tracking and emit logout before calling logout service
+            try {
+                stopActivityTracking();
+            } catch (socketError) {
+                console.log('Socket logout emit failed:', socketError.message);
+            }
+
             const response = await logoutUser()
             if(!response.success) {
                 toast.error(response.message)
@@ -74,6 +94,41 @@ export const useDonorAuthStore = create((set) => ({
             }
             set({ authenticatedUser: response.user })
             console.log('Donor authenticated:', response.user)
+            
+            // Initialize socket and start activity tracking for authenticated user
+            try {
+                // Ensure socket is initialized
+                initSocket();
+                
+                // Wait for socket connection
+                try {
+                    await waitForSocketConnection(3000);
+                    console.log('Socket connected, starting activity tracking...');
+                    
+                    // Emit user login event for already authenticated user
+                    emitUserLogin(response.user.account_id || response.user.id || 'unknown', {
+                        email: response.user.email,
+                        role: response.user.role?.name || response.user.Role?.name || 'donor',
+                        loginTime: new Date()
+                    });
+                    
+                    // Start activity tracking
+                    startActivityTracking(response.user.account_id || response.user.id || 'unknown');
+                    console.log('Socket activity tracking started for authenticated donor user');
+                } catch (connectionError) {
+                    console.log('Socket connection timeout:', connectionError.message);
+                    // Try to emit anyway in case socket connects later
+                    emitUserLogin(response.user.account_id || response.user.id || 'unknown', {
+                        email: response.user.email,
+                        role: response.user.role?.name || response.user.Role?.name || 'donor',
+                        loginTime: new Date()
+                    });
+                    startActivityTracking(response.user.account_id || response.user.id || 'unknown');
+                }
+            } catch (socketError) {
+                console.log('Socket initialization failed:', socketError.message);
+            }
+            
             return true
         } catch (error) {
             console.log('donor check auth store failed', error.message)
@@ -122,12 +177,9 @@ export const useDonorAuthStore = create((set) => ({
     // OAuth success handler
     handleOAuthSuccess: async () => {
         try {
-            console.log('handleOAuthSuccess: Checking token in localStorage:', !!localStorage.getItem('donor_jwt'));
             const response = await currentUser()
-            console.log('handleOAuthSuccess: currentUser response:', { success: response.success, hasUser: !!response.user });
             
             if(!response.success) { 
-                console.error('handleOAuthSuccess: Authentication failed - response.success is false');
                 set({ authenticatedUser: null })
                 toast.error('OAuth authentication failed. Please try again.')
                 return false 
@@ -137,11 +189,7 @@ export const useDonorAuthStore = create((set) => ({
             toast.success('Successfully authenticated with OAuth!')
             return true
         } catch (error) {
-            console.error('OAuth success handling failed:', {
-                message: error.message,
-                response: error.response?.data,
-                status: error.response?.status
-            });
+            console.error('OAuth success handling failed:', error.message);
             set({ authenticatedUser: null })
             toast.error('OAuth authentication failed. Please try again.')
             return false

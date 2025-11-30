@@ -6,6 +6,7 @@ import { clearJwtCookie } from "../../utils/clearJwtCookie.js"
 import { decryptRqAccess } from "../../utils/crypto.js"
 import { sendMail } from "../../services/mailService.js"
 import { logDonorActivity } from "../../services/activityLogService.js";
+import { emitUserActivityUpdate } from "../../socket.js";
 import bcrypt from 'bcrypt'
 
 const FRONTEND_URL = process.env.NODE_ENV === 'development'
@@ -167,7 +168,7 @@ export const login = async (req, res) => {
         const isMatch = await bcrypt.compare(password, isValid.password)
         if(!isMatch) { return res.json({ success: false, message: 'Invalid Credentials' }) }
 
-        await Accounts.update({ is_active: true }, { where: { account_id: isValid.account_id } })
+        await Accounts.update({ is_active: true, activeAt: new Date() }, { where: { account_id: isValid.account_id } })
         await generateToken(isValid.account_id, res)
 
         await logDonorActivity(
@@ -179,7 +180,17 @@ export const login = async (req, res) => {
             req.get('user-agent')
         )
 
-        res.json({ success: true, message: 'Login Successfully' })
+        try {
+            emitUserActivityUpdate(isValid.account_id, "online", {
+                email: isValid.email,
+                role: 'donor',
+                loginTime: new Date()
+            });
+        } catch (socketError) {
+            console.log('Socket emit failed:', socketError.message);
+        }
+
+        res.json({ success: true, message: 'Login Successfully', userId: isValid.account_id })
 
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal Server Error' })
@@ -225,7 +236,6 @@ export const VerifyCode = async (req, res) => {
             return res.json({ success: false, message: 'rq_access parameter is required' })
         }
 
-        // Decrypt rq_access to get the email
         const decryptResult = decryptRqAccess(rq_access);
         if (decryptResult.error) {
             return res.status(decryptResult.error.includes('Server configuration') ? 500 : 400)
@@ -247,7 +257,6 @@ export const VerifyCode = async (req, res) => {
         const updateStatus = await VerificationCodes.update({ used: true }, { where: { vc_id: isMatch.vc_id } })
         if(updateStatus[0] === 0) { return res.json({ success: false, message: 'verification code is not successfully updated the status' }) }
 
-        // Activate the account after successful verification
         await Accounts.update({ is_active: true }, { where: { account_id: user.account_id } });
 
         res.json({ success: true, message: 'Verification Code Accepted - Account Activated!' })
@@ -267,7 +276,6 @@ export const reSendCode = async (req, res) => {
             return res.json({ success: false, message: 'rq_access parameter is required' })
         }
         
-        // Decrypt rq_access to get the email
         const decryptResult = decryptRqAccess(rq_access);
         if (decryptResult.error) {
             return res.status(decryptResult.error.includes('Server configuration') ? 500 : 400)
@@ -286,7 +294,6 @@ export const reSendCode = async (req, res) => {
             company_name: 'uclmcares' 
         })
 
-        // Check if verification code exists for this account
         const existingVerificationCode = await VerificationCodes.findOne({
             where: { account_id: user.account_id },
             order: [['createdAt', 'DESC']]
@@ -319,15 +326,7 @@ export const reSendCode = async (req, res) => {
 
 export const checkAuth = async (req, res) => {
     try {
-        console.log('checkAuth called:', {
-            hasUser: !!req.user,
-            userId: req.user?.account_id,
-            email: req.user?.email,
-            role: req.user?.Role?.name
-        });
-        
         if (!req.user) {
-            console.error('checkAuth: No user found - authentication failed');
             return res.status(401).json({ success: false, message: 'Unauthorized' });
         }
         
@@ -351,7 +350,6 @@ export const checkEmailForPasswordReset = async (req, res) => {
 
         const { Accounts, Donor, Role } = models;
         
-        // Check if email exists and is a donor account
         const account = await Accounts.findOne({
             where: { email: email },
             include: [
@@ -378,7 +376,6 @@ export const checkEmailForPasswordReset = async (req, res) => {
             });
         }
 
-        // Check if account is from OAuth (not local registration)
         if (account.Donor && account.Donor.auth_provider !== 'local') {
             return res.json({ 
                 success: true, 
@@ -396,7 +393,6 @@ export const checkEmailForPasswordReset = async (req, res) => {
             });
         }
 
-        // Return account details for status checking
         return res.json({ 
             success: true, 
             exists: true,
@@ -425,7 +421,6 @@ export const forgotPassword = async (req, res) => {
 
         const { Accounts, Donor, Role, ResetPassword } = models;
         
-        // Check if email exists in database and is a donor
         const account = await Accounts.findOne({ 
             where: { email: email },
             include: [
@@ -450,7 +445,6 @@ export const forgotPassword = async (req, res) => {
             });
         }
 
-        // Check if account is from OAuth (not local registration)
         if (account.Donor && account.Donor.auth_provider !== 'local') {
             return res.json({ 
                 success: false, 
@@ -465,7 +459,6 @@ export const forgotPassword = async (req, res) => {
             fullname: account.Donor?.fullname || 'User'
         }
 
-        // Check if account is deactivated
         if (accountData.is_deactivated) {
             return res.json({ 
                 success: false, 
@@ -473,13 +466,9 @@ export const forgotPassword = async (req, res) => {
             });
         }
 
-        // Generate a unique reset token
         const resetToken = await generateUniqueCode();
+        const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
         
-        // Set expiration time (1 hour from now)
-        const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-        
-        // Store reset token in database
         await ResetPassword.create({
             account_id: accountData.account_id,
             reset_token: resetToken,
@@ -489,7 +478,6 @@ export const forgotPassword = async (req, res) => {
             user_agent: req.get('User-Agent')
         });
         
-        // Send reset email
         await sendMail(
             email,
             'Password Reset Request - UCLM CARES',
@@ -522,7 +510,6 @@ export const resetPassword = async (req, res) => {
 
         const { Accounts, ResetPassword, Role } = models;
         
-        // Find the account and verify it's a donor
         const account = await Accounts.findOne({ 
             where: { email: email },
             include: [
@@ -542,7 +529,6 @@ export const resetPassword = async (req, res) => {
             });
         }
 
-        // Find the reset token
         const resetRecord = await ResetPassword.findOne({
             where: {
                 account_id: account.account_id,
@@ -558,7 +544,6 @@ export const resetPassword = async (req, res) => {
             });
         }
 
-        // Check if token is expired
         if (new Date() > resetRecord.expires_at) {
             return res.json({ 
                 success: false, 
@@ -566,17 +551,14 @@ export const resetPassword = async (req, res) => {
             });
         }
 
-        // Hash the new password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(newPassword, salt);
         
-        // Update the password
         await Accounts.update(
             { password: hashedPassword },
             { where: { account_id: account.account_id } }
         );
 
-        // Mark the reset token as used
         await ResetPassword.update(
             { 
                 used: true,
@@ -600,47 +582,24 @@ export const resetPassword = async (req, res) => {
 
 export const oauthSuccess = async (req, res) => {
     try {
-        console.log('OAuth success handler called', {
-            hasUser: !!req.user,
-            userId: req.user?.account_id,
-            email: req.user?.email,
-            role: req.user?.Role?.name
-        });
-        
-        // Validate user exists and has correct role
         if (!req.user) {
-            console.error('OAuth success: No user in session');
             return res.redirect(`${FRONTEND_URL}/donor/login?error=oauth_failed&reason=no_user`);
         }
         
         if (!req.user.Role || req.user.Role.name !== 'donor') {
-            console.error('OAuth success: Invalid role', { 
-                account_id: req.user.account_id,
-                email: req.user.email,
-                role: req.user.Role?.name 
-            });
             return res.redirect(`${FRONTEND_URL}/donor/login?error=oauth_failed&reason=bad_role`);
         }
         
-        // Set user as active
         const { Accounts } = models;
-        await Accounts.update({ is_active: true }, { where: { account_id: req.user.account_id } });
-        
-        // Clear existing JWT cookies to avoid stale tokens
+        await Accounts.update({ is_active: true, activeAt: new Date() }, { where: { account_id: req.user.account_id } });
         clearJwtCookie(res);
-        
-        // Save account_id before destroying session
         const accountId = req.user.account_id;
         
         let token;
         try {
             token = await generateToken(accountId, res);
         } catch (tokenError) {
-            console.error('Failed to generate token during OAuth:', {
-                error: tokenError.message,
-                stack: tokenError.stack,
-                account_id: accountId
-            });
+            console.error('Failed to generate token during OAuth:', tokenError.message);
             return res.redirect(`${FRONTEND_URL}/donor/login?error=oauth_failed&reason=token_generation_failed`);
         }
         
@@ -656,6 +615,17 @@ export const oauthSuccess = async (req, res) => {
         } catch (logError) {
             console.error('Activity log failed during OAuth login (non-critical):', logError.message);
         }
+
+        try {
+            emitUserActivityUpdate(accountId, "online", {
+                email: req.user.email,
+                role: 'donor',
+                loginTime: new Date()
+            });
+        } catch (socketError) {
+            console.log('Socket emit failed during OAuth login:', socketError.message);
+        }
+
         req.logout((err) => {
             if (err) {
                 console.error('Error during logout after OAuth:', err);
@@ -664,26 +634,17 @@ export const oauthSuccess = async (req, res) => {
                 if (destroyErr) {
                     console.error('Error destroying session after OAuth:', destroyErr);
                 }
-                // Clear session cookie
                 res.clearCookie('connect.sid', {
                     httpOnly: true,
                     secure: process.env.NODE_ENV === 'production',
                     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
                     path: '/'
                 });
-                
-                console.log('OAuth success: Redirecting to frontend with token', { account_id: accountId });
-                // Redirect to frontend OAuth success page with token in URL hash (more secure than query param)
                 return res.redirect(`${FRONTEND_URL}/donor/oauth-success#token=${encodeURIComponent(token)}`);
             });
         });
     } catch (error) {
-        console.error('OAuth success handler failed:', {
-            message: error.message,
-            stack: error.stack,
-            hasUser: !!req.user,
-            userId: req.user?.account_id
-        });
+        console.error('OAuth success handler failed:', error.message);
         return res.redirect(`${FRONTEND_URL}/donor/login?error=oauth_failed&reason=exception`);
     }
 }

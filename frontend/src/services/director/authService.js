@@ -4,7 +4,8 @@ export const loginUser = async (formData) => {
     const response = await apiInstance.post('/api/director-auth/uclm-director-login', formData)
     return {
         success: response.data.success,
-        message: response.data.message
+        message: response.data.message,
+        userId: response.data.userId
     }
 }
 

@@ -4,8 +4,9 @@ import { db } from "../../config/db.js"
 import { generateToken } from "../../utils/generateToken.js"
 import { clearJwtCookie } from "../../utils/clearJwtCookie.js"
 import { createNotification } from "../../services/notificationService.js"
-import { logManagementActivity, logActivity } from "../../services/activityLogService.js"
+import { logManagementActivity } from "../../services/activityLogService.js"
 import { formatRoleName } from "../../utils/requestUtils.js"
+import { emitUserActivityUpdate } from "../../socket.js"
 
 
 export const setUpAccount = async (req, res) => {
@@ -101,26 +102,37 @@ export const setUpAccount = async (req, res) => {
 }
 
 
-export const login = async (req, res) => { // The login function is no longer use for now
+export const login = async (req, res) => {
     try {
         const { email, password } = req.validatedBody
-        const { Accounts } = models
+        const { Accounts, Role } = models
 
-        const isValid = await Accounts.findOne({ where: { email: email } })
-        if (!isValid) { return res.json({ message: 'Invalid Credentials' }) }
+        const isValid = await Accounts.findOne({ 
+            where: { email: email },
+            include: [{ model: Role }]
+        })
+        if (!isValid) { return res.json({ success: false, message: 'Invalid Credentials' }) }
 
         const isMatch = await bcrypt.compare(password, isValid.password)
-        if (!isMatch) { return res.json({ message: 'Invalid Credentials' }) }
+        if (!isMatch) { return res.json({ success: false, message: 'Invalid Credentials' }) }
 
-        // Set user as active
-        await Accounts.update({ is_active: true }, { where: { account_id: isValid.account_id } })
-
+        await Accounts.update({ is_active: true, activeAt: new Date() }, { where: { account_id: isValid.account_id } })
         await generateToken(isValid.account_id, res)
 
-        res.json({ success: true, message: 'Login Successfully' })
+        try {
+            emitUserActivityUpdate(isValid.account_id, "online", {
+                email: isValid.email,
+                role: isValid.Role?.name || 'unknown',
+                loginTime: new Date()
+            });
+        } catch (socketError) {
+            // Silent fail
+        }
+
+        res.json({ success: true, message: 'Login Successfully', userId: isValid.account_id, role: isValid.Role?.name })
 
     } catch (error) {
-        res.status(500).json({ message: 'Internal Server Error' })
+        res.status(500).json({ success: false, message: 'Internal Server Error' })
         console.error('login controller failed :', error.message)
     }
 }
@@ -131,13 +143,8 @@ export const logout = async (req, res) => {
         const accountId = req.user.account_id;
         const role = req.user.Role.name.toLowerCase();
 
-        // Log logout activity before clearing session
         await logManagementActivity(accountId, role, 'access', 'account', 'Successfully logged out from the system', req.ip || req.connection.remoteAddress, req.get('user-agent'));
-
-        // Clear the JWT cookie
         clearJwtCookie(res);
-
-        // Set user as inactive
         await Accounts.update({ is_active: false }, { where: { account_id: accountId } });
 
         return res.json({ success: true, message: 'logout successfully' })

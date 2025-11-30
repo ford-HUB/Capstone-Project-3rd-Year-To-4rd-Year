@@ -28,10 +28,12 @@ export const setAccount = async (formData, token) => {
 }
 
 export const loginUser = async (formData) => {
-    const response = await apiInstance.post('/api/management-auth/management-login', formData)
+    const response = await apiInstance.post('/api/user-auth/login', formData)
     return {
         success: response.data.success,
-        message: response.data.message
+        message: response.data.message,
+        role: response.data.role,
+        userId: response.data.userId
     }
 }
 
