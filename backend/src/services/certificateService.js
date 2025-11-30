@@ -7,8 +7,7 @@ import { createCertificateNotification } from './notificationService.js';
 import { Op } from 'sequelize';
 import { sendMail } from './mailService.js';
 
-// FIXED: Management roles (director, staff, coordinator, assistant_coordinator) only require attendance completion
-// Volunteers require attendance + proof upload + requirements upload for certificate eligibility
+
 
 export const generateCertificateBatch = async (event, category, department, batchSize = 10, batchId = 'BATCH') => {
     try {
@@ -79,7 +78,6 @@ export const generateCertificateBatch = async (event, category, department, batc
 
             if (!registration) return false;
 
-            // Management roles (director, staff, coordinator, assistant_coordinator) only need attendance
             const isManagementRole = ['director', 'staff', 'coordinator', 'assistant_coordinator'].includes(att.participant_type);
             
             if (isManagementRole) {
@@ -241,43 +239,98 @@ export const generateCertificateBatch = async (event, category, department, batc
                 let participant = null;
 
                 if (att.participant_type === 'volunteer' && att.Volunteer?.CampusUser) {
-                    const account = await Accounts.findOne({ where: { account_id: att?.Volunteer.CampusUser.account_id } })
+                    const campusUser = att.Volunteer.CampusUser;
+                    if (!campusUser || !campusUser.firstname || !campusUser.account_id) {
+                        console.log(`⚠️ [${batchId}] Event ${event.event_id}: Skipping attendance ${att.attendance_id} - invalid CampusUser data`);
+                        skippedCount++;
+                        continue;
+                    }
+                    const account = await Accounts.findOne({ where: { account_id: campusUser.account_id } });
+                    if (!account || !account.email) {
+                        console.log(`⚠️ [${batchId}] Event ${event.event_id}: Skipping attendance ${att.attendance_id} - account not found or missing email`);
+                        skippedCount++;
+                        continue;
+                    }
                     participant = {
                         id: att.participant_id, // Use attendance participant_id
                         email: account.email,
-                        name: `${att.Volunteer.CampusUser.firstname} ${att.Volunteer.CampusUser.lastname}`,
-                        type: `Volunteer ${att.Volunteer.CampusUser.type.charAt(0).toUpperCase() + att.Volunteer.CampusUser.type.slice(1)}`,
+                        name: `${campusUser.firstname || ''} ${campusUser.lastname || ''}`.trim(),
+                        type: `Volunteer ${campusUser.type ? campusUser.type.charAt(0).toUpperCase() + campusUser.type.slice(1) : ''}`,
                     }
                 } else if (att.participant_type === 'staff' && att.Staff) {
-                    const account = await Accounts.findOne({ where: { account_id: att?.Staff.account_id } })
+                    const staff = att.Staff;
+                    if (!staff || !staff.firstname || !staff.account_id) {
+                        console.log(`⚠️ [${batchId}] Event ${event.event_id}: Skipping attendance ${att.attendance_id} - invalid Staff data`);
+                        skippedCount++;
+                        continue;
+                    }
+                    const account = await Accounts.findOne({ where: { account_id: staff.account_id } });
+                    if (!account || !account.email) {
+                        console.log(`⚠️ [${batchId}] Event ${event.event_id}: Skipping attendance ${att.attendance_id} - account not found or missing email`);
+                        skippedCount++;
+                        continue;
+                    }
                     participant = {
                         id: att.participant_id, // Use attendance participant_id
                         email: account.email,
-                        name: `${att.Staff.firstname} ${att.Staff.lastname}`,
+                        name: `${staff.firstname || ''} ${staff.lastname || ''}`.trim(),
                         type: 'Staff',
                     }
                 } else if (att.participant_type === 'coordinator' && att.Coordinator) {
-                    const account = await Accounts.findOne({ where: { account_id: att?.Coordinator.account_id } })
+                    const coordinator = att.Coordinator;
+                    if (!coordinator || !coordinator.firstname || !coordinator.account_id) {
+                        console.log(`⚠️ [${batchId}] Event ${event.event_id}: Skipping attendance ${att.attendance_id} - invalid Coordinator data`);
+                        skippedCount++;
+                        continue;
+                    }
+                    const account = await Accounts.findOne({ where: { account_id: coordinator.account_id } });
+                    if (!account || !account.email) {
+                        console.log(`⚠️ [${batchId}] Event ${event.event_id}: Skipping attendance ${att.attendance_id} - account not found or missing email`);
+                        skippedCount++;
+                        continue;
+                    }
                     participant = {
                         id: att.participant_id, // Use attendance participant_id
                         email: account.email,
-                        name: `${att.Coordinator.firstname} ${att.Coordinator.lastname}`,
+                        name: `${coordinator.firstname || ''} ${coordinator.lastname || ''}`.trim(),
                         type: 'Coordinator',
                     }
                 } else if (att.participant_type === 'assistant_coordinator' && att.Coordinator) {
-                    const account = await Accounts.findOne({ where: { account_id: att?.Coordinator.account_id } })
+                    const coordinator = att.Coordinator;
+                    if (!coordinator || !coordinator.firstname || !coordinator.account_id) {
+                        console.log(`⚠️ [${batchId}] Event ${event.event_id}: Skipping attendance ${att.attendance_id} - invalid Coordinator data`);
+                        skippedCount++;
+                        continue;
+                    }
+                    const account = await Accounts.findOne({ where: { account_id: coordinator.account_id } });
+                    if (!account || !account.email) {
+                        console.log(`⚠️ [${batchId}] Event ${event.event_id}: Skipping attendance ${att.attendance_id} - account not found or missing email`);
+                        skippedCount++;
+                        continue;
+                    }
                     participant = {
                         id: att.participant_id, // Use attendance participant_id
                         email: account.email,
-                        name: `${att.Coordinator.firstname} ${att.Coordinator.lastname}`,
+                        name: `${coordinator.firstname || ''} ${coordinator.lastname || ''}`.trim(),
                         type: 'Assistant Coordinator',
                     }
-                } else if (att.participant_type === 'director' && att.Director) {
-                    const account = await Accounts.findOne({ where: { account_id: att?.Director.account_id } })
+                } else if (att.participant_type === 'director' && att?.Director) {
+                    const director = att.Director;
+                    if (!director || !director.firstname || !director.account_id) {
+                        console.log(`⚠️ [${batchId}] Event ${event.event_id}: Skipping attendance ${att.attendance_id} - invalid Director data`);
+                        skippedCount++;
+                        continue;
+                    }
+                    const account = await Accounts.findOne({ where: { account_id: director.account_id } });
+                    if (!account || !account.email) {
+                        console.log(`⚠️ [${batchId}] Event ${event.event_id}: Skipping attendance ${att.attendance_id} - account not found or missing email`);
+                        skippedCount++;
+                        continue;
+                    }
                     participant = {
                         id: att.participant_id, // Use attendance participant_id
                         email: account.email,
-                        name: `${att.Director.firstname} ${att.Director.lastname}`,
+                        name: `${director.firstname || ''} ${director.lastname || ''}`.trim(),
                         type: 'Director',
                     }
                 }
@@ -299,11 +352,21 @@ export const generateCertificateBatch = async (event, category, department, batc
                     issued_date: issuedDate.format('YYYY-MM-DD'),
                     cert_uuid: certId,
 
-                    director_name: directorDataInfo ? `${directorDataInfo.firstname} ${directorDataInfo.lastname}`: '',
-                    director_signatory_img: directorDataInfo.signature_img || '',
+                    director_name: directorDataInfo && directorDataInfo?.firstname && directorDataInfo?.lastname 
+                        ? `${directorDataInfo.firstname} ${directorDataInfo.lastname}` 
+                        : '',
+                    director_signatory_img: directorDataInfo?.signature_img || '',
 
-                    additional_signatory_name: department ? `${coordinatorDataInfo?.Coordinator.firstname} ${coordinatorDataInfo?.Coordinator.lastname}`: `${staffDataInfo.firstname} ${staffDataInfo.lastname}`,
-                    additional_signatory_img: department ? coordinatorDataInfo?.Coordinator.signature_img : staffDataInfo.signature_img || '',
+                    additional_signatory_name: department 
+                        ? (coordinatorDataInfo?.Coordinator?.firstname && coordinatorDataInfo?.Coordinator?.lastname
+                            ? `${coordinatorDataInfo.Coordinator.firstname} ${coordinatorDataInfo.Coordinator.lastname}`
+                            : '')
+                        : (staffDataInfo?.firstname && staffDataInfo?.lastname
+                            ? `${staffDataInfo.firstname} ${staffDataInfo.lastname}`
+                            : ''),
+                    additional_signatory_img: department 
+                        ? (coordinatorDataInfo?.Coordinator?.signature_img || '')
+                        : (staffDataInfo?.signature_img || ''),
                     additional_signatory_role: department ? `Program Coordinator`: 'Program Staff',
 
                     official_signatory_name: `One Dev`,
@@ -331,8 +394,10 @@ export const generateCertificateBatch = async (event, category, department, batc
                     type: participant.type === 'Director' ? 'recognation': 'appreciation',
                     img_url: imgCertificate,
                     pdf_url: pdfCertificate,
-                    director_id: directorDataInfo.director_id,
-                    additional_signatory_id: department ? coordinatorDataInfo?.Coordinator.coordinator_id : staffDataInfo.staff_id,
+                    director_id: directorDataInfo?.director_id || null,
+                    additional_signatory_id: department 
+                        ? (coordinatorDataInfo?.Coordinator?.coordinator_id || null)
+                        : (staffDataInfo?.staff_id || null),
                     cert_title: event.title,
                 });
 
