@@ -80,8 +80,8 @@ export const ListUsers = async (req, res) => {
             let userType = account.Role?.name || 'unknown';
             
             // Override type based on specific models if they exist
-            if (account.CampusUsers) {
-                userType = account.CampusUsers.type || 'volunteer';
+            if (account.CampusUser) {
+                userType = account.CampusUser.type || 'volunteer';
             } else if (account.Staff) {
                 userType = 'staff';
             } else if (account.Coordinator) {
@@ -117,7 +117,7 @@ export const ListUsers = async (req, res) => {
                     school_image_id: account.CampusUser.school_image_id,
                     type: account.CampusUser.type
                 };
-                userData.departments = account.CampusUser.Departments || null
+                userData.departments = account.CampusUser.Department ? [account.CampusUser.Department] : []
             } 
             else if (account.Staff) {
                 userData.details = {
