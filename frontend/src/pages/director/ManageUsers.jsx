@@ -192,10 +192,11 @@ const ManageUsers = () => {
             }
             
             let department = "";
-            if (user.departments) {
-                department = user.department.department_name || "";
-            }
-            if (!department && user.type === 'beneficiary' && user.details?.organization_name) {
+            if (Array.isArray(user.department) && user.departments.length > 0) {
+                department = user.department_name || "";
+            } else if (user.departments && typeof user.departments === 'object') {
+                department = user.departments?.department_name || "";
+            } else if (user.type === 'beneficiary' && user.details?.organization_name) {
                 department = user.details.organization_name;
             }
             
@@ -215,10 +216,7 @@ const ManageUsers = () => {
                 status: user.status,
                 department: department,
                 type: user.type,
-                details: user.details ? {
-                    ...user.details,
-                    school_image_id: user.details.school_image_id
-                } : null,
+                details: user.details,
                 activityStatus: user.isOnline ? 'online' : activityStatus.status,
                 lastActivity: user.activeAt || activityStatus.timestamp,
                 createdAt: user.createdAt || user.created_at,
