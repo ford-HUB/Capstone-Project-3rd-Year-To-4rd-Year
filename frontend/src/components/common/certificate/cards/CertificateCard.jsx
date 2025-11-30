@@ -12,7 +12,7 @@ const CertificateCard = ({ certificateData }) => {
     const { authenticatedDirector } = useAuthDirectorStore()
 
     const routeRoleDestination = 
-    authenticatedUser?.Role.name === 'student' ? 'participant' : 
+    authenticatedUser?.Role.name === 'volunteer' ? 'participant' : 
     ['staff', 'coordinator', 'assistant_coordinator'].includes(authenticatedManagement?.Role.name) ?
     'management': authenticatedDirector?.Role.name === 'director' ? 'director' : 'unauthorized access'
 
