@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Filter, MoreVertical, Mail, Phone, Shield, Users, UserRoundX, ChevronDown, Download, UserPlus, Edit, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, UserCheck } from 'lucide-react';
+import { Search, Filter, MoreVertical, Mail, Phone, Shield, Users, UserRoundX, ChevronDown, UserPlus, Edit, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, UserCheck } from 'lucide-react';
 import { useManageUsersStore } from '../../store/director/useManageUsersStore.js';
 import Toggles from '../../components/common/Toggles.jsx';
 import RequestList from '../../components/modal/RequestList.jsx';
@@ -62,7 +62,6 @@ const ManageUsers = () => {
     const [dateFilter, setDateFilter] = React.useState('')
     const [currentPage, setCurrentPage] = React.useState(1)
     const [rowsPerPage, setRowsPerPage] = React.useState(10)
-    const [selectedUsers, setSelectedUsers] = React.useState([])
 
     React.useEffect(() => {
         const handleClickOutside = (event) => {
@@ -400,77 +399,9 @@ const ManageUsers = () => {
         setCurrentPage(1);
     };
 
-    // Selection handlers
-    const handleSelectAll = (checked) => {
-        if (checked) {
-            setSelectedUsers(paginatedUsers.map(user => user.id));
-        } else {
-            setSelectedUsers([]);
-        }
-    };
-
-    const handleSelectUser = (userId, checked) => {
-        if (checked) {
-            setSelectedUsers(prev => [...prev, userId]);
-        } else {
-            setSelectedUsers(prev => prev.filter(id => id !== userId));
-        }
-    };
-
     // Get unique roles and statuses for filters
     const uniqueRoles = [...new Set(filteredUsers.map(user => user.role))];
     const uniqueStatuses = [...new Set(filteredUsers.map(user => user.status))];
-
-    // Export functionality
-    const handleExport = () => {
-        const usersToExport = selectedUsers.length > 0 
-            ? filteredUsers.filter(user => selectedUsers.includes(user.id))
-            : filteredUsers;
-
-        if (usersToExport.length === 0) {
-            alert('No users to export. Please select users or adjust your filters.');
-            return;
-        }
-
-        // Create CSV content
-        const headers = ['Name', 'Email', 'Role', 'Status', 'Department/Organization', 'Joined Date', 'Last Active'];
-        const csvContent = [
-            headers.join(','),
-            ...usersToExport.map(user => [
-                `"${user.name}"`,
-                `"${user.email}"`,
-                `"${user.role}"`,
-                `"${user.status}"`,
-                `"${user.department || 'N/A'}"`,
-                `"${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}"`,
-                `"${user.lastActivity ? (() => {
-                    const now = new Date();
-                    const lastActive = new Date(user.lastActivity);
-                    const diffMs = now - lastActive;
-                    const diffMins = Math.floor(diffMs / (1000 * 60));
-                    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-                    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-                    
-                    if (diffMins < 1) return 'Just now';
-                    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
-                    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-                    if (diffDays < 30) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-                    return lastActive.toLocaleDateString();
-                })() : 'Never'}"`
-            ].join(','))
-        ].join('\n');
-
-        // Create and download file
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', `users_export_${new Date().toISOString().split('T')[0]}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
 
 
     return (
@@ -492,16 +423,6 @@ const ManageUsers = () => {
                                             <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                                     <span>{activeUsersCount} online</span>
                                 </div>
-                            </div>
-
-                            {/* Action Buttons */}
-                            <div className="flex items-center gap-3">
-                                <button 
-                                    onClick={handleExport}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg flex items-center gap-2 text-gray-700 hover:bg-gray-50 transition-colors">
-                                    <Download className="w-4 h-4" />
-                                    Export {selectedUsers.length > 0 ? `(${selectedUsers.length} selected)` : ''}
-                                </button>
                             </div>
                         </div>
 
@@ -711,14 +632,6 @@ const ManageUsers = () => {
                                 <table className="w-full">
                                 <thead className="bg-slate-800 text-white">
                                     <tr>
-                                        <th className="px-6 py-4 text-left">
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedUsers.length === paginatedUsers.length && paginatedUsers.length > 0}
-                                                onChange={(e) => handleSelectAll(e.target.checked)}
-                                                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                                            />
-                                        </th>
                                         <th className="px-6 py-4 text-left font-semibold">Full Name</th>
                                         {!showTrash && <th className="px-6 py-4 text-left font-semibold">Email</th>}
                                         {!showTrash && <th className="px-6 py-4 text-left font-semibold">Status</th>}
@@ -734,14 +647,6 @@ const ManageUsers = () => {
                                     {!showTrash && paginatedUsers.length > 0 ? (
                                         paginatedUsers.map((user, index) => (
                                             <tr key={user.id} className={`border-b border-gray-100 hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                                                <td className="px-6 py-4">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selectedUsers.includes(user.id)}
-                                                        onChange={(e) => handleSelectUser(user.id, e.target.checked)}
-                                                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                                                    />
-                                                </td>
                                                 <td className="px-6 py-4">
                                                         <div className="flex items-center gap-3">
                                                         <div className="relative">
@@ -834,7 +739,7 @@ const ManageUsers = () => {
                                             ))
                                         ) : !showTrash && (
                                             <tr>
-                                            <td colSpan="7" className="px-6 py-12 text-center text-gray-500">
+                                            <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
                                                 <div className="flex flex-col items-center gap-2">
                                                     <Users className="w-12 h-12 text-gray-300" />
                                                     <p className="text-lg font-medium">No users found</p>
@@ -847,12 +752,6 @@ const ManageUsers = () => {
                                         {showTrash && transformedTrashUsers.length > 0 ? (
                                         transformedTrashUsers.map((user, index) => (
                                             <tr key={user.id} className={`border-b border-gray-100 hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                                                <td className="px-6 py-4">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                                                    />
-                                                </td>
                                                 <td className="px-6 py-4">
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
@@ -900,7 +799,7 @@ const ManageUsers = () => {
                                             ))
                                         ) : showTrash && (
                                             <tr>
-                                            <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
+                                            <td colSpan="4" className="px-6 py-12 text-center text-gray-500">
                                                 <div className="flex flex-col items-center gap-2">
                                                     <Trash2 className="w-12 h-12 text-gray-300" />
                                                     <p className="text-lg font-medium">Trash is empty</p>
