@@ -43,7 +43,7 @@ const AttendanceRecords = () => {
   });
 
   const participantTypes = [
-    { value: 'volunteer', label: 'Student/Volunteer' },
+    { value: 'volunteer', label: 'Volunteer' },
     { value: 'staff', label: 'Staff' },
     { value: 'coordinator', label: 'Coordinator' },
     { value: 'assistant_coordinator', label: 'Assistant Coordinator' },
