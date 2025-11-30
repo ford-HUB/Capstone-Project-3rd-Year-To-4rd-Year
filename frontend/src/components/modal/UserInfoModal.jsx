@@ -201,7 +201,7 @@ const UserInfoModal = ({ open, setOpen, userData }) => {
                                         <Building className="w-5 h-5 text-gray-400" />
                                         <div>
                                             <p className="text-sm text-gray-500">Department</p>
-                                            <p className="text-gray-900">{userData.department || 'N/A'}</p>
+                                            <p className="text-gray-900">{userData.department}</p>
                                         </div>
                                     </div>
                                 )}
