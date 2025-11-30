@@ -305,7 +305,7 @@ export const attendanceLog = async (req, res) => {
             }
 
             departmentFilter = coordinatorAccount.Coordinator.department_id
-        } else if ((userRole === 'staff' || userRole === 'director') && department) {
+        } else if ((attendanceLogViewerRole === 'staff' || attendanceLogViewerRole === 'director') && department) {
             departmentFilter = parseInt(department)
         }
 
@@ -822,12 +822,14 @@ export const attendanceRecords = async (req, res) => {
                     { 
                         model: Event,
                         required: departmentFilter ? true : false,
+                        attributes: [], // Don't select Event columns when grouping
                         include: departmentFilter ? [
                             {
                                 model: Department,
                                 required: true,
                                 where: { department_id: departmentFilter },
-                                through: { attributes: [] }
+                                through: { attributes: [] },
+                                attributes: [] // Don't select Department columns when grouping
                             }
                         ] : []
                     }
@@ -966,12 +968,14 @@ export const attendanceRecords = async (req, res) => {
                         { 
                             model: Event,
                             required: departmentFilter ? true : false,
+                            attributes: [], // Don't select Event columns when grouping
                             include: departmentFilter ? [
                                 {
                                     model: Department,
                                     required: true,
                                     where: { department_id: departmentFilter },
-                                    through: { attributes: [] }
+                                    through: { attributes: [] },
+                                    attributes: [] // Don't select Department columns when grouping
                                 }
                             ] : []
                         }
@@ -1091,9 +1095,25 @@ export const attendanceStatistics = async (req, res) => {
         })
 
         // Get attendance count by participant type
+        // For grouping queries, we need to set attributes: [] on included models
+        const attendanceByTypeInclude = departmentFilter ? [{
+            model: Event,
+            required: true,
+            attributes: [], // Don't select Event columns when grouping
+            include: [
+                {
+                    model: Department,
+                    required: true,
+                    where: { department_id: departmentFilter },
+                    through: { attributes: [] },
+                    attributes: [] // Don't select Department columns when grouping
+                }
+            ]
+        }] : []
+        
         const attendanceByType = await Attendance.findAll({
             where: whereConditions,
-            include: statsIncludeOptions,
+            include: attendanceByTypeInclude,
             attributes: [
                 'participant_type',
                 [models.sequelize.fn('COUNT', models.sequelize.col('attendance_id')), 'count']
