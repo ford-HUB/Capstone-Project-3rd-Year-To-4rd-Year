@@ -3,4 +3,4 @@ export const allowedRole = ['Student','Lead Organizer', 'Event Coordinator', 'As
 
 export const allowedRoleAdmin = ['Director']
 
-export const allowedRoleManageEvent = ['director', 'staff', 'staff', 'assistant_coordinator']
+export const allowedRoleManageEvent = ['director', 'staff', 'coordinator', 'assistant_coordinator']
