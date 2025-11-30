@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Mail, Phone, Shield, Building, Calendar, User, Image, FileText, GraduationCap } from 'lucide-react';
+import { X, Mail, Phone, Shield, Building, Calendar, User, Image, FileText, GraduationCap, IdCard } from 'lucide-react';
 
 const UserInfoModal = ({ open, setOpen, userData }) => {
     if (!open || !userData) return null;
@@ -234,6 +234,45 @@ const UserInfoModal = ({ open, setOpen, userData }) => {
                                 />
                                 <div className="w-32 h-32 bg-gray-200 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 text-sm" style={{display: 'none'}}>
                                     No Image
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {(userData.type === 'student' || userData.type === 'staff' || userData.type === 'faculty' || userData.type === 'alumni') && userData.details?.school_image_id && (
+                        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                            <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
+                                <IdCard className="w-4 h-4" />
+                                Valid ID
+                            </h4>
+                            <div className="flex justify-center">
+                                <div 
+                                    className="relative border border-gray-300 rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow group"
+                                    onClick={() => window.open(userData.details.school_image_id, '_blank')}
+                                    title="Click to view full size"
+                                >
+                                    <img 
+                                        src={userData.details.school_image_id} 
+                                        alt="Valid ID" 
+                                        className="max-w-full h-auto max-h-64 object-contain bg-white"
+                                        onError={(e) => {
+                                            e.target.onerror = null;
+                                            e.target.src = '';
+                                            e.target.style.display = 'none';
+                                            const errorDiv = e.target.parentElement.nextSibling;
+                                            if (errorDiv) {
+                                                errorDiv.style.display = 'flex';
+                                            }
+                                        }}
+                                    />
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-center justify-center">
+                                        <span className="text-xs text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 px-2 py-1 rounded">
+                                            Click to view full size
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="max-w-full h-64 bg-gray-200 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 text-sm" style={{display: 'none'}}>
+                                    No Valid ID Image
                                 </div>
                             </div>
                         </div>
