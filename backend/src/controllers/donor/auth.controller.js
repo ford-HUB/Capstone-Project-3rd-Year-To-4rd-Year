@@ -167,10 +167,17 @@ export const login = async (req, res) => {
         const isMatch = await bcrypt.compare(password, isValid.password)
         if(!isMatch) { return res.json({ success: false, message: 'Invalid Credentials' }) }
 
-        // Set user as active
         await Accounts.update({ is_active: true }, { where: { account_id: isValid.account_id } })
-
         await generateToken(isValid.account_id, res)
+
+        await logDonorActivity(
+            isValid.account_id,
+            'access',
+            'account',
+            'Successfully logged in to the system',
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        )
 
         res.json({ success: true, message: 'Login Successfully' })
 
@@ -625,11 +632,9 @@ export const oauthSuccess = async (req, res) => {
         // Save account_id before destroying session
         const accountId = req.user.account_id;
         
-        // Generate JWT token (sets httpOnly cookie and returns token for client storage)
         let token;
         try {
             token = await generateToken(accountId, res);
-            console.log('OAuth success: JWT token generated and cookie set for account_id:', accountId);
         } catch (tokenError) {
             console.error('Failed to generate token during OAuth:', {
                 error: tokenError.message,
@@ -639,7 +644,18 @@ export const oauthSuccess = async (req, res) => {
             return res.redirect(`${FRONTEND_URL}/donor/login?error=oauth_failed&reason=token_generation_failed`);
         }
         
-        // Destroy session after successful OAuth (we're using JWT now)
+        try {
+            await logDonorActivity(
+                accountId,
+                'access',
+                'account',
+                'Successfully logged in to the system via OAuth',
+                req.ip || req.connection.remoteAddress,
+                req.get('user-agent')
+            );
+        } catch (logError) {
+            console.error('Activity log failed during OAuth login (non-critical):', logError.message);
+        }
         req.logout((err) => {
             if (err) {
                 console.error('Error during logout after OAuth:', err);

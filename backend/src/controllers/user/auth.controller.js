@@ -388,16 +388,12 @@ export const login = async (req, res) => {
                 return res.json({ message: 'Invalid Credentials' }) 
             }
             await Accounts.update({ is_active: true }, { where: { account_id: isValid.account_id } })
-            const role = await Role.findOne({ where: { account_id: isValid.account_id } })
-            console.log(role.name)
-            console.log(email)
             await generateToken(isValid.account_id, res)
             
-            // Log successful login activity for staff, coordinator, assistant_coordinator
-            if(['staff', 'coordinator', 'assistant_coordinator'].includes(role.name)) {
+            if(['staff', 'coordinator', 'assistant_coordinator'].includes(roleType.name)) {
                 await logManagementActivity(
                     isValid.account_id,
-                    role.name.toLowerCase(),
+                    roleType.name.toLowerCase(),
                     'access',
                     'account',
                     'Successfully logged in to the system',
@@ -406,18 +402,28 @@ export const login = async (req, res) => {
                 )
             }
             
-            // Emit socket event for user login
+            if(roleType.name === 'beneficiary') {
+                await logBeneficiaryActivity(
+                    isValid.account_id,
+                    'access',
+                    'account',
+                    'Successfully logged in to the system',
+                    req.ip || req.connection.remoteAddress,
+                    req.get('user-agent')
+                )
+            }
+            
             try {
                 emitUserActivityUpdate(isValid.account_id, "online", {
                     email: isValid.email,
-                    role: role.name,
+                    role: roleType.name,
                     loginTime: new Date()
                 });
             } catch (socketError) {
                 console.log('Socket emit failed:', socketError.message);
             }
             
-            return res.json({ success: true, message: 'Login Successfully', role: role.name, userId: isValid.account_id })
+            return res.json({ success: true, message: 'Login Successfully', role: roleType.name, userId: isValid.account_id })
         }
 
         const isVerified = await VerificationCodes.findOne({ where: { account_id: isValid.account_id, used: true } })
@@ -427,22 +433,28 @@ export const login = async (req, res) => {
         if(!isMatch) { return res.json({ message: 'Invalid Credentials' }) }
 
         await Accounts.update({ is_active: true }, { where: { account_id: isValid.account_id } })
-
-        const role = await Role.findOne({ where: { account_id: isValid.account_id } })
         await generateToken(isValid.account_id, res)
 
-        // Emit socket event for user login
+        await logParticipantActivity(
+            isValid.account_id,
+            'access',
+            'account',
+            'Successfully logged in to the system',
+            req.ip || req.connection.remoteAddress,
+            req.get('user-agent')
+        )
+
         try {
             emitUserActivityUpdate(isValid.account_id, "online", {
                 email: isValid.email,
-                role: role.name,
+                role: roleType.name,
                 loginTime: new Date()
             });
         } catch (socketError) {
             console.log('Socket emit failed:', socketError.message);
         }
 
-        return res.json({ success: true, message: 'Login Successfully', role: role.name, userId: isValid.account_id })
+        return res.json({ success: true, message: 'Login Successfully', role: roleType.name, userId: isValid.account_id })
 
     } catch (error) {
         res.status(500).json({ message: 'Internal Server Error' })
