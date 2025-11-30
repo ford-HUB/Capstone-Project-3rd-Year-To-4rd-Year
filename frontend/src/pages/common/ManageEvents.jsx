@@ -1,5 +1,6 @@
 import React from 'react';
 import { Search, Plus, ChevronDown, Edit2, Trash2, ArrowUpDown, Menu, MoreVertical, Eye, PackageOpen, ChevronLeft, ChevronRight, QrCode } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import dayjs from 'dayjs';
 
 import CreateEvent from '../../components/modal/CreateEvent.jsx';
@@ -12,6 +13,7 @@ import QRCodeModal from '../../components/modal/QRCodeModal.jsx';
 import { useEventStore } from '../../store/event/useEventStore.js';
 import { useDonationStore } from '../../store/donation/useDonationStore.js';
 import { useAuthStore as useAuthManagementStore } from '../../store/management/useAuthStore.js';
+import { useAuthStore as useAuthDirectorStore } from '../../store/director/useAuthStore.js';
 import { useProfileStore as useManagementProfileStore } from '../../store/management/useProfileStore.js';
 
 const getDefaultOrganizerAvatar = () => {
@@ -19,10 +21,20 @@ const getDefaultOrganizerAvatar = () => {
 };
 
 const ManageEvents = () => {
+  const location = useLocation();
+  const isDirectorRoute = location.pathname.includes('/director/');
+  
   const { listEvents, getListEvents, loading, error, deleteEvent } = useEventStore();
   const { enableOrDisableFundsEventDonation, enableOrDisableGoodsEventDonation } = useDonationStore();
-  const { authenticatedManagement, checkAuth } = useAuthManagementStore();
+  
+  // Use director auth if on director route, otherwise use management auth
+  const { authenticatedManagement, checkAuth: checkManagementAuth } = useAuthManagementStore();
+  const { authenticatedDirector, checkAuth: checkDirectorAuth } = useAuthDirectorStore();
   const { managementCurrentProfile, currentProfile } = useManagementProfileStore();
+  
+  // Determine which auth to use based on route
+  const authenticatedUser = isDirectorRoute ? authenticatedDirector : authenticatedManagement;
+  const checkAuth = isDirectorRoute ? checkDirectorAuth : checkManagementAuth;
   const [showCreateModal, setShowCreateModal] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [selectedType, setSelectedType] = React.useState('');
@@ -45,24 +57,24 @@ const ManageEvents = () => {
   const [itemsPerPage, setItemsPerPage] = React.useState(10);
 
   // Get user role and department
-  const userRole = authenticatedManagement?.Role?.name;
+  const userRole = authenticatedUser?.Role?.name;
   const isCoordinator = userRole === 'coordinator' || userRole === 'assistant_coordinator';
   const coordinatorDepartment = managementCurrentProfile?.Department?.department_name;
 
   // Fetch user profile on mount if coordinator
   React.useEffect(() => {
     const fetchProfile = async () => {
-      if (isCoordinator && !managementCurrentProfile && authenticatedManagement) {
+      if (isCoordinator && !managementCurrentProfile && authenticatedUser) {
         await currentProfile();
       }
     };
-    if (authenticatedManagement) {
+    if (authenticatedUser) {
       fetchProfile();
     } else {
       checkAuth();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authenticatedManagement, isCoordinator, managementCurrentProfile]); // Run when auth state changes
+  }, [authenticatedUser, isCoordinator, managementCurrentProfile]); // Run when auth state changes
 
   // Fetch events on mount
   React.useEffect(() => {

@@ -351,9 +351,6 @@ export const listEvent = async (req, res) => {
             Category,
             Department,
             Organizer,
-            Accounts,
-            Coordinator,
-            Role
         } = models
 
         let events = []
