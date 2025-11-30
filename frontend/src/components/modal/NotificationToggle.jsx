@@ -1,6 +1,5 @@
 import React from 'react';
 import dayjs from 'dayjs';
-import { useNavigate } from 'react-router-dom';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useNotifStore } from '../../store/notification/useNotifStore.js';
@@ -21,7 +20,6 @@ const NotificationToggle = ({ isOpen, setOpen }) => {
     } = useNotifStore();
     const { authenticatedDirector } = useAuthDirectorStore()
     const { authenticatedManagement } = useAuthManagementStore()
-    const navigate = useNavigate();
     const [activeTab, setActiveTab] = React.useState('all');
     const [showAllNotifications, setShowAllNotifications] = React.useState(false);
 
@@ -106,15 +104,9 @@ const NotificationToggle = ({ isOpen, setOpen }) => {
         }
     };
 
-    const handleMarkAsRead = async (notificationId, link) => {
+    const handleMarkAsRead = async (notificationId) => {
         const success = await markAsRead(notificationId);
         if (!success) return;
-        
-        // Navigate to the notification link if provided
-        if (link) {
-            navigate(link);
-        }
-        setOpen(false);
     }
 
     const handleShowAllNotifications = () => {
@@ -210,7 +202,7 @@ const NotificationToggle = ({ isOpen, setOpen }) => {
                                         scrollableTarget="notification-scroll-container"
                                         className="space-y-0.5">
                                         {filteredNotifications.map((notification) => (
-                                            <div onClick={() => handleMarkAsRead(notification.notification_id, notification.link)}
+                                            <div onClick={() => handleMarkAsRead(notification.notification_id)}
                                                 key={notification.notification_id}
                                                 className={`flex items-start space-x-3 p-2 ${notification.is_read && 'bg-gray-100'} hover:bg-gray-50 rounded-lg cursor-pointer transition-colors`}>
                                                 <div
@@ -247,7 +239,7 @@ const NotificationToggle = ({ isOpen, setOpen }) => {
                                     </InfiniteScroll>
                                 ) : (
                                     filteredNotifications.slice(0, 3).map((notification) => (
-                                        <div onClick={() => handleMarkAsRead(notification.notification_id, notification.link)}
+                                        <div onClick={() => handleMarkAsRead(notification.notification_id)}
                                             key={notification.notification_id}
                                             className={`flex items-start space-x-3 p-2 ${notification.is_read && 'bg-gray-100'} hover:bg-gray-50 rounded-lg cursor-pointer transition-colors`}>
                                             <div
