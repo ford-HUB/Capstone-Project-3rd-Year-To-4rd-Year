@@ -106,13 +106,13 @@ export const ListUsers = async (req, res) => {
                 isOnline: activeUserIds.has(account.account_id.toString())
             };
 
-            if (account.CampusUsers) {
+            if (account.CampusUser) {
                 userData.details = {
-                    firstname: account.CampusUsersfirstname,
+                    firstname: account.CampusUser.firstname,
                     lastname: account.CampusUser.lastname,
                     phone_number: account.CampusUser.phone_number,
                     course: account.CampusUser.Course,
-                    year_level: account.CampusUsers.YearLevel,
+                    year_level: account.CampusUser.YearLevel,
                     school_number: account.CampusUser.school_number,
                     school_image_id: account.CampusUser.school_image_id,
                     type: account.CampusUser.type
