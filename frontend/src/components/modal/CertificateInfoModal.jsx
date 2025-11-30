@@ -5,13 +5,26 @@ import { X } from 'lucide-react';
 
 const CertificateInfoModal = ({ dest, certificateData, isOpen, setOpen }) => {
     const queryData = {
-        title: certificateData.title,
-        certId: certificateData.cert_uuid,
-        preview_url: certificateData.cert_img,
-        downloadable: certificateData.cert_pdf,
-        issued_at: certificateData.issued_at,
-        series_id: certificateData.series_id,
-        organizer: certificateData.eventDetails.organizer
+        title: certificateData.title || '',
+        certId: certificateData.cert_uuid || '',
+        preview_url: certificateData.cert_img || '',
+        downloadable: certificateData.cert_pdf || '',
+        issued_at: certificateData.issued_at || '',
+        series_id: certificateData.series_id || '',
+        organizer: certificateData.eventDetails?.organizer || ''
+    }
+
+    // Build query string with proper encoding
+    const buildQueryString = () => {
+        const params = new URLSearchParams();
+        if (queryData.title) params.set('title', queryData.title);
+        if (queryData.certId) params.set('certId', queryData.certId);
+        if (queryData.preview_url) params.set('preview_url', queryData.preview_url);
+        if (queryData.downloadable) params.set('downloadable', queryData.downloadable);
+        if (queryData.series_id) params.set('series_id', queryData.series_id);
+        if (queryData.issued_at) params.set('issued_at', queryData.issued_at);
+        if (queryData.organizer) params.set('organizer', queryData.organizer);
+        return params.toString();
     }
 
     if(!isOpen) return null
@@ -74,7 +87,7 @@ const CertificateInfoModal = ({ dest, certificateData, isOpen, setOpen }) => {
                             <h2 className="text-lg font-medium text-gray-900 mb-1">
                                 { certificateData.title }
                             </h2>
-                            <p className="text-gray-600">{ certificateData.eventDetails.event_description }</p>
+                            <p className="text-gray-600">{ certificateData.eventDetails?.event_description || '' }</p>
                         </div>
                     </div>
 
@@ -93,7 +106,7 @@ const CertificateInfoModal = ({ dest, certificateData, isOpen, setOpen }) => {
                                 ORGANIZER
                             </h3>
                             <p className="text-base font-semibold text-gray-900">
-                                { certificateData.eventDetails.organizer }
+                                { certificateData.eventDetails?.organizer || '' }
                             </p>
                         </div>
 
@@ -102,7 +115,7 @@ const CertificateInfoModal = ({ dest, certificateData, isOpen, setOpen }) => {
                                 TOTAL HOURS
                             </h3>
                             <p className="text-base font-semibold text-gray-900">
-                                { certificateData.eventDetails.totalDuration }
+                                { certificateData.eventDetails?.totalDuration || '' }
                             </p>
                         </div>
                     </div>
@@ -113,13 +126,13 @@ const CertificateInfoModal = ({ dest, certificateData, isOpen, setOpen }) => {
                         </h3>
                         <div className="bg-gray-50 rounded-lg p-4">
                             <p className="text-gray-700">
-                                {`${certificateData.title}: ${certificateData.eventDetails.event_description}`}
+                                {`${certificateData.title || ''}: ${certificateData.eventDetails?.event_description || ''}`}
                             </p>
                         </div>
                     </div>
 
                     <div className="flex justify-end">
-                        <NavLink to={`${import.meta.env.VITE_FRONTEND_URL_PROD}/${dest}/certificate-viewer?title=${queryData.title}&certId=${queryData.certId}&preview_url=${queryData.preview_url}&downloadable=${queryData.downloadable}&series_id=${queryData.series_id}&issued_at=${queryData.issued_at}&organizer=${queryData.organizer}`} className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors">
+                        <NavLink to={`/${dest}/certificate-viewer?${buildQueryString()}`} className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors">
                             View & Download
                         </NavLink>
                     </div>
