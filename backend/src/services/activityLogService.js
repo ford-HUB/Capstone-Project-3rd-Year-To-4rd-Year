@@ -535,8 +535,8 @@ export const getAllUsersActivityLogs = async (options = {}) => {
                             attributes: ['firstname', 'lastname', 'middle_initial']
                         }]
                     });
-                    if (volunteer && volunteer.CampusUsers) {
-                        const { firstname, lastname, middle_initial } = volunteer.CampusUsers;
+                    if (volunteer && volunteer.CampusUser) {
+                        const { firstname, lastname, middle_initial } = volunteer.CampusUser;
                         if (firstname || lastname) {
                             userName = `${firstname || ''} ${middle_initial ? middle_initial + '. ' : ''}${lastname || ''}`.trim();
                         }
