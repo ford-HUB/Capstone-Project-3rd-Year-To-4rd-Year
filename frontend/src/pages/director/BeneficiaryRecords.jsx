@@ -838,19 +838,19 @@ const BeneficiaryRecords = () => {
             const headerRowHeight = 7;
             const headerY = yPosition;
             
-            // Define column positions and widths
+            // Define column positions and widths - evenly distributed
             const colNo = margin;
-            const colNoWidth = 12;
-            const colName = margin + 12;
-            const colNameWidth = 45;
-            const colEmail = margin + 57;
-            const colEmailWidth = 40;
-            const colPhone = margin + 97;
-            const colPhoneWidth = 30;
-            const colEvent = margin + 127;
-            const colEventWidth = 35;
-            const colDate = margin + 162;
-            const colDateWidth = pageWidth - margin - colDate;
+            const colNoWidth = 10;
+            const colName = margin + 10;
+            const colNameWidth = 38;
+            const colEmail = margin + 48;
+            const colEmailWidth = 35;
+            const colPhone = margin + 83;
+            const colPhoneWidth = 25;
+            const colEvent = margin + 108;
+            const colEventWidth = 30;
+            const colDate = margin + 138;
+            const colDateWidth = 32;
             
             // Draw blue header background
             pdf.setFillColor(66, 133, 244); // Blue color
@@ -1019,19 +1019,19 @@ const BeneficiaryRecords = () => {
             const headerRowHeight = 7;
             const headerY = yPosition;
             
-            // Define column positions and widths (same as individuals table)
+            // Define column positions and widths (same as individuals table) - evenly distributed
             const colNo = margin;
-            const colNoWidth = 12;
-            const colName = margin + 12;
-            const colNameWidth = 45;
-            const colEmail = margin + 57;
-            const colEmailWidth = 40;
-            const colPhone = margin + 97;
-            const colPhoneWidth = 30;
-            const colEvent = margin + 127;
-            const colEventWidth = 35;
-            const colDate = margin + 162;
-            const colDateWidth = pageWidth - margin - colDate;
+            const colNoWidth = 10;
+            const colName = margin + 10;
+            const colNameWidth = 38;
+            const colEmail = margin + 48;
+            const colEmailWidth = 35;
+            const colPhone = margin + 83;
+            const colPhoneWidth = 25;
+            const colEvent = margin + 108;
+            const colEventWidth = 30;
+            const colDate = margin + 138;
+            const colDateWidth = 32;
             
             // Draw blue header background
             pdf.setFillColor(66, 133, 244); // Blue color
@@ -1048,7 +1048,7 @@ const BeneficiaryRecords = () => {
             pdf.text('Email Address', colEmail + 2, headerTextY);
             pdf.text('Contact Number', colPhone + 2, headerTextY);
             pdf.text('Event', colEvent + 2, headerTextY);
-            pdf.text('Registration Date', colDate + 2, headerTextY);
+            pdf.text('Reg. Date', colDate + 2, headerTextY);
             
             // Reset text color to black
             pdf.setTextColor(0, 0, 0);
