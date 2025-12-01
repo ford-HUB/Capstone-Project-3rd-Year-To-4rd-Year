@@ -50,6 +50,7 @@ const UpdateRegistrationUI = () => {
             department: '',
             course: '',
             yearLevel: undefined,
+            graduatedYear: undefined,
             phoneNumber: '',
             currentAddress: '',
             isBeneficiary: 'false',
@@ -342,6 +343,7 @@ const UpdateRegistrationUI = () => {
         setValue('department', '');
         setValue('course', '');
         setValue('yearLevel', undefined);
+        setValue('graduatedYear', undefined);
         setValue('studentIdFile', undefined);
         
         // Reset file-related state
@@ -460,8 +462,16 @@ const UpdateRegistrationUI = () => {
                 }
                 const participantTypeForStep4 = watch('participantType');
                 const isStaffOrFacultyForStep4 = participantTypeForStep4 === 'staff' || participantTypeForStep4 === 'faculty';
+                const isAlumniForStep4 = participantTypeForStep4 === 'alumni';
                 // For staff/faculty, only department is required
-                return isStaffOrFacultyForStep4 ? ['department'] : ['department', 'course', 'yearLevel'];
+                // For alumni, use graduatedYear instead of yearLevel
+                if (isStaffOrFacultyForStep4) {
+                    return ['department'];
+                } else if (isAlumniForStep4) {
+                    return ['department', 'course', 'graduatedYear'];
+                } else {
+                    return ['department', 'course', 'yearLevel'];
+                }
             case 5:
                 // ID verification (only for regular volunteers)
                 const isBeneficiaryForStep5 = watch('isBeneficiary') === 'true';
@@ -625,11 +635,15 @@ const UpdateRegistrationUI = () => {
             } else {
                 const formValues = watch();
                 const isStaffOrFaculty = formValues.participantType === 'staff' || formValues.participantType === 'faculty';
+                const isAlumni = formValues.participantType === 'alumni';
                 
                 // For staff/faculty, only department is required
-                // For students/alumni, all fields are required
+                // For alumni, use graduatedYear instead of yearLevel
+                // For students, use yearLevel
                 const fieldsToCheck = isStaffOrFaculty 
                     ? ['department'] 
+                    : isAlumni
+                    ? ['department', 'course', 'graduatedYear']
                     : ['department', 'course', 'yearLevel'];
                 
                 // Check if there are any errors for the fields we care about
@@ -639,6 +653,12 @@ const UpdateRegistrationUI = () => {
                 let fieldsValid;
                 if (isStaffOrFaculty) {
                     fieldsValid = formValues.department;
+                } else if (isAlumni) {
+                    fieldsValid = (
+                        formValues.department &&
+                        formValues.course &&
+                        formValues.graduatedYear
+                    );
                 } else {
                     fieldsValid = (
                         formValues.department &&
@@ -889,12 +909,20 @@ const UpdateRegistrationUI = () => {
             if (!isBeneficiaryBool) {
                 formDataToSend.append('department', data.department);
                 formDataToSend.append('course', data.course);
-                formDataToSend.append('yearLevel', data.yearLevel || '');
+                // For alumni, use graduatedYear; for others, use yearLevel
+                if (data.participantType === 'alumni') {
+                    formDataToSend.append('graduatedYear', data.graduatedYear || '');
+                    formDataToSend.append('yearLevel', '');
+                } else {
+                    formDataToSend.append('yearLevel', data.yearLevel || '');
+                    formDataToSend.append('graduatedYear', '');
+                }
             } else {
-                // For beneficiaries, use default values or empty string for yearLevel
+                // For beneficiaries, use default values or empty string
                 formDataToSend.append('department', '');
                 formDataToSend.append('course', '');
                 formDataToSend.append('yearLevel', '');
+                formDataToSend.append('graduatedYear', '');
             }
 
             formDataToSend.append(
@@ -1093,9 +1121,14 @@ const UpdateRegistrationUI = () => {
                                             } else {
                                                 const participantTypeForGlobalError = watch('participantType');
                                                 const isStaffOrFacultyForGlobalError = participantTypeForGlobalError === 'staff' || participantTypeForGlobalError === 'faculty';
-                                                currentStepFields = isStaffOrFacultyForGlobalError 
-                                                    ? ['department'] 
-                                                    : ['department', 'course', 'yearLevel'];
+                                                const isAlumniForGlobalError = participantTypeForGlobalError === 'alumni';
+                                                if (isStaffOrFacultyForGlobalError) {
+                                                    currentStepFields = ['department'];
+                                                } else if (isAlumniForGlobalError) {
+                                                    currentStepFields = ['department', 'course', 'graduatedYear'];
+                                                } else {
+                                                    currentStepFields = ['department', 'course', 'yearLevel'];
+                                                }
                                             }
                                             break;
                                         case 5:

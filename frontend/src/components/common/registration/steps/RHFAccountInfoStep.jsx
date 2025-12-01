@@ -18,6 +18,8 @@ const RHFAccountInfoStep = ({
     setEmailValidationStatus,
 }) => {
     const isBeneficiary = watch('isBeneficiary') === 'true';
+    const participantType = watch('participantType');
+    const isAlumni = participantType === 'alumni';
 
     // Handle email check for regular volunteers
     const handleEmailCheck = async (email) => {
@@ -122,13 +124,15 @@ const RHFAccountInfoStep = ({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <RHFInputField
-                    label="School ID"
+                    label={isAlumni ? "Alumni ID" : "School ID"}
                     name="studentId"
                     register={register}
                     error={errors.studentId}
                     placeholder={
                         isBeneficiary
                             ? 'Not required for beneficiaries'
+                            : isAlumni
+                            ? 'Enter your Alumni ID'
                             : 'Enter your School ID'
                     }
                     icon={User}

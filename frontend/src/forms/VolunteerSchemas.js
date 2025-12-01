@@ -33,6 +33,8 @@ export const volunteerRegistrationSchema = z
 
         yearLevel: z.union([z.string(), z.number(), z.undefined()]),
 
+        graduatedYear: z.union([z.string(), z.number(), z.undefined()]),
+
         gender: z.enum(['M', 'F'], {
             errorMap: () => ({ message: 'Select a gender' }),
         }),
@@ -172,13 +174,23 @@ export const volunteerRegistrationSchema = z
     )
     .refine(
         (data) => {
-            // If not a beneficiary (isBeneficiary is "false"), year level is required and must be valid
+            // If not a beneficiary (isBeneficiary is "false"), year level or graduated year is required
             // But year level is optional for staff and faculty
+            // For alumni, graduated year is required instead of year level
             if (data.isBeneficiary === "false" || data.isBeneficiary === false) {
                 const isStaffOrFaculty = data.participantType === 'staff' || data.participantType === 'faculty';
+                const isAlumni = data.participantType === 'alumni';
+                
                 if (isStaffOrFaculty) {
                     return true; // Year level is optional for staff/faculty
                 }
+                
+                if (isAlumni) {
+                    // For alumni, graduated year is required
+                    return data.graduatedYear && data.graduatedYear.toString().trim().length > 0;
+                }
+                
+                // For students, year level is required
                 if (!data.yearLevel) return false;
                 const num = Number(data.yearLevel);
                 return !isNaN(num) && num >= 1 && num <= 12;
@@ -186,8 +198,24 @@ export const volunteerRegistrationSchema = z
             return true;
         },
         {
-            message: 'Year level is required for regular volunteers (except staff and faculty)',
+            message: 'Year level is required for students, or graduated year is required for alumni',
             path: ['yearLevel'],
+        }
+    )
+    .refine(
+        (data) => {
+            // For alumni, graduated year must be provided
+            if (data.isBeneficiary === "false" || data.isBeneficiary === false) {
+                const isAlumni = data.participantType === 'alumni';
+                if (isAlumni) {
+                    return data.graduatedYear && data.graduatedYear.toString().trim().length > 0;
+                }
+            }
+            return true;
+        },
+        {
+            message: 'Graduated year is required for alumni',
+            path: ['graduatedYear'],
         }
     )
     .refine(

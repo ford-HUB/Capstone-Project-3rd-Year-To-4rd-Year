@@ -31,8 +31,8 @@ export const goodsDonationSchema = z.object({
   isAnonymous: z.boolean().default(false),
   showReceipt: z.boolean().default(true)
 }).refine((data) => {
-  // Only require condition for non-food, non-emergency, non-medicine types
-  const noConditionTypes = ['ready_to_eat_food', 'emergency_kits', 'medicine'];
+  // Only require condition for non-food, non-emergency, non-medicine, non-bottled-water types
+  const noConditionTypes = ['ready_to_eat_food', 'emergency_kits', 'medicine', 'bottled_water'];
   if (!noConditionTypes.includes(data.goodsType)) {
     return data.condition !== undefined && data.condition !== '';
   }
@@ -57,8 +57,8 @@ export const goodsStepSchema = z.object({
   }),
   condition: z.enum(['new', 'like_new', 'good', 'fair']).optional()
 }).refine((data) => {
-  // Only require condition for non-food, non-emergency, non-medicine types
-  const noConditionTypes = ['ready_to_eat_food', 'emergency_kits', 'medicine'];
+  // Only require condition for non-food, non-emergency, non-medicine, non-bottled-water types
+  const noConditionTypes = ['ready_to_eat_food', 'emergency_kits', 'medicine', 'bottled_water'];
   if (!noConditionTypes.includes(data.goodsType)) {
     return data.condition !== undefined && data.condition !== '';
   }

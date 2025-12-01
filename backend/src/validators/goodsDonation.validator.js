@@ -56,7 +56,7 @@ export const goodsDonationSchema = Joi.object({
         }),
     
     condition: Joi.when('goodsType', {
-        is: Joi.string().valid('ready_to_eat_food', 'emergency_kits', 'medicine'),
+        is: Joi.string().valid('ready_to_eat_food', 'emergency_kits', 'medicine', 'bottled_water'),
         then: Joi.string().allow('', null).optional(),
         otherwise: Joi.string()
             .valid('new', 'like_new', 'good', 'fair', 'poor')
@@ -68,7 +68,7 @@ export const goodsDonationSchema = Joi.object({
     }).custom((value, helpers) => {
         // If goodsType doesn't require condition and condition is empty string or null, convert to undefined
         const goodsType = helpers.state.ancestors[0]?.goodsType;
-        const noConditionTypes = ['ready_to_eat_food', 'emergency_kits', 'medicine'];
+        const noConditionTypes = ['ready_to_eat_food', 'emergency_kits', 'medicine', 'bottled_water'];
         if (noConditionTypes.includes(goodsType) && (value === '' || value === null || value === undefined)) {
             return undefined;
         }

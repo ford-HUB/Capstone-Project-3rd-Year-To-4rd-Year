@@ -3,7 +3,8 @@ import express from "express";
 // @ Controllers
 import {
     getAllDocumentsAsSubmissions,
-    getAllDepartments
+    getAllDepartments,
+    getAllGraduatedYears
 } from "../../controllers/submission/submission.controller.js";
 
 // @ Validators
@@ -20,5 +21,7 @@ const submissionRouter = express.Router();
 submissionRouter.get("/all-documents", guard("staff", "coordinator", "assistant_coordinator", "director"), validateRequest(submissionFilterSchema), getAllDocumentsAsSubmissions);
 
 submissionRouter.get("/departments", guard("staff", "coordinator", "assistant_coordinator", "director"), getAllDepartments);
+
+submissionRouter.get("/graduated-years", guard("staff", "coordinator", "assistant_coordinator", "director"), getAllGraduatedYears);
 
 export default submissionRouter;

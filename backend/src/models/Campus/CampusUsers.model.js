@@ -117,6 +117,14 @@ CampusUsers.init({
             model: 'year_level',
             key: 'yl_id'
         }
+    },
+
+    gy_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: ''
+        }
     }
 }, {
     sequelize: db,

@@ -52,6 +52,7 @@ import EventGoodsType from './donations/EventGoodsType.model.js';
 import LinkedPaymentAccounts from './LinkedPaymentAccounts.model.js';
 import Testimonials from './testimonial/Testimonials.model.js';
 import ActivityLog from './ActivityLog.model.js';
+import GraduatedYear from './Campus/GraduatedYear.model.js';
 
 
 
@@ -340,6 +341,9 @@ ActivityLog.belongsTo(Beneficiary, { foreignKey: 'user_id', constraints: false, 
 Donor.hasMany(ActivityLog, { foreignKey: 'user_id', onDelete: "CASCADE", hooks: true })
 ActivityLog.belongsTo(Donor, { foreignKey: 'user_id', constraints: false, onDelete : "CASCADE", hooks: true })
 
+CampusUsers.hasOne(GraduatedYear, { foreignKey: 'gy_id', onDelete: "CASCADE", hooks: true })
+GraduatedYear.belongsTo(CampusUsers, { foreignKey: 'gy_id', onDelete: "CASCADE", hooks: true })
+
 
 const models = {
     sequelize: db,
@@ -352,6 +356,7 @@ const models = {
     Certificate_Template,
     Certificate,
     Volunteer,
+    GraduatedYear,
     Attendance,
     AccountUpdateLog,
     ActivityLog,

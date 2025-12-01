@@ -31,6 +31,7 @@ export const signup = async (req, res) => {
             department,
             course,
             yearLevel,
+            graduatedYear,
             isBeneficiary,
             beneficiaryType,
             organization_name,
@@ -38,7 +39,7 @@ export const signup = async (req, res) => {
         } = req.validatedBody;
 
         const picture_id_image = req.file ? req.file.path : null;
-        const { Accounts, Role, Beneficiary, Department, Course, YearLevel, CampusUsers, StrandCourse, Volunteer, VerificationCodes } = models;
+        const { Accounts, Role, Beneficiary, Department, Course, YearLevel, CampusUsers, StrandCourse, Volunteer, VerificationCodes, GraduatedYear } = models;
 
         const existingAccount = await Accounts.findOne({ where: { email } });
         let accountToUse = existingAccount;
@@ -200,9 +201,43 @@ export const signup = async (req, res) => {
         let strandCourseId = null
         let newYearLevel = null
         let volunteerYearLevelId = null
+        let graduatedYearId = null
 
-        if (userType !== 'staff' && userType !== 'faculty') {
+        if (userType === 'alumni') {
+            // Handle alumni - use graduated year instead of year level
+            if(department === 'Senior High Department') {
+                const [strandCourse] = await StrandCourse.findOrCreate({
+                    where: { name: course },
+                    defaults: { name: course },
+                    transaction: t
+                })
+                strandCourseId = strandCourse.strand_course_id
+            } else {
+                const [regularCourse] = await Course.findOrCreate({
+                    where: { course_name: course },
+                    defaults: { course_name: course },
+                    transaction: t
+                });
+                courseId = regularCourse.course_id
+            }
 
+            // Find or get the graduated year by gy_id
+            if (graduatedYear) {
+                const graduatedYearRecord = await GraduatedYear.findByPk(graduatedYear, { transaction: t });
+                if (graduatedYearRecord) {
+                    graduatedYearId = graduatedYearRecord.gy_id;
+                }
+            }
+
+            // For alumni, use a default year level for volunteer table (or null)
+            const [defaultYearLevel] = await YearLevel.findOrCreate({
+                where: { year_level: '1' },
+                defaults: { year_level: '1' },
+                transaction: t
+            });
+            volunteerYearLevelId = defaultYearLevel.yl_id;
+        } else if (userType !== 'staff' && userType !== 'faculty') {
+            // Handle students - use year level
             if(department === 'Senior High Department') {
                 const [strandCourse] = await StrandCourse.findOrCreate({
                     where: { name: course },
@@ -227,6 +262,7 @@ export const signup = async (req, res) => {
             newYearLevel = yearLevelRecord;
             volunteerYearLevelId = yearLevelRecord.yl_id;
         } else {
+            // Handle staff and faculty
             const [defaultYearLevel] = await YearLevel.findOrCreate({
                 where: { year_level: '1' },
                 defaults: { year_level: '1' },
@@ -257,7 +293,8 @@ export const signup = async (req, res) => {
                 strand_course_id: finalStrandCourseId,
                 course_id: finalCourseId,
                 department_id: newDepartment.department_id,
-                yl_id: finalYearLevelId
+                yl_id: finalYearLevelId,
+                gy_id: graduatedYearId
             }, { transaction: t });
             campusUserToUse = existingCampusUser;
         } else {
@@ -276,7 +313,8 @@ export const signup = async (req, res) => {
                 strand_course_id: finalStrandCourseId,
                 course_id: finalCourseId,
                 department_id: newDepartment.department_id,
-                yl_id: finalYearLevelId
+                yl_id: finalYearLevelId,
+                gy_id: graduatedYearId
             }, { transaction: t });
         }
 

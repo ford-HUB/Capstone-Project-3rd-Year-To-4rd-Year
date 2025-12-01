@@ -2,7 +2,7 @@ import models from '../../models/index.js';
 import supabase from '../../config/supabase.js';
 import { Op } from 'sequelize';
 
-const { Department, Accounts, Staff, Coordinator, Director, Document, DocumentRequestApproval } = models;
+const { Department, Accounts, Staff, Coordinator, Director, Document, DocumentRequestApproval, GraduatedYear } = models;
 
 export const getAllDepartments = async (req, res) => {
     try {
@@ -20,6 +20,50 @@ export const getAllDepartments = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to fetch departments',
+            error: error.message
+        });
+    }
+};
+
+export const getAllGraduatedYears = async (req, res) => {
+    try {
+        const graduatedYears = await GraduatedYear.findAll({
+            attributes: ['gy_id', 'year']
+        });
+
+        // Sort by year in descending order (newest first)
+        // Handle both "YYYY-YYYY" format and single year format
+        const sortedYears = graduatedYears.sort((a, b) => {
+            const yearA = a.year || '';
+            const yearB = b.year || '';
+            
+            // Extract the first year from "YYYY-YYYY" format or use the year as-is
+            const extractStartYear = (yearStr) => {
+                if (!yearStr) return 0;
+                // If format is "YYYY-YYYY", extract first year
+                if (yearStr.includes('-')) {
+                    return parseInt(yearStr.split('-')[0]) || 0;
+                }
+                // If it's just a year, parse it
+                return parseInt(yearStr) || 0;
+            };
+            
+            const startYearA = extractStartYear(yearA);
+            const startYearB = extractStartYear(yearB);
+            
+            return startYearB - startYearA; // Descending order
+        });
+
+        res.status(200).json({
+            success: true,
+            data: sortedYears,
+            message: 'Graduated years retrieved successfully'
+        });
+    } catch (error) {
+        console.error('Error fetching graduated years:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch graduated years',
             error: error.message
         });
     }

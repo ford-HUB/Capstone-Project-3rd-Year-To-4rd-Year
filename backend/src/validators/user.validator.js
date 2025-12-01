@@ -128,15 +128,31 @@ export const signupSchema = Joi.object({
         is: 'true',
         then: Joi.optional().allow(''),
         otherwise: Joi.when('participantType', {
-          is: Joi.string().valid('staff', 'faculty'),
+          is: Joi.string().valid('staff', 'faculty', 'alumni'),
           then: Joi.optional().allow(''),
           otherwise: Joi.required(),
         }),
       })
       .messages({
-        'any.required': 'Year level is required for regular volunteers (except staff and faculty)',
+        'any.required': 'Year level is required for regular volunteers (except staff, faculty, and alumni)',
         'number.base': 'Year level must be a number',
-        'number.range': 'Year level must be between 1 and 10',
+        'number.range': 'Year level must be between 1 and 12',
+      }),
+
+    graduatedYear: Joi.string()
+      .trim()
+      .empty('undefined')
+      .empty('')
+      .when('isBeneficiary', {
+        is: 'true',
+        then: Joi.optional().allow(''),
+        otherwise: Joi.when('participantType', {
+          is: 'alumni',
+          then: Joi.required().messages({
+            'any.required': 'Graduated year is required for alumni',
+          }),
+          otherwise: Joi.optional().allow(''),
+        }),
       }),
 
     isBeneficiary: Joi.string()

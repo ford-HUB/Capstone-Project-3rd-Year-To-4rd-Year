@@ -9,3 +9,13 @@ export const getAllDepartments = async () => {
         throw error;
     }
 };
+
+export const getAllGraduatedYears = async () => {
+    try {
+        const response = await apiInstance.get('/api/submissions/graduated-years');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching graduated years:', error);
+        throw error;
+    }
+};
