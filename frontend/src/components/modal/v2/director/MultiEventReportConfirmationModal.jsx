@@ -54,7 +54,7 @@ const MultiEventReportConfirmationModal = ({
                             <FileText className="w-6 h-6 text-blue-600" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-gray-800">Generate Multiple Reports</h2>
+                            <h2 className="text-xl font-bold text-gray-800">Generation Per Event</h2>
                             <p className="text-sm text-gray-600 mt-1">
                                 Beneficiaries are from different events
                             </p>
