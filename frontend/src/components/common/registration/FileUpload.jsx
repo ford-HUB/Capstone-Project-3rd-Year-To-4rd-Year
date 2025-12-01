@@ -5,7 +5,9 @@ const FileUpload = ({ preview, onFileUpload, onRemoveFile, error, disabled = fal
   if (preview) {
     return (
       <div className="relative group">
-        <div className="border-2 border-gray-200 rounded-xl p-4 bg-white shadow-sm">
+        <div className={`border-2 rounded-xl p-4 bg-white shadow-sm ${
+          error ? 'border-red-500' : 'border-gray-200'
+        }`}>
           <img
             src={preview}
             alt="Student ID Preview"
@@ -41,7 +43,11 @@ const FileUpload = ({ preview, onFileUpload, onRemoveFile, error, disabled = fal
   }
 
   return (
-    <label className={`flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 transition-colors ${
+    <label className={`flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-xl bg-gray-50 transition-colors ${
+      error 
+        ? 'border-red-500' 
+        : 'border-gray-300'
+    } ${
       disabled 
         ? 'cursor-not-allowed opacity-50' 
         : 'cursor-pointer hover:bg-gray-100'

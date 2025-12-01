@@ -30,6 +30,8 @@ const UpdateRegistrationUI = () => {
         setValue,
         reset,
         trigger,
+        setError,
+        clearErrors,
         formState: { errors },
     } = useForm({
         resolver: zodResolver(volunteerRegistrationSchema),
@@ -385,6 +387,7 @@ const UpdateRegistrationUI = () => {
             const previewURL = URL.createObjectURL(file);
             setPreview(previewURL);
             setValue('studentIdFile', file);
+            clearErrors('studentIdFile'); // Clear any previous errors
 
             // Process OCR for text extraction and validation
             setIsProcessingOCR(true);
@@ -393,6 +396,10 @@ const UpdateRegistrationUI = () => {
                 console.log('Raw Extracted Data:', extractedText);
 
                 if (!extractedText || typeof extractedText !== 'string') {
+                    setError('studentIdFile', {
+                        type: 'manual',
+                        message: 'Could not extract text from the ID. Please upload a clearer image.'
+                    });
                     setIsProcessingOCR(false);
                     return;
                 }
@@ -406,9 +413,20 @@ const UpdateRegistrationUI = () => {
                     .toLowerCase();
 
                 // Check if the extracted text contains the student's name
-                // Validation is done silently
+                if (!cleanedText.toLowerCase().includes(studentName)) {
+                    setError('studentIdFile', {
+                        type: 'manual',
+                        message: 'ID is not valid. The name on the ID does not match your provided information. Please check your details or upload a clearer photo.'
+                    });
+                } else {
+                    clearErrors('studentIdFile'); // Clear error if validation passes
+                }
             } catch (error) {
                 console.error('OCR processing error:', error);
+                setError('studentIdFile', {
+                    type: 'manual',
+                    message: 'Error processing the ID image. Please try again.'
+                });
             } finally {
                 setIsProcessingOCR(false);
             }
@@ -853,6 +871,11 @@ const UpdateRegistrationUI = () => {
                 console.log('Final OCR validation:', extractedText);
 
                 if (!extractedText || typeof extractedText !== 'string') {
+                    setError('studentIdFile', {
+                        type: 'manual',
+                        message: 'Could not extract text from the ID. Please upload a valid student ID.'
+                    });
+                    setIsRegistering(false);
                     return;
                 }
 
@@ -863,6 +886,11 @@ const UpdateRegistrationUI = () => {
                         .toLowerCase();
 
                 if (!cleanedText.toLowerCase().includes(studentName)) {
+                    setError('studentIdFile', {
+                        type: 'manual',
+                        message: 'ID is not valid. The name on the ID does not match your provided information. Please check your details or upload a clearer photo.'
+                    });
+                    setIsRegistering(false);
                     return;
                 }
             }
@@ -1001,6 +1029,7 @@ const UpdateRegistrationUI = () => {
                             onRemoveFile={() => {
                                 setPreview(null);
                                 setValue('studentIdFile', undefined);
+                                clearErrors('studentIdFile');
                             }}
                             isProcessingOCR={isProcessingOCR}
                         />
