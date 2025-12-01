@@ -698,7 +698,7 @@ export const submitGoodsDonation = async (req, res) => {
             type_goods: [goodsType],
             detailed_description: goodsDescription,
             quantity: quantityString,
-            condition: ['ready_to_eat_food', 'emergency_kits', 'medicine'].includes(goodsType) ? null : condition,
+            condition: ['ready_to_eat_food', 'emergency_kits', 'medicine', 'bottled_water'].includes(goodsType) ? null : condition,
             drop_off_location: dropoffLocation || 'UCLM Front Gate 1',
             preferred_date: preferredDate,
             preferred_time: preferredTime

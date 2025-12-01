@@ -47,7 +47,7 @@ const useGoodsDonationStore = create((set, get) => ({
             };
             
             // Clear condition when items that don't need condition are selected
-            const noConditionTypes = ['ready_to_eat_food', 'emergency_kits', 'medicine'];
+            const noConditionTypes = ['ready_to_eat_food', 'emergency_kits', 'medicine', 'bottled_water'];
             if (name === 'goodsType' && noConditionTypes.includes(value)) {
                 newFormData.condition = '';
                 // Also clear condition error if exists
@@ -124,8 +124,8 @@ const useGoodsDonationStore = create((set, get) => ({
                 if (!formData.quantityUnit || formData.quantityUnit.trim() === '') {
                     newErrors.quantityUnit = 'Please select a quantity unit';
                 }
-                // Only require condition for non-food, non-emergency, non-medicine types
-                const noConditionTypes = ['ready_to_eat_food', 'emergency_kits', 'medicine'];
+                // Only require condition for non-food, non-emergency, non-medicine, non-bottled-water types
+                const noConditionTypes = ['ready_to_eat_food', 'emergency_kits', 'medicine', 'bottled_water'];
                 if (!noConditionTypes.includes(formData.goodsType)) {
                     if (!formData.condition) {
                         newErrors.condition = 'Please select the condition';
@@ -156,7 +156,7 @@ const useGoodsDonationStore = create((set, get) => ({
             
             // Prepare submission data - remove condition field for items that don't need condition
             const submissionData = { ...formData };
-            const noConditionTypes = ['ready_to_eat_food', 'emergency_kits', 'medicine'];
+            const noConditionTypes = ['ready_to_eat_food', 'emergency_kits', 'medicine', 'bottled_water'];
             if (noConditionTypes.includes(submissionData.goodsType) && (!submissionData.condition || submissionData.condition === '')) {
                 delete submissionData.condition;
             }
