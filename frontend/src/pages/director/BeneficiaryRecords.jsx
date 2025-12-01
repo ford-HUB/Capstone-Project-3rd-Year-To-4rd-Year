@@ -1910,7 +1910,6 @@ const BeneficiaryRecords = () => {
                                 <th className="pb-3 px-4 font-semibold text-gray-600">Location</th>
                                 <th className="pb-3 px-4 font-semibold text-gray-600">Gender</th>
                                 <th className="pb-3 px-4 font-semibold text-gray-600">Age</th>
-                                <th className="pb-3 px-4 font-semibold text-gray-600">Organization</th>
                                 <th className="pb-3 px-4 font-semibold text-gray-600">Event</th>
                                 <th className="pb-3 px-4 font-semibold text-gray-600">Registration Date</th>
                             </tr>
@@ -1918,7 +1917,7 @@ const BeneficiaryRecords = () => {
                         <tbody>
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan="8" className="py-8 text-center">
+                                    <td colSpan="7" className="py-8 text-center">
                                         <div className="flex justify-center">
                                             <span className="loading loading-spinner loading-md"></span>
                                         </div>
@@ -1964,9 +1963,6 @@ const BeneficiaryRecords = () => {
                                         <td className="py-4 px-4 text-gray-600">
                                             {record.beneficiary?.age || 'N/A'}
                                         </td>
-                                        <td className="py-4 px-4 text-gray-600">
-                                            {record.beneficiary?.organization_name || 'N/A'}
-                                        </td>
                                         <td className="py-4 px-4">
                                             <div>
                                                 <p className="font-medium text-gray-900">
@@ -1989,7 +1985,7 @@ const BeneficiaryRecords = () => {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="8" className="py-8 text-center text-gray-500">
+                                    <td colSpan="7" className="py-8 text-center text-gray-500">
                                         <div className="flex flex-col items-center gap-2">
                                             <Users className="w-12 h-12 text-gray-300" />
                                             <p className="text-lg font-medium">No records found</p>
