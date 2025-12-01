@@ -7,6 +7,7 @@ import jsPDF from 'jspdf';
 import { formatDate, formatDateTime } from '../../utils/dateUtils.js';
 import { asset } from '../../assets/asset.jsx';
 import MultiEventReportConfirmationModal from '../../components/modal/v2/director/MultiEventReportConfirmationModal.jsx';
+import PDFGenerationOptionsModal from '../../components/modal/v2/director/PDFGenerationOptionsModal.jsx';
 import { logReportGeneration } from '../../services/director/manageBeneficiaryService.js';
 
 const BeneficiaryRecords = () => {
@@ -26,7 +27,9 @@ const BeneficiaryRecords = () => {
     const [selectedBeneficiaries, setSelectedBeneficiaries] = useState(new Set());
     const [searchTerm, setSearchTerm] = useState('');
     const [showMultiEventModal, setShowMultiEventModal] = useState(false);
+    const [showPDFOptionsModal, setShowPDFOptionsModal] = useState(false);
     const [pendingGroupedByEvent, setPendingGroupedByEvent] = useState(null);
+    const [pendingSelectedRecords, setPendingSelectedRecords] = useState(null);
     const reportButtonRef = useRef(null);
 
     // Fetch events for dropdown
@@ -1186,7 +1189,474 @@ const BeneficiaryRecords = () => {
         pdf.save(fileName);
     };
 
-    // Generate PDF Report
+    // Generate Beneficiary List Info PDF (personal information only)
+    const generateBeneficiaryListInfoPDF = async (selectedRecords, logos) => {
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const margin = 20;
+        let yPosition = margin;
+
+        // Helper function to add new page if needed
+        const checkNewPage = (requiredHeight) => {
+            if (yPosition + requiredHeight > pageHeight - margin) {
+                pdf.addPage();
+                yPosition = margin;
+                return true;
+            }
+            return false;
+        };
+
+        // Header with logos
+        const headerHeight = 25;
+        const logoSize = 15; // mm
+        const logoY = yPosition;
+        
+        // Left logo (UCLMCARES)
+        if (logos.uclmCaresLogo) {
+            try {
+                pdf.addImage(logos.uclmCaresLogo, 'PNG', margin, logoY, logoSize, logoSize);
+            } catch (error) {
+                console.error('Failed to add UCLMCARES logo:', error);
+            }
+        }
+
+        // Center title and date
+        pdf.setFontSize(18);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Beneficiary List Information', pageWidth / 2, logoY + 8, { align: 'center' });
+        
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'normal');
+        const generatedDate = new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        });
+        pdf.text(`Generated on: ${generatedDate}`, pageWidth / 2, logoY + 14, { align: 'center' });
+
+        // Right logo (UC Logo)
+        if (logos.uclmLogo) {
+            try {
+                pdf.addImage(logos.uclmLogo, 'PNG', pageWidth - margin - logoSize, logoY, logoSize, logoSize);
+            } catch (error) {
+                console.error('Failed to add UC logo:', error);
+            }
+        }
+
+        // Draw line under header
+        yPosition = logoY + headerHeight;
+        pdf.setLineWidth(0.5);
+        pdf.setDrawColor(200, 200, 200);
+        pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+        yPosition += 10;
+
+        // Separate beneficiaries into individuals and organizations
+        const individualBeneficiaries = selectedRecords.filter(reg => 
+            !reg.beneficiary?.organization_name || reg.beneficiary.organization_name.trim() === ''
+        );
+        const organizationBeneficiaries = selectedRecords.filter(reg => 
+            reg.beneficiary?.organization_name && reg.beneficiary.organization_name.trim() !== ''
+        );
+
+        // Section I: Beneficiary Information (Individuals)
+        if (individualBeneficiaries.length > 0) {
+            checkNewPage(25);
+            pdf.setFontSize(16);
+            pdf.setFont('helvetica', 'bold');
+            const individualsTitle = 'I. Beneficiary Information (Individuals)';
+            const individualsTitleWidth = pdf.getTextWidth(individualsTitle);
+            pdf.text(individualsTitle, margin, yPosition);
+            
+            // Draw underline
+            pdf.setLineWidth(0.5);
+            pdf.setDrawColor(0, 0, 0);
+            pdf.line(margin, yPosition + 1, margin + individualsTitleWidth, yPosition + 1);
+            
+            yPosition += 10;
+
+            // Table Header with blue background
+            checkNewPage(10);
+            const headerRowHeight = 7;
+            const headerY = yPosition;
+            
+            // Define column positions and widths
+            const colNo = margin;
+            const colNoWidth = 10;
+            const colName = margin + 10;
+            const colNameWidth = 40;
+            const colLocation = margin + 50;
+            const colLocationWidth = 35;
+            const colGender = margin + 85;
+            const colGenderWidth = 20;
+            const colAge = margin + 105;
+            const colAgeWidth = 15;
+            const colEmail = margin + 120;
+            const colEmailWidth = 40;
+            const colPhone = margin + 160;
+            const colPhoneWidth = pageWidth - margin - colPhone;
+            
+            // Draw blue header background
+            pdf.setFillColor(66, 133, 244);
+            pdf.setDrawColor(66, 133, 244);
+            pdf.rect(margin, headerY, pageWidth - (margin * 2), headerRowHeight, 'F');
+            
+            // Draw header text in white
+            pdf.setTextColor(255, 255, 255);
+            pdf.setFontSize(8);
+            pdf.setFont('helvetica', 'bold');
+            const headerTextY = headerY + (headerRowHeight / 2) + 2;
+            pdf.text('No.', colNo + 1, headerTextY);
+            pdf.text('Name', colName + 1, headerTextY);
+            pdf.text('Location', colLocation + 1, headerTextY);
+            pdf.text('Gender', colGender + 1, headerTextY);
+            pdf.text('Age', colAge + 1, headerTextY);
+            pdf.text('Email', colEmail + 1, headerTextY);
+            pdf.text('Phone', colPhone + 1, headerTextY);
+            
+            // Reset text color
+            pdf.setTextColor(0, 0, 0);
+            
+            // Draw header border and vertical lines
+            pdf.setDrawColor(66, 133, 244);
+            pdf.setLineWidth(0.5);
+            pdf.rect(margin, headerY, pageWidth - (margin * 2), headerRowHeight);
+            
+            // Draw vertical lines in header
+            pdf.setDrawColor(255, 255, 255);
+            pdf.setLineWidth(0.3);
+            pdf.line(colName, headerY, colName, headerY + headerRowHeight);
+            pdf.line(colLocation, headerY, colLocation, headerY + headerRowHeight);
+            pdf.line(colGender, headerY, colGender, headerY + headerRowHeight);
+            pdf.line(colAge, headerY, colAge, headerY + headerRowHeight);
+            pdf.line(colEmail, headerY, colEmail, headerY + headerRowHeight);
+            pdf.line(colPhone, headerY, colPhone, headerY + headerRowHeight);
+            
+            yPosition = headerY + headerRowHeight;
+
+            // Individual beneficiaries rows
+            individualBeneficiaries.forEach((reg, index) => {
+                pdf.setFont('helvetica', 'normal');
+                pdf.setFontSize(7);
+                
+                const beneficiary = reg.beneficiary;
+                const name = `${beneficiary?.firstname || ''} ${beneficiary?.middle_initial ? beneficiary.middle_initial + '. ' : ''}${beneficiary?.lastname || ''}`.trim() || 'N/A';
+                const location = beneficiary?.current_address || 'N/A';
+                const gender = beneficiary?.gender ? beneficiary.gender.charAt(0).toUpperCase() + beneficiary.gender.slice(1) : 'N/A';
+                const age = beneficiary?.age ? String(beneficiary.age) : 'N/A';
+                const email = beneficiary?.account?.email || 'N/A';
+                const phone = beneficiary?.phone_number || 'N/A';
+
+                // Column widths for text wrapping
+                const nameWidth = colNameWidth - 2;
+                const locationWidth = colLocationWidth - 2;
+                const emailWidth = colEmailWidth - 2;
+                const phoneWidth = colPhoneWidth - 2;
+
+                // Split text to fit column widths
+                const nameLines = pdf.splitTextToSize(name, nameWidth);
+                const locationLines = pdf.splitTextToSize(location, locationWidth);
+                const emailLines = pdf.splitTextToSize(email, emailWidth);
+                const phoneLines = pdf.splitTextToSize(phone, phoneWidth);
+
+                // Find the maximum number of lines needed
+                const maxLines = Math.max(nameLines.length, locationLines.length, emailLines.length, phoneLines.length, 1);
+                const lineHeight = 4;
+                const minRowHeight = 6;
+                const rowHeight = Math.max(minRowHeight, maxLines * lineHeight + 2);
+
+                checkNewPage(rowHeight);
+                const currentRowY = yPosition;
+
+                // Draw white background for row
+                pdf.setFillColor(255, 255, 255);
+                pdf.rect(margin, currentRowY, pageWidth - (margin * 2), rowHeight, 'F');
+
+                // Draw borders
+                pdf.setDrawColor(200, 200, 200);
+                pdf.setLineWidth(0.3);
+                pdf.line(margin, currentRowY, pageWidth - margin, currentRowY);
+                pdf.line(margin, currentRowY + rowHeight, pageWidth - margin, currentRowY + rowHeight);
+                pdf.line(colName, currentRowY, colName, currentRowY + rowHeight);
+                pdf.line(colLocation, currentRowY, colLocation, currentRowY + rowHeight);
+                pdf.line(colGender, currentRowY, colGender, currentRowY + rowHeight);
+                pdf.line(colAge, currentRowY, colAge, currentRowY + rowHeight);
+                pdf.line(colEmail, currentRowY, colEmail, currentRowY + rowHeight);
+                pdf.line(colPhone, currentRowY, colPhone, currentRowY + rowHeight);
+
+                // Draw text
+                const textStartY = currentRowY + 3.5;
+                for (let lineIndex = 0; lineIndex < maxLines; lineIndex++) {
+                    const currentY = textStartY + (lineIndex * lineHeight);
+                    
+                    if (lineIndex === 0) {
+                        pdf.text(String(index + 1), colNo + 1, currentY);
+                    }
+                    
+                    if (nameLines[lineIndex]) {
+                        pdf.text(nameLines[lineIndex], colName + 1, currentY);
+                    }
+                    
+                    if (locationLines[lineIndex]) {
+                        pdf.text(locationLines[lineIndex], colLocation + 1, currentY);
+                    }
+                    
+                    if (lineIndex === 0) {
+                        pdf.text(gender, colGender + 1, currentY);
+                        pdf.text(age, colAge + 1, currentY);
+                    }
+                    
+                    if (emailLines[lineIndex]) {
+                        pdf.text(emailLines[lineIndex], colEmail + 1, currentY);
+                    }
+                    
+                    if (phoneLines[lineIndex]) {
+                        pdf.text(phoneLines[lineIndex], colPhone + 1, currentY);
+                    }
+                }
+                
+                yPosition += rowHeight;
+            });
+            
+            // Draw outer border
+            const tableStartY = headerY;
+            const tableEndY = yPosition;
+            pdf.setDrawColor(200, 200, 200);
+            pdf.setLineWidth(0.5);
+            pdf.rect(margin, tableStartY, pageWidth - (margin * 2), tableEndY - tableStartY);
+
+            yPosition += 10;
+        }
+
+        // Section II: Beneficiary Information (Organizations)
+        if (organizationBeneficiaries.length > 0) {
+            checkNewPage(25);
+            pdf.setFontSize(16);
+            pdf.setFont('helvetica', 'bold');
+            const organizationsTitle = 'II. Beneficiary Information (Organizations)';
+            const organizationsTitleWidth = pdf.getTextWidth(organizationsTitle);
+            pdf.text(organizationsTitle, margin, yPosition);
+            
+            // Draw underline
+            pdf.setLineWidth(0.5);
+            pdf.setDrawColor(0, 0, 0);
+            pdf.line(margin, yPosition + 1, margin + organizationsTitleWidth, yPosition + 1);
+            
+            yPosition += 10;
+
+            // Table Header with blue background
+            checkNewPage(10);
+            const headerRowHeight = 7;
+            const headerY = yPosition;
+            
+            // Define column positions and widths (same as individuals)
+            const colNo = margin;
+            const colName = margin + 10;
+            const colNameWidth = 40;
+            const colLocation = margin + 50;
+            const colLocationWidth = 35;
+            const colGender = margin + 85;
+            const colGenderWidth = 20;
+            const colAge = margin + 105;
+            const colAgeWidth = 15;
+            const colEmail = margin + 120;
+            const colEmailWidth = 40;
+            const colPhone = margin + 160;
+            const colPhoneWidth = pageWidth - margin - colPhone;
+            
+            // Draw blue header background
+            pdf.setFillColor(66, 133, 244);
+            pdf.setDrawColor(66, 133, 244);
+            pdf.rect(margin, headerY, pageWidth - (margin * 2), headerRowHeight, 'F');
+            
+            // Draw header text in white
+            pdf.setTextColor(255, 255, 255);
+            pdf.setFontSize(8);
+            pdf.setFont('helvetica', 'bold');
+            const headerTextY = headerY + (headerRowHeight / 2) + 2;
+            pdf.text('No.', colNo + 1, headerTextY);
+            pdf.text('Name (Org)', colName + 1, headerTextY);
+            pdf.text('Location', colLocation + 1, headerTextY);
+            pdf.text('Gender', colGender + 1, headerTextY);
+            pdf.text('Age', colAge + 1, headerTextY);
+            pdf.text('Email', colEmail + 1, headerTextY);
+            pdf.text('Phone', colPhone + 1, headerTextY);
+            
+            // Reset text color
+            pdf.setTextColor(0, 0, 0);
+            
+            // Draw header border and vertical lines
+            pdf.setDrawColor(66, 133, 244);
+            pdf.setLineWidth(0.5);
+            pdf.rect(margin, headerY, pageWidth - (margin * 2), headerRowHeight);
+            
+            // Draw vertical lines in header
+            pdf.setDrawColor(255, 255, 255);
+            pdf.setLineWidth(0.3);
+            pdf.line(colName, headerY, colName, headerY + headerRowHeight);
+            pdf.line(colLocation, headerY, colLocation, headerY + headerRowHeight);
+            pdf.line(colGender, headerY, colGender, headerY + headerRowHeight);
+            pdf.line(colAge, headerY, colAge, headerY + headerRowHeight);
+            pdf.line(colEmail, headerY, colEmail, headerY + headerRowHeight);
+            pdf.line(colPhone, headerY, colPhone, headerY + headerRowHeight);
+            
+            yPosition = headerY + headerRowHeight;
+
+            // Organization beneficiaries rows
+            organizationBeneficiaries.forEach((reg, index) => {
+                pdf.setFont('helvetica', 'normal');
+                pdf.setFontSize(7);
+                
+                const beneficiary = reg.beneficiary;
+                const name = `${beneficiary?.firstname || ''} ${beneficiary?.middle_initial ? beneficiary.middle_initial + '. ' : ''}${beneficiary?.lastname || ''}`.trim() || 'N/A';
+                const orgName = beneficiary?.organization_name || 'N/A';
+                const fullName = `${name} (${orgName})`;
+                const location = beneficiary?.current_address || 'N/A';
+                const gender = beneficiary?.gender ? beneficiary.gender.charAt(0).toUpperCase() + beneficiary.gender.slice(1) : 'N/A';
+                const age = beneficiary?.age ? String(beneficiary.age) : 'N/A';
+                const email = beneficiary?.account?.email || 'N/A';
+                const phone = beneficiary?.phone_number || 'N/A';
+
+                // Column widths for text wrapping
+                const nameWidth = colNameWidth - 2;
+                const locationWidth = colLocationWidth - 2;
+                const emailWidth = colEmailWidth - 2;
+                const phoneWidth = colPhoneWidth - 2;
+
+                // Split text to fit column widths
+                const nameLines = pdf.splitTextToSize(fullName, nameWidth);
+                const locationLines = pdf.splitTextToSize(location, locationWidth);
+                const emailLines = pdf.splitTextToSize(email, emailWidth);
+                const phoneLines = pdf.splitTextToSize(phone, phoneWidth);
+
+                // Find the maximum number of lines needed
+                const maxLines = Math.max(nameLines.length, locationLines.length, emailLines.length, phoneLines.length, 1);
+                const lineHeight = 4;
+                const minRowHeight = 6;
+                const rowHeight = Math.max(minRowHeight, maxLines * lineHeight + 2);
+
+                checkNewPage(rowHeight);
+                const currentRowY = yPosition;
+
+                // Draw white background for row
+                pdf.setFillColor(255, 255, 255);
+                pdf.rect(margin, currentRowY, pageWidth - (margin * 2), rowHeight, 'F');
+
+                // Draw borders
+                pdf.setDrawColor(200, 200, 200);
+                pdf.setLineWidth(0.3);
+                pdf.line(margin, currentRowY, pageWidth - margin, currentRowY);
+                pdf.line(margin, currentRowY + rowHeight, pageWidth - margin, currentRowY + rowHeight);
+                pdf.line(colName, currentRowY, colName, currentRowY + rowHeight);
+                pdf.line(colLocation, currentRowY, colLocation, currentRowY + rowHeight);
+                pdf.line(colGender, currentRowY, colGender, currentRowY + rowHeight);
+                pdf.line(colAge, currentRowY, colAge, currentRowY + rowHeight);
+                pdf.line(colEmail, currentRowY, colEmail, currentRowY + rowHeight);
+                pdf.line(colPhone, currentRowY, colPhone, currentRowY + rowHeight);
+
+                // Draw text
+                const textStartY = currentRowY + 3.5;
+                for (let lineIndex = 0; lineIndex < maxLines; lineIndex++) {
+                    const currentY = textStartY + (lineIndex * lineHeight);
+                    
+                    if (lineIndex === 0) {
+                        pdf.text(String(index + 1), colNo + 1, currentY);
+                    }
+                    
+                    if (nameLines[lineIndex]) {
+                        pdf.text(nameLines[lineIndex], colName + 1, currentY);
+                    }
+                    
+                    if (locationLines[lineIndex]) {
+                        pdf.text(locationLines[lineIndex], colLocation + 1, currentY);
+                    }
+                    
+                    if (lineIndex === 0) {
+                        pdf.text(gender, colGender + 1, currentY);
+                        pdf.text(age, colAge + 1, currentY);
+                    }
+                    
+                    if (emailLines[lineIndex]) {
+                        pdf.text(emailLines[lineIndex], colEmail + 1, currentY);
+                    }
+                    
+                    if (phoneLines[lineIndex]) {
+                        pdf.text(phoneLines[lineIndex], colPhone + 1, currentY);
+                    }
+                }
+                
+                yPosition += rowHeight;
+            });
+            
+            // Draw outer border
+            const tableStartY = headerY;
+            const tableEndY = yPosition;
+            pdf.setDrawColor(200, 200, 200);
+            pdf.setLineWidth(0.5);
+            pdf.rect(margin, tableStartY, pageWidth - (margin * 2), tableEndY - tableStartY);
+
+            yPosition += 10;
+        }
+
+        // Section III: Summary
+        checkNewPage(30);
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        const summaryTitle = 'III. Summary';
+        const summaryTitleWidth = pdf.getTextWidth(summaryTitle);
+        pdf.text(summaryTitle, margin, yPosition);
+        
+        // Draw underline
+        pdf.setLineWidth(0.5);
+        pdf.setDrawColor(0, 0, 0);
+        pdf.line(margin, yPosition + 1, margin + summaryTitleWidth, yPosition + 1);
+        
+        yPosition += 8;
+
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'normal');
+        
+        const totalBeneficiaries = selectedRecords.length;
+        let summary = `This report contains a total of ${totalBeneficiaries} beneficiary(ies). `;
+        
+        if (individualBeneficiaries.length > 0 && organizationBeneficiaries.length > 0) {
+            summary += `This includes ${individualBeneficiaries.length} individual(s) and ${organizationBeneficiaries.length} organization(s). `;
+        } else if (individualBeneficiaries.length > 0) {
+            summary += `All beneficiaries are individuals. `;
+        } else if (organizationBeneficiaries.length > 0) {
+            summary += `All beneficiaries are organizations. `;
+        }
+
+        summary += `This report serves as an official record of all selected beneficiaries with their personal information.`;
+
+        // Split summary into multiple lines
+        const summaryLines = pdf.splitTextToSize(summary, pageWidth - (margin * 2));
+        summaryLines.forEach(line => {
+            checkNewPage(6);
+            pdf.text(line, margin, yPosition);
+            yPosition += 6;
+        });
+
+        // Footer
+        const totalPages = pdf.internal.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+            pdf.setPage(i);
+            pdf.setFontSize(8);
+            pdf.setFont('helvetica', 'italic');
+            pdf.text(
+                `Page ${i} of ${totalPages}`,
+                pageWidth / 2,
+                pageHeight - 10,
+                { align: 'center' }
+            );
+        }
+
+        // Generate safe filename
+        const fileName = `Beneficiary_List_Info_${new Date().toISOString().split('T')[0]}.pdf`;
+        pdf.save(fileName);
+    };
+
+    // Generate PDF Report - Show options modal first
     const generatePDFReport = async () => {
         if (selectedBeneficiaries.size === 0) {
             toast.error('Please select at least one beneficiary to generate a report');
@@ -1202,9 +1672,18 @@ const BeneficiaryRecords = () => {
             return;
         }
 
+        // Store selected records and show options modal
+        setPendingSelectedRecords(selectedRecords);
+        setShowPDFOptionsModal(true);
+    };
+
+    // Handle Per Event option
+    const handlePerEventOption = async () => {
+        if (!pendingSelectedRecords) return;
+
         // Group by event
         const groupedByEvent = {};
-        selectedRecords.forEach(record => {
+        pendingSelectedRecords.forEach(record => {
             const eventId = record.event_id;
             if (!groupedByEvent[eventId]) {
                 groupedByEvent[eventId] = {
@@ -1222,6 +1701,7 @@ const BeneficiaryRecords = () => {
             // Show confirmation modal for multiple events
             setPendingGroupedByEvent(groupedByEvent);
             setShowMultiEventModal(true);
+            setPendingSelectedRecords(null);
             return;
         }
 
@@ -1245,6 +1725,29 @@ const BeneficiaryRecords = () => {
         });
         
         toast.success('PDF report generated successfully');
+        setPendingSelectedRecords(null);
+    };
+
+    // Handle Beneficiary List Info option
+    const handleBeneficiaryListInfoOption = async () => {
+        if (!pendingSelectedRecords) return;
+
+        // Load images
+        const [uclmCaresLogo, uclmLogo] = await Promise.all([
+            getImageBase64(asset.logo),
+            getImageBase64(asset.uclmLogo)
+        ]);
+
+        await generateBeneficiaryListInfoPDF(pendingSelectedRecords, { uclmCaresLogo, uclmLogo });
+
+        // Log report generation activity
+        await logReportGeneration('beneficiary', {
+            recordCount: pendingSelectedRecords.length,
+            isListInfo: true
+        });
+        
+        toast.success('PDF report generated successfully');
+        setPendingSelectedRecords(null);
     };
 
     // Handle confirmation from modal - generate separate PDFs
@@ -1404,6 +1907,10 @@ const BeneficiaryRecords = () => {
                                     />
                                 </th>
                                 <th className="pb-3 px-4 font-semibold text-gray-600">Beneficiary</th>
+                                <th className="pb-3 px-4 font-semibold text-gray-600">Location</th>
+                                <th className="pb-3 px-4 font-semibold text-gray-600">Gender</th>
+                                <th className="pb-3 px-4 font-semibold text-gray-600">Age</th>
+                                <th className="pb-3 px-4 font-semibold text-gray-600">Organization</th>
                                 <th className="pb-3 px-4 font-semibold text-gray-600">Event</th>
                                 <th className="pb-3 px-4 font-semibold text-gray-600">Registration Date</th>
                             </tr>
@@ -1411,7 +1918,7 @@ const BeneficiaryRecords = () => {
                         <tbody>
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan="4" className="py-8 text-center">
+                                    <td colSpan="8" className="py-8 text-center">
                                         <div className="flex justify-center">
                                             <span className="loading loading-spinner loading-md"></span>
                                         </div>
@@ -1448,6 +1955,18 @@ const BeneficiaryRecords = () => {
                                                 </div>
                                             </div>
                                         </td>
+                                        <td className="py-4 px-4 text-gray-600">
+                                            {record.beneficiary?.current_address || 'N/A'}
+                                        </td>
+                                        <td className="py-4 px-4 text-gray-600">
+                                            {record.beneficiary?.gender ? record.beneficiary.gender.charAt(0).toUpperCase() + record.beneficiary.gender.slice(1) : 'N/A'}
+                                        </td>
+                                        <td className="py-4 px-4 text-gray-600">
+                                            {record.beneficiary?.age || 'N/A'}
+                                        </td>
+                                        <td className="py-4 px-4 text-gray-600">
+                                            {record.beneficiary?.organization_name || 'N/A'}
+                                        </td>
                                         <td className="py-4 px-4">
                                             <div>
                                                 <p className="font-medium text-gray-900">
@@ -1470,7 +1989,7 @@ const BeneficiaryRecords = () => {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="4" className="py-8 text-center text-gray-500">
+                                    <td colSpan="8" className="py-8 text-center text-gray-500">
                                         <div className="flex flex-col items-center gap-2">
                                             <Users className="w-12 h-12 text-gray-300" />
                                             <p className="text-lg font-medium">No records found</p>
@@ -1488,6 +2007,18 @@ const BeneficiaryRecords = () => {
                     </table>
                 </div>
             </div>
+
+            {/* PDF Generation Options Modal */}
+            <PDFGenerationOptionsModal
+                open={showPDFOptionsModal}
+                setOpen={setShowPDFOptionsModal}
+                selectedCount={selectedCount}
+                onSelectPerEvent={handlePerEventOption}
+                onSelectBeneficiaryList={handleBeneficiaryListInfoOption}
+                onCancel={() => {
+                    setPendingSelectedRecords(null);
+                }}
+            />
 
             {/* Multi-Event Confirmation Modal */}
             <MultiEventReportConfirmationModal
