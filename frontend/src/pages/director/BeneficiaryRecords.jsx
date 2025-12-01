@@ -838,19 +838,15 @@ const BeneficiaryRecords = () => {
             const headerRowHeight = 7;
             const headerY = yPosition;
             
-            // Define column positions and widths - evenly distributed
+            // Define column positions and widths - evenly distributed (without Event and Date)
             const colNo = margin;
-            const colNoWidth = 10;
-            const colName = margin + 10;
-            const colNameWidth = 38;
-            const colEmail = margin + 48;
-            const colEmailWidth = 35;
-            const colPhone = margin + 83;
-            const colPhoneWidth = 25;
-            const colEvent = margin + 108;
-            const colEventWidth = 30;
-            const colDate = margin + 138;
-            const colDateWidth = 32;
+            const colNoWidth = 12;
+            const colName = margin + 12;
+            const colNameWidth = 50;
+            const colEmail = margin + 62;
+            const colEmailWidth = 55;
+            const colPhone = margin + 117;
+            const colPhoneWidth = 53;
             
             // Draw blue header background
             pdf.setFillColor(66, 133, 244); // Blue color
@@ -866,8 +862,6 @@ const BeneficiaryRecords = () => {
             pdf.text('Full Names', colName + 2, headerTextY);
             pdf.text('Email Address', colEmail + 2, headerTextY);
             pdf.text('Contact Number', colPhone + 2, headerTextY);
-            pdf.text('Event', colEvent + 2, headerTextY);
-            pdf.text('Reg. Date', colDate + 2, headerTextY);
             
             // Reset text color to black
             pdf.setTextColor(0, 0, 0);
@@ -883,8 +877,6 @@ const BeneficiaryRecords = () => {
             pdf.line(colName, headerY, colName, headerY + headerRowHeight);
             pdf.line(colEmail, headerY, colEmail, headerY + headerRowHeight);
             pdf.line(colPhone, headerY, colPhone, headerY + headerRowHeight);
-            pdf.line(colEvent, headerY, colEvent, headerY + headerRowHeight);
-            pdf.line(colDate, headerY, colDate, headerY + headerRowHeight);
             
             yPosition = headerY + headerRowHeight;
 
@@ -897,26 +889,19 @@ const BeneficiaryRecords = () => {
                 const name = `${beneficiary?.firstname || ''} ${beneficiary?.lastname || ''}`.trim() || 'N/A';
                 const email = beneficiary?.account?.email || 'N/A';
                 const phone = beneficiary?.phone_number || 'N/A';
-                const eventTitle = reg.event?.title || 'N/A';
-                const regDate = reg.registration_date || reg.createdAt;
-                const formattedDate = regDate ? formatDate(regDate) : 'N/A';
 
                 // Column widths for text wrapping (in mm)
                 const nameWidth = colNameWidth - 4;
                 const emailWidth = colEmailWidth - 4;
                 const phoneWidth = colPhoneWidth - 4;
-                const eventWidth = colEventWidth - 4;
-                const dateWidth = colDateWidth - 4;
 
                 // Split text to fit column widths
                 const nameLines = pdf.splitTextToSize(name, nameWidth);
                 const emailLines = pdf.splitTextToSize(email, emailWidth);
                 const phoneLines = pdf.splitTextToSize(phone, phoneWidth);
-                const eventLines = pdf.splitTextToSize(eventTitle, eventWidth);
-                const dateLines = pdf.splitTextToSize(formattedDate, dateWidth);
 
                 // Find the maximum number of lines needed for this row
-                const maxLines = Math.max(nameLines.length, emailLines.length, phoneLines.length, eventLines.length, dateLines.length);
+                const maxLines = Math.max(nameLines.length, emailLines.length, phoneLines.length);
                 const lineHeight = 4.5;
                 const minRowHeight = 7; // Minimum row height for proper spacing
                 const rowHeight = Math.max(minRowHeight, maxLines * lineHeight + 3);
@@ -942,8 +927,6 @@ const BeneficiaryRecords = () => {
                 pdf.line(colName, currentRowY, colName, currentRowY + rowHeight);
                 pdf.line(colEmail, currentRowY, colEmail, currentRowY + rowHeight);
                 pdf.line(colPhone, currentRowY, colPhone, currentRowY + rowHeight);
-                pdf.line(colEvent, currentRowY, colEvent, currentRowY + rowHeight);
-                pdf.line(colDate, currentRowY, colDate, currentRowY + rowHeight);
 
                 // Calculate vertical center for text positioning
                 const verticalPadding = 3.5;
@@ -971,16 +954,6 @@ const BeneficiaryRecords = () => {
                     // Phone - with spacing
                     if (phoneLines[lineIndex]) {
                         pdf.text(phoneLines[lineIndex], colPhone + 2, currentY);
-                    }
-                    
-                    // Event - with spacing
-                    if (eventLines[lineIndex]) {
-                        pdf.text(eventLines[lineIndex], colEvent + 2, currentY);
-                    }
-                    
-                    // Registration Date - with spacing
-                    if (dateLines[lineIndex]) {
-                        pdf.text(dateLines[lineIndex], colDate + 2, currentY);
                     }
                 }
                 
@@ -1019,19 +992,15 @@ const BeneficiaryRecords = () => {
             const headerRowHeight = 7;
             const headerY = yPosition;
             
-            // Define column positions and widths (same as individuals table) - evenly distributed
+            // Define column positions and widths (same as individuals table) - evenly distributed (without Event and Date)
             const colNo = margin;
-            const colNoWidth = 10;
-            const colName = margin + 10;
-            const colNameWidth = 38;
-            const colEmail = margin + 48;
-            const colEmailWidth = 35;
-            const colPhone = margin + 83;
-            const colPhoneWidth = 25;
-            const colEvent = margin + 108;
-            const colEventWidth = 30;
-            const colDate = margin + 138;
-            const colDateWidth = 32;
+            const colNoWidth = 12;
+            const colName = margin + 12;
+            const colNameWidth = 50;
+            const colEmail = margin + 62;
+            const colEmailWidth = 55;
+            const colPhone = margin + 117;
+            const colPhoneWidth = 53;
             
             // Draw blue header background
             pdf.setFillColor(66, 133, 244); // Blue color
@@ -1047,8 +1016,6 @@ const BeneficiaryRecords = () => {
             pdf.text('Full Names', colName + 2, headerTextY);
             pdf.text('Email Address', colEmail + 2, headerTextY);
             pdf.text('Contact Number', colPhone + 2, headerTextY);
-            pdf.text('Event', colEvent + 2, headerTextY);
-            pdf.text('Reg. Date', colDate + 2, headerTextY);
             
             // Reset text color to black
             pdf.setTextColor(0, 0, 0);
@@ -1064,8 +1031,6 @@ const BeneficiaryRecords = () => {
             pdf.line(colName, headerY, colName, headerY + headerRowHeight);
             pdf.line(colEmail, headerY, colEmail, headerY + headerRowHeight);
             pdf.line(colPhone, headerY, colPhone, headerY + headerRowHeight);
-            pdf.line(colEvent, headerY, colEvent, headerY + headerRowHeight);
-            pdf.line(colDate, headerY, colDate, headerY + headerRowHeight);
             
             yPosition = headerY + headerRowHeight;
 
@@ -1080,26 +1045,19 @@ const BeneficiaryRecords = () => {
                 const fullName = `${name} (${orgName})`;
                 const email = beneficiary?.account?.email || 'N/A';
                 const phone = beneficiary?.phone_number || 'N/A';
-                const eventTitle = reg.event?.title || 'N/A';
-                const regDate = reg.registration_date || reg.createdAt;
-                const formattedDate = regDate ? formatDate(regDate) : 'N/A';
 
                 // Column widths for text wrapping (in mm)
                 const nameWidth = colNameWidth - 4;
                 const emailWidth = colEmailWidth - 4;
                 const phoneWidth = colPhoneWidth - 4;
-                const eventWidth = colEventWidth - 4;
-                const dateWidth = colDateWidth - 4;
 
                 // Split text to fit column widths
                 const nameLines = pdf.splitTextToSize(fullName, nameWidth);
                 const emailLines = pdf.splitTextToSize(email, emailWidth);
                 const phoneLines = pdf.splitTextToSize(phone, phoneWidth);
-                const eventLines = pdf.splitTextToSize(eventTitle, eventWidth);
-                const dateLines = pdf.splitTextToSize(formattedDate, dateWidth);
 
                 // Find the maximum number of lines needed for this row
-                const maxLines = Math.max(nameLines.length, emailLines.length, phoneLines.length, eventLines.length, dateLines.length);
+                const maxLines = Math.max(nameLines.length, emailLines.length, phoneLines.length);
                 const lineHeight = 4.5;
                 const minRowHeight = 7; // Minimum row height for proper spacing
                 const rowHeight = Math.max(minRowHeight, maxLines * lineHeight + 3);
@@ -1125,8 +1083,6 @@ const BeneficiaryRecords = () => {
                 pdf.line(colName, currentRowY, colName, currentRowY + rowHeight);
                 pdf.line(colEmail, currentRowY, colEmail, currentRowY + rowHeight);
                 pdf.line(colPhone, currentRowY, colPhone, currentRowY + rowHeight);
-                pdf.line(colEvent, currentRowY, colEvent, currentRowY + rowHeight);
-                pdf.line(colDate, currentRowY, colDate, currentRowY + rowHeight);
 
                 // Calculate vertical center for text positioning
                 const verticalPadding = 2.5;
@@ -1155,16 +1111,6 @@ const BeneficiaryRecords = () => {
                     if (phoneLines[lineIndex]) {
                         pdf.text(phoneLines[lineIndex], colPhone + 2, currentY);
                     }
-                    
-                    // Event - with spacing
-                    if (eventLines[lineIndex]) {
-                        pdf.text(eventLines[lineIndex], colEvent + 2, currentY);
-                    }
-                    
-                    // Registration Date - with spacing
-                    if (dateLines[lineIndex]) {
-                        pdf.text(dateLines[lineIndex], colDate + 2, currentY);
-                    }
                 }
                 
                 // Move to next row position
@@ -1181,11 +1127,11 @@ const BeneficiaryRecords = () => {
             yPosition += 10;
         }
 
-        // Section III: Total of List of Beneficiaries
+        // Section II: Total of List of Beneficiaries
         checkNewPage(40);
         pdf.setFontSize(14);
         pdf.setFont('helvetica', 'bold');
-        const totalTitle = 'III. Total of List of Beneficiaries';
+        const totalTitle = 'II. Total of List of Beneficiaries';
         const totalTitleWidth = pdf.getTextWidth(totalTitle);
         pdf.text(totalTitle, margin, yPosition);
         
