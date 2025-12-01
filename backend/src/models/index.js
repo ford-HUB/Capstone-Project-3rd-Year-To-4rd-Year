@@ -341,8 +341,8 @@ ActivityLog.belongsTo(Beneficiary, { foreignKey: 'user_id', constraints: false, 
 Donor.hasMany(ActivityLog, { foreignKey: 'user_id', onDelete: "CASCADE", hooks: true })
 ActivityLog.belongsTo(Donor, { foreignKey: 'user_id', constraints: false, onDelete : "CASCADE", hooks: true })
 
-CampusUsers.hasOne(GraduatedYear, { foreignKey: 'gy_id', onDelete: "CASCADE", hooks: true })
-GraduatedYear.belongsTo(CampusUsers, { foreignKey: 'gy_id', onDelete: "CASCADE", hooks: true })
+CampusUsers.belongsTo(GraduatedYear, { foreignKey: 'gy_id', onDelete: "SET NULL", hooks: true })
+GraduatedYear.hasMany(CampusUsers, { foreignKey: 'gy_id', onDelete: "SET NULL", hooks: true })
 
 
 const models = {

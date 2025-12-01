@@ -123,7 +123,8 @@ CampusUsers.init({
         type: DataTypes.INTEGER,
         allowNull: true,
         references: {
-            model: ''
+            model: 'graduated_year',
+            key: 'gy_id'
         }
     }
 }, {

@@ -12,7 +12,8 @@ GraduatedYear.init({
 
     year: {
         type: DataTypes.STRING,
-        allowNull: true
+        allowNull: true,
+        unique: true
     }
 
 }, {
