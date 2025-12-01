@@ -3,7 +3,7 @@ import { AlertCircle } from "lucide-react";
 import RHFSelectField from "../RHFSelectField.jsx";
 import StepHeader from "../StepHeader.jsx";
 import InfoBox from "../InfoBox.jsx";
-import { getAllGraduatedYears } from "../../../services/common/departmentService.js";
+import { getAllGraduatedYears } from "../../../../services/common/departmentService.js";
 
 const RHFAcademicInfoStep = ({ register, errors, watch, setValue, departmentCourses }) => {
   const department = watch('department');
