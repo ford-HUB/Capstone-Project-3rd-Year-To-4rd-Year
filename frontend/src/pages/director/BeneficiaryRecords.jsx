@@ -6,7 +6,6 @@ import toast from 'react-hot-toast';
 import jsPDF from 'jspdf';
 import { formatDate, formatDateTime } from '../../utils/dateUtils.js';
 import { asset } from '../../assets/asset.jsx';
-import MultiEventReportConfirmationModal from '../../components/modal/v2/director/MultiEventReportConfirmationModal.jsx';
 import PDFGenerationOptionsModal from '../../components/modal/v2/director/PDFGenerationOptionsModal.jsx';
 import { logReportGeneration } from '../../services/director/manageBeneficiaryService.js';
 
@@ -26,9 +25,7 @@ const BeneficiaryRecords = () => {
     const [selectedEventId, setSelectedEventId] = useState('');
     const [selectedBeneficiaries, setSelectedBeneficiaries] = useState(new Set());
     const [searchTerm, setSearchTerm] = useState('');
-    const [showMultiEventModal, setShowMultiEventModal] = useState(false);
     const [showPDFOptionsModal, setShowPDFOptionsModal] = useState(false);
-    const [pendingGroupedByEvent, setPendingGroupedByEvent] = useState(null);
     const [pendingSelectedRecords, setPendingSelectedRecords] = useState(null);
     const reportButtonRef = useRef(null);
 
@@ -1694,37 +1691,43 @@ const BeneficiaryRecords = () => {
             groupedByEvent[eventId].beneficiaries.push(record);
         });
 
-        // Check if beneficiaries are from multiple events
-        const eventCount = Object.keys(groupedByEvent).length;
-        
-        if (eventCount > 1) {
-            // Show confirmation modal for multiple events
-            setPendingGroupedByEvent(groupedByEvent);
-            setShowMultiEventModal(true);
-            setPendingSelectedRecords(null);
-            return;
-        }
-
-        // Single event - generate directly
-        const event = Object.values(groupedByEvent)[0].event;
-        const beneficiaries = Object.values(groupedByEvent)[0].beneficiaries;
-
-        // Load images
+        // Load images once
         const [uclmCaresLogo, uclmLogo] = await Promise.all([
             getImageBase64(asset.logo),
             getImageBase64(asset.uclmLogo)
         ]);
 
-        await generateSingleEventPDF(event, beneficiaries, { uclmCaresLogo, uclmLogo });
-        
+        const logos = { uclmCaresLogo, uclmLogo };
+        const eventEntries = Object.entries(groupedByEvent);
+        const eventCount = eventEntries.length;
+
+        // Generate PDF for each event
+        for (const [eventId, group] of eventEntries) {
+            await generateSingleEventPDF(group.event, group.beneficiaries, logos);
+            // Small delay between downloads to avoid browser blocking
+            if (eventCount > 1) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+
         // Log report generation activity
-        await logReportGeneration('beneficiary', {
-            eventTitle: event.title,
-            recordCount: beneficiaries.length,
-            eventCount: 1
-        });
+        if (eventCount === 1) {
+            const event = eventEntries[0][1].event;
+            const beneficiaries = eventEntries[0][1].beneficiaries;
+            await logReportGeneration('beneficiary', {
+                eventTitle: event.title,
+                recordCount: beneficiaries.length,
+                eventCount: 1
+            });
+            toast.success('PDF report generated successfully');
+        } else {
+            await logReportGeneration('beneficiary', {
+                eventCount: eventCount,
+                recordCount: Object.values(groupedByEvent).reduce((sum, group) => sum + group.beneficiaries.length, 0)
+            });
+            toast.success(`Successfully generated ${eventCount} PDF report(s)`);
+        }
         
-        toast.success('PDF report generated successfully');
         setPendingSelectedRecords(null);
     };
 
@@ -1748,36 +1751,6 @@ const BeneficiaryRecords = () => {
         
         toast.success('PDF report generated successfully');
         setPendingSelectedRecords(null);
-    };
-
-    // Handle confirmation from modal - generate separate PDFs
-    const handleConfirmMultiEventReport = async () => {
-        if (!pendingGroupedByEvent) return;
-
-        // Load images once
-        const [uclmCaresLogo, uclmLogo] = await Promise.all([
-            getImageBase64(asset.logo),
-            getImageBase64(asset.uclmLogo)
-        ]);
-
-        const logos = { uclmCaresLogo, uclmLogo };
-        const eventEntries = Object.entries(pendingGroupedByEvent);
-        
-        // Generate PDF for each event
-        for (const [eventId, group] of eventEntries) {
-            await generateSingleEventPDF(group.event, group.beneficiaries, logos);
-            // Small delay between downloads to avoid browser blocking
-            await new Promise(resolve => setTimeout(resolve, 500));
-        }
-
-        // Log report generation activity for multiple events
-        await logReportGeneration('beneficiary', {
-            eventCount: eventEntries.length,
-            recordCount: Object.values(pendingGroupedByEvent).reduce((sum, group) => sum + group.beneficiaries.length, 0)
-        });
-        
-        toast.success(`Successfully generated ${eventEntries.length} PDF report(s)`);
-        setPendingGroupedByEvent(null);
     };
 
     const selectedCount = selectedBeneficiaries.size;
@@ -1986,17 +1959,6 @@ const BeneficiaryRecords = () => {
                 onSelectBeneficiaryList={handleBeneficiaryListInfoOption}
                 onCancel={() => {
                     setPendingSelectedRecords(null);
-                }}
-            />
-
-            {/* Multi-Event Confirmation Modal */}
-            <MultiEventReportConfirmationModal
-                open={showMultiEventModal}
-                setOpen={setShowMultiEventModal}
-                groupedByEvent={pendingGroupedByEvent || {}}
-                onConfirm={handleConfirmMultiEventReport}
-                onCancel={() => {
-                    setPendingGroupedByEvent(null);
                 }}
             />
         </div>
