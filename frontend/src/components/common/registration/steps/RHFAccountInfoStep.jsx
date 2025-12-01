@@ -21,6 +21,40 @@ const RHFAccountInfoStep = ({
     const participantType = watch('participantType');
     const isAlumni = participantType === 'alumni';
 
+    // Get dynamic label and placeholder based on participant type
+    const getIdLabel = () => {
+        switch (participantType) {
+            case 'student':
+                return 'Student ID';
+            case 'staff':
+                return 'Staff ID';
+            case 'faculty':
+                return 'Faculty ID';
+            case 'alumni':
+                return 'Alumni ID';
+            default:
+                return 'School ID';
+        }
+    };
+
+    const getIdPlaceholder = () => {
+        if (isBeneficiary) {
+            return 'Not required for beneficiaries';
+        }
+        switch (participantType) {
+            case 'student':
+                return 'Enter your Student ID';
+            case 'staff':
+                return 'Enter your Staff ID';
+            case 'faculty':
+                return 'Enter your Faculty ID';
+            case 'alumni':
+                return 'Enter your Alumni ID';
+            default:
+                return 'Enter your School ID';
+        }
+    };
+
     // Handle email check for regular volunteers
     const handleEmailCheck = async (email) => {
         if (!email || email.trim() === '') {
@@ -124,17 +158,11 @@ const RHFAccountInfoStep = ({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <RHFInputField
-                    label={isAlumni ? "Alumni ID" : "School ID"}
+                    label={getIdLabel()}
                     name="studentId"
                     register={register}
                     error={errors.studentId}
-                    placeholder={
-                        isBeneficiary
-                            ? 'Not required for beneficiaries'
-                            : isAlumni
-                            ? 'Enter your Alumni ID'
-                            : 'Enter your School ID'
-                    }
+                    placeholder={getIdPlaceholder()}
                     icon={User}
                     required={!isBeneficiary}
                     disabled={isBeneficiary}
