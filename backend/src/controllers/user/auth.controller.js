@@ -221,12 +221,14 @@ export const signup = async (req, res) => {
                 courseId = regularCourse.course_id
             }
 
-            // Find or get the graduated year by gy_id
+            // Find or create the graduated year by year string (e.g., "2025-2026")
             if (graduatedYear) {
-                const graduatedYearRecord = await GraduatedYear.findByPk(graduatedYear, { transaction: t });
-                if (graduatedYearRecord) {
-                    graduatedYearId = graduatedYearRecord.gy_id;
-                }
+                const [graduatedYearRecord] = await GraduatedYear.findOrCreate({
+                    where: { year: graduatedYear },
+                    defaults: { year: graduatedYear },
+                    transaction: t
+                });
+                graduatedYearId = graduatedYearRecord.gy_id;
             }
 
             // For alumni, use a default year level for volunteer table (or null)

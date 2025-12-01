@@ -6,14 +6,17 @@ import { Toaster } from 'react-hot-toast'
 
 // @Context
 import { DepartmentProvider } from './context/useDepartmentContext'
+import { GraduatedYearsProvider } from './context/useGraduatedYearsContext'
 
 createRoot(document.getElementById('root')).render(
     <DepartmentProvider>
-      <BrowserRouter>
-        <StrictMode>
-          <App />
-        <Toaster/>
-        </StrictMode>
-      </BrowserRouter>
+      <GraduatedYearsProvider>
+        <BrowserRouter>
+          <StrictMode>
+            <App />
+          <Toaster/>
+          </StrictMode>
+        </BrowserRouter>
+      </GraduatedYearsProvider>
     </DepartmentProvider>
 )

@@ -3,7 +3,7 @@ import { AlertCircle } from "lucide-react";
 import RHFSelectField from "../RHFSelectField.jsx";
 import StepHeader from "../StepHeader.jsx";
 import InfoBox from "../InfoBox.jsx";
-import { getAllGraduatedYears } from "../../../../services/common/departmentService.js";
+import { useGraduatedYears } from "../../../../context/useGraduatedYearsContext.jsx";
 
 const RHFAcademicInfoStep = ({ register, errors, watch, setValue, departmentCourses }) => {
   const department = watch('department');
@@ -12,28 +12,8 @@ const RHFAcademicInfoStep = ({ register, errors, watch, setValue, departmentCour
   const isStaffOrFaculty = participantType === 'staff' || participantType === 'faculty';
   const isAlumni = participantType === 'alumni';
   
-  const [graduatedYears, setGraduatedYears] = React.useState([]);
-  const [loadingGraduatedYears, setLoadingGraduatedYears] = React.useState(false);
-
-  // Fetch graduated years when component mounts or when alumni is selected
-  React.useEffect(() => {
-    if (isAlumni) {
-      const fetchGraduatedYears = async () => {
-        setLoadingGraduatedYears(true);
-        try {
-          const response = await getAllGraduatedYears();
-          if (response.success && response.data) {
-            setGraduatedYears(response.data);
-          }
-        } catch (error) {
-          console.error('Error fetching graduated years:', error);
-        } finally {
-          setLoadingGraduatedYears(false);
-        }
-      };
-      fetchGraduatedYears();
-    }
-  }, [isAlumni]);
+  // Use graduated years from context
+  const { formattedGraduatedYears, loading: loadingGraduatedYears } = useGraduatedYears();
 
   // Reset course when department changes
   React.useEffect(() => {
@@ -91,30 +71,9 @@ const RHFAcademicInfoStep = ({ register, errors, watch, setValue, departmentCour
             name="graduatedYear"
             register={register}
             error={errors.graduatedYear}
-            placeholder={loadingGraduatedYears ? "Loading..." : "Select your graduated year"}
-            options={graduatedYears.map(gy => {
-              // Format the year display - if it's a single year, convert to "YYYY-YYYY" format
-              // If it's already in "YYYY-YYYY" format, use it as-is
-              let displayYear = gy.year?.toString() || '';
-              
-              // If it's a single year (4 digits), convert to academic year format
-              if (displayYear && /^\d{4}$/.test(displayYear)) {
-                const year = parseInt(displayYear);
-                displayYear = `${year}-${year + 1}`;
-              }
-              
-              // If empty or invalid, use fallback
-              if (!displayYear) {
-                displayYear = `Year ${gy.gy_id}`;
-              }
-              
-              return {
-                value: gy.gy_id.toString(),
-                label: displayYear
-              };
-            })}
+            placeholder="Select your graduated year"
+            options={formattedGraduatedYears}
             required
-            disabled={loadingGraduatedYears}
           />
         ) : (
           <RHFSelectField
