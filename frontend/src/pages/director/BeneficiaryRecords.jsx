@@ -1780,33 +1780,6 @@ const BeneficiaryRecords = () => {
         setPendingGroupedByEvent(null);
     };
 
-    // Handle confirmation from modal - generate combined PDF
-    const handleConfirmCombinedReport = async () => {
-        if (!pendingGroupedByEvent) return;
-
-        // Load images once
-        const [uclmCaresLogo, uclmLogo] = await Promise.all([
-            getImageBase64(asset.logo),
-            getImageBase64(asset.uclmLogo)
-        ]);
-
-        const logos = { uclmCaresLogo, uclmLogo };
-        
-        // Generate combined PDF
-        await generateCombinedBeneficiariesPDF(pendingGroupedByEvent, logos);
-
-        // Log report generation activity
-        const totalCount = Object.values(pendingGroupedByEvent).reduce((sum, group) => sum + group.beneficiaries.length, 0);
-        await logReportGeneration('beneficiary', {
-            eventCount: Object.keys(pendingGroupedByEvent).length,
-            recordCount: totalCount,
-            isCombined: true
-        });
-        
-        toast.success('PDF report generated successfully');
-        setPendingGroupedByEvent(null);
-    };
-
     const selectedCount = selectedBeneficiaries.size;
     const totalCount = filteredRecords.length;
 
@@ -2022,7 +1995,6 @@ const BeneficiaryRecords = () => {
                 setOpen={setShowMultiEventModal}
                 groupedByEvent={pendingGroupedByEvent || {}}
                 onConfirm={handleConfirmMultiEventReport}
-                onConfirmCombined={handleConfirmCombinedReport}
                 onCancel={() => {
                     setPendingGroupedByEvent(null);
                 }}

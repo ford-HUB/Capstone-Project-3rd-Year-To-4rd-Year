@@ -7,7 +7,6 @@ const MultiEventReportConfirmationModal = ({
     setOpen, 
     groupedByEvent, 
     onConfirm, 
-    onConfirmCombined,
     onCancel 
 }) => {
     if (!open) return null;
@@ -21,13 +20,6 @@ const MultiEventReportConfirmationModal = ({
 
     const handleConfirm = () => {
         onConfirm();
-        setOpen(false);
-    };
-
-    const handleConfirmCombined = () => {
-        if (onConfirmCombined) {
-            onConfirmCombined();
-        }
         setOpen(false);
     };
 
@@ -81,38 +73,8 @@ const MultiEventReportConfirmationModal = ({
                     <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                         <p className="text-sm text-blue-800">
                             <strong>Note:</strong> You have selected <strong>{totalBeneficiaries}</strong> beneficiary(ies) from <strong>{eventCount}</strong> different event(s). 
-                            Choose how you want to generate the report:
+                            Separate PDF reports will be generated for each event.
                         </p>
-                    </div>
-
-                    <div className="mb-6 space-y-3">
-                        <div className="p-4 border-2 border-blue-200 rounded-lg bg-blue-50">
-                            <div className="flex items-start gap-3">
-                                <div className="p-2 bg-blue-600 rounded-lg">
-                                    <FileText className="w-5 h-5 text-white" />
-                                </div>
-                                <div className="flex-1">
-                                    <h3 className="font-semibold text-gray-900 mb-1">Generate as Whole List</h3>
-                                    <p className="text-sm text-gray-600">
-                                        Generate a single PDF containing all beneficiaries from all selected events with the title "List of Beneficiaries"
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
-                            <div className="flex items-start gap-3">
-                                <div className="p-2 bg-gray-600 rounded-lg">
-                                    <FileText className="w-5 h-5 text-white" />
-                                </div>
-                                <div className="flex-1">
-                                    <h3 className="font-semibold text-gray-900 mb-1">Generate Separately</h3>
-                                    <p className="text-sm text-gray-600">
-                                        Generate separate PDF reports for each event (one PDF per event)
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     <div className="space-y-4">
@@ -162,29 +124,20 @@ const MultiEventReportConfirmationModal = ({
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between gap-3 p-6 border-t border-gray-200 bg-gray-50">
+                <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50">
                     <button
                         onClick={handleCancel}
                         className="px-6 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                     >
                         Cancel
                     </button>
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={handleConfirmCombined}
-                            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
-                        >
-                            <FileText className="w-4 h-4" />
-                            Generate All in One Page
-                        </button>
-                        <button
-                            onClick={handleConfirm}
-                            className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium flex items-center gap-2"
-                        >
-                            <FileText className="w-4 h-4" />
-                            Generate Separately ({eventCount})
-                        </button>
-                    </div>
+                    <button
+                        onClick={handleConfirm}
+                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+                    >
+                        <FileText className="w-4 h-4" />
+                        Generate Separately ({eventCount})
+                    </button>
                 </div>
             </div>
         </div>
