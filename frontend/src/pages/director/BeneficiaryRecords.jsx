@@ -734,6 +734,512 @@ const BeneficiaryRecords = () => {
         pdf.save(fileName);
     };
 
+    // Generate combined PDF for all beneficiaries from multiple events
+    const generateCombinedBeneficiariesPDF = async (groupedByEvent, logos) => {
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const margin = 20;
+        let yPosition = margin;
+
+        // Helper function to add new page if needed
+        const checkNewPage = (requiredHeight) => {
+            if (yPosition + requiredHeight > pageHeight - margin) {
+                pdf.addPage();
+                yPosition = margin;
+                return true;
+            }
+            return false;
+        };
+
+        // Header with logos
+        const headerHeight = 25;
+        const logoSize = 15; // mm
+        const logoY = yPosition;
+        
+        // Left logo (UCLMCARES)
+        if (logos.uclmCaresLogo) {
+            try {
+                pdf.addImage(logos.uclmCaresLogo, 'PNG', margin, logoY, logoSize, logoSize);
+            } catch (error) {
+                console.error('Failed to add UCLMCARES logo:', error);
+            }
+        }
+
+        // Center title and date - CHANGED TITLE
+        pdf.setFontSize(18);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('List of Beneficiaries', pageWidth / 2, logoY + 8, { align: 'center' });
+        
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'normal');
+        const generatedDate = new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        });
+        pdf.text(`Generated on: ${generatedDate}`, pageWidth / 2, logoY + 14, { align: 'center' });
+
+        // Right logo (UC Logo)
+        if (logos.uclmLogo) {
+            try {
+                pdf.addImage(logos.uclmLogo, 'PNG', pageWidth - margin - logoSize, logoY, logoSize, logoSize);
+            } catch (error) {
+                console.error('Failed to add UC logo:', error);
+            }
+        }
+
+        // Draw line under header
+        yPosition = logoY + headerHeight;
+        pdf.setLineWidth(0.5);
+        pdf.setDrawColor(200, 200, 200);
+        pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+        yPosition += 10;
+
+        // Get all beneficiaries from all events
+        const allBeneficiaries = [];
+        const eventEntries = Object.entries(groupedByEvent);
+        
+        eventEntries.forEach(([eventId, group]) => {
+            group.beneficiaries.forEach(reg => {
+                allBeneficiaries.push({
+                    ...reg,
+                    event: group.event
+                });
+            });
+        });
+
+        // Separate beneficiaries into individuals and organizations
+        const individualBeneficiaries = allBeneficiaries.filter(reg => 
+            !reg.beneficiary?.organization_name || reg.beneficiary.organization_name.trim() === ''
+        );
+        const organizationBeneficiaries = allBeneficiaries.filter(reg => 
+            reg.beneficiary?.organization_name && reg.beneficiary.organization_name.trim() !== ''
+        );
+
+        // Section I: Beneficiary Information (Individuals)
+        if (individualBeneficiaries.length > 0) {
+            checkNewPage(25);
+            pdf.setFontSize(16);
+            pdf.setFont('helvetica', 'bold');
+            const individualsTitle = 'I. Beneficiary Information (Individuals)';
+            const individualsTitleWidth = pdf.getTextWidth(individualsTitle);
+            pdf.text(individualsTitle, margin, yPosition);
+            
+            // Draw underline
+            pdf.setLineWidth(0.5);
+            pdf.setDrawColor(0, 0, 0);
+            pdf.line(margin, yPosition + 1, margin + individualsTitleWidth, yPosition + 1);
+            
+            yPosition += 10;
+
+            // Table Header with blue background
+            checkNewPage(10);
+            const headerRowHeight = 7;
+            const headerY = yPosition;
+            
+            // Define column positions and widths
+            const colNo = margin;
+            const colNoWidth = 12;
+            const colName = margin + 12;
+            const colNameWidth = 45;
+            const colEmail = margin + 57;
+            const colEmailWidth = 40;
+            const colPhone = margin + 97;
+            const colPhoneWidth = 30;
+            const colEvent = margin + 127;
+            const colEventWidth = 35;
+            const colDate = margin + 162;
+            const colDateWidth = pageWidth - margin - colDate;
+            
+            // Draw blue header background
+            pdf.setFillColor(66, 133, 244); // Blue color
+            pdf.setDrawColor(66, 133, 244);
+            pdf.rect(margin, headerY, pageWidth - (margin * 2), headerRowHeight, 'F');
+            
+            // Draw header text in white - vertically centered with spacing
+            pdf.setTextColor(255, 255, 255);
+            pdf.setFontSize(9);
+            pdf.setFont('helvetica', 'bold');
+            const headerTextY = headerY + (headerRowHeight / 2) + 2;
+            pdf.text('No.', colNo + 2, headerTextY);
+            pdf.text('Full Names', colName + 2, headerTextY);
+            pdf.text('Email Address', colEmail + 2, headerTextY);
+            pdf.text('Contact Number', colPhone + 2, headerTextY);
+            pdf.text('Event', colEvent + 2, headerTextY);
+            pdf.text('Reg. Date', colDate + 2, headerTextY);
+            
+            // Reset text color to black
+            pdf.setTextColor(0, 0, 0);
+            
+            // Draw header border and vertical lines
+            pdf.setDrawColor(66, 133, 244);
+            pdf.setLineWidth(0.5);
+            pdf.rect(margin, headerY, pageWidth - (margin * 2), headerRowHeight);
+            
+            // Draw vertical lines in header
+            pdf.setDrawColor(255, 255, 255);
+            pdf.setLineWidth(0.3);
+            pdf.line(colName, headerY, colName, headerY + headerRowHeight);
+            pdf.line(colEmail, headerY, colEmail, headerY + headerRowHeight);
+            pdf.line(colPhone, headerY, colPhone, headerY + headerRowHeight);
+            pdf.line(colEvent, headerY, colEvent, headerY + headerRowHeight);
+            pdf.line(colDate, headerY, colDate, headerY + headerRowHeight);
+            
+            yPosition = headerY + headerRowHeight;
+
+            // Individual beneficiaries rows with borders
+            individualBeneficiaries.forEach((reg, index) => {
+                pdf.setFont('helvetica', 'normal');
+                pdf.setFontSize(8);
+                
+                const beneficiary = reg.beneficiary;
+                const name = `${beneficiary?.firstname || ''} ${beneficiary?.lastname || ''}`.trim() || 'N/A';
+                const email = beneficiary?.account?.email || 'N/A';
+                const phone = beneficiary?.phone_number || 'N/A';
+                const eventTitle = reg.event?.title || 'N/A';
+                const regDate = reg.registration_date || reg.createdAt;
+                const formattedDate = regDate ? formatDate(regDate) : 'N/A';
+
+                // Column widths for text wrapping (in mm)
+                const nameWidth = colNameWidth - 4;
+                const emailWidth = colEmailWidth - 4;
+                const phoneWidth = colPhoneWidth - 4;
+                const eventWidth = colEventWidth - 4;
+                const dateWidth = colDateWidth - 4;
+
+                // Split text to fit column widths
+                const nameLines = pdf.splitTextToSize(name, nameWidth);
+                const emailLines = pdf.splitTextToSize(email, emailWidth);
+                const phoneLines = pdf.splitTextToSize(phone, phoneWidth);
+                const eventLines = pdf.splitTextToSize(eventTitle, eventWidth);
+                const dateLines = pdf.splitTextToSize(formattedDate, dateWidth);
+
+                // Find the maximum number of lines needed for this row
+                const maxLines = Math.max(nameLines.length, emailLines.length, phoneLines.length, eventLines.length, dateLines.length);
+                const lineHeight = 4.5;
+                const minRowHeight = 7; // Minimum row height for proper spacing
+                const rowHeight = Math.max(minRowHeight, maxLines * lineHeight + 3);
+                const rowY = yPosition;
+
+                // Check if we need a new page before starting this row
+                checkNewPage(rowHeight);
+                const currentRowY = yPosition;
+
+                // Draw white background for row
+                pdf.setFillColor(255, 255, 255);
+                pdf.rect(margin, currentRowY, pageWidth - (margin * 2), rowHeight, 'F');
+
+                // Draw borders for each cell
+                pdf.setDrawColor(200, 200, 200);
+                pdf.setLineWidth(0.3);
+                
+                // Draw horizontal lines (top and bottom of row)
+                pdf.line(margin, currentRowY, pageWidth - margin, currentRowY);
+                pdf.line(margin, currentRowY + rowHeight, pageWidth - margin, currentRowY + rowHeight);
+                
+                // Draw vertical lines between columns
+                pdf.line(colName, currentRowY, colName, currentRowY + rowHeight);
+                pdf.line(colEmail, currentRowY, colEmail, currentRowY + rowHeight);
+                pdf.line(colPhone, currentRowY, colPhone, currentRowY + rowHeight);
+                pdf.line(colEvent, currentRowY, colEvent, currentRowY + rowHeight);
+                pdf.line(colDate, currentRowY, colDate, currentRowY + rowHeight);
+
+                // Calculate vertical center for text positioning
+                const verticalPadding = 3.5;
+                const textStartY = currentRowY + verticalPadding;
+
+                // Draw each line of the row - with proper spacing
+                for (let lineIndex = 0; lineIndex < maxLines; lineIndex++) {
+                    const currentY = textStartY + (lineIndex * lineHeight);
+                    
+                    // Number (only on first line) - with spacing
+                    if (lineIndex === 0) {
+                        pdf.text(`${index + 1}`, colNo + 2, currentY);
+                    }
+                    
+                    // Name - with spacing
+                    if (nameLines[lineIndex]) {
+                        pdf.text(nameLines[lineIndex], colName + 2, currentY);
+                    }
+                    
+                    // Email - with spacing
+                    if (emailLines[lineIndex]) {
+                        pdf.text(emailLines[lineIndex], colEmail + 2, currentY);
+                    }
+                    
+                    // Phone - with spacing
+                    if (phoneLines[lineIndex]) {
+                        pdf.text(phoneLines[lineIndex], colPhone + 2, currentY);
+                    }
+                    
+                    // Event - with spacing
+                    if (eventLines[lineIndex]) {
+                        pdf.text(eventLines[lineIndex], colEvent + 2, currentY);
+                    }
+                    
+                    // Registration Date - with spacing
+                    if (dateLines[lineIndex]) {
+                        pdf.text(dateLines[lineIndex], colDate + 2, currentY);
+                    }
+                }
+                
+                // Move to next row position
+                yPosition += rowHeight;
+            });
+            
+            // Draw outer border around entire table
+            const tableStartY = headerY;
+            const tableEndY = yPosition;
+            pdf.setDrawColor(200, 200, 200);
+            pdf.setLineWidth(0.5);
+            pdf.rect(margin, tableStartY, pageWidth - (margin * 2), tableEndY - tableStartY);
+
+            yPosition += 10;
+        }
+
+        // Section II: Beneficiary Information (Organizations)
+        if (organizationBeneficiaries.length > 0) {
+            checkNewPage(25);
+            pdf.setFontSize(16);
+            pdf.setFont('helvetica', 'bold');
+            const organizationsTitle = 'II. Beneficiary Information (Organizations)';
+            const organizationsTitleWidth = pdf.getTextWidth(organizationsTitle);
+            pdf.text(organizationsTitle, margin, yPosition);
+            
+            // Draw underline
+            pdf.setLineWidth(0.5);
+            pdf.setDrawColor(0, 0, 0);
+            pdf.line(margin, yPosition + 1, margin + organizationsTitleWidth, yPosition + 1);
+            
+            yPosition += 10;
+
+            // Table Header with blue background
+            checkNewPage(10);
+            const headerRowHeight = 7;
+            const headerY = yPosition;
+            
+            // Define column positions and widths (same as individuals table)
+            const colNo = margin;
+            const colNoWidth = 12;
+            const colName = margin + 12;
+            const colNameWidth = 45;
+            const colEmail = margin + 57;
+            const colEmailWidth = 40;
+            const colPhone = margin + 97;
+            const colPhoneWidth = 30;
+            const colEvent = margin + 127;
+            const colEventWidth = 35;
+            const colDate = margin + 162;
+            const colDateWidth = pageWidth - margin - colDate;
+            
+            // Draw blue header background
+            pdf.setFillColor(66, 133, 244); // Blue color
+            pdf.setDrawColor(66, 133, 244);
+            pdf.rect(margin, headerY, pageWidth - (margin * 2), headerRowHeight, 'F');
+            
+            // Draw header text in white - vertically centered with spacing
+            pdf.setTextColor(255, 255, 255);
+            pdf.setFontSize(9);
+            pdf.setFont('helvetica', 'bold');
+            const headerTextY = headerY + (headerRowHeight / 2) + 2;
+            pdf.text('No.', colNo + 2, headerTextY);
+            pdf.text('Full Names', colName + 2, headerTextY);
+            pdf.text('Email Address', colEmail + 2, headerTextY);
+            pdf.text('Contact Number', colPhone + 2, headerTextY);
+            pdf.text('Event', colEvent + 2, headerTextY);
+            pdf.text('Registration Date', colDate + 2, headerTextY);
+            
+            // Reset text color to black
+            pdf.setTextColor(0, 0, 0);
+            
+            // Draw header border and vertical lines
+            pdf.setDrawColor(66, 133, 244);
+            pdf.setLineWidth(0.5);
+            pdf.rect(margin, headerY, pageWidth - (margin * 2), headerRowHeight);
+            
+            // Draw vertical lines in header
+            pdf.setDrawColor(255, 255, 255);
+            pdf.setLineWidth(0.3);
+            pdf.line(colName, headerY, colName, headerY + headerRowHeight);
+            pdf.line(colEmail, headerY, colEmail, headerY + headerRowHeight);
+            pdf.line(colPhone, headerY, colPhone, headerY + headerRowHeight);
+            pdf.line(colEvent, headerY, colEvent, headerY + headerRowHeight);
+            pdf.line(colDate, headerY, colDate, headerY + headerRowHeight);
+            
+            yPosition = headerY + headerRowHeight;
+
+            // Organization beneficiaries rows with borders
+            organizationBeneficiaries.forEach((reg, index) => {
+                pdf.setFont('helvetica', 'normal');
+                pdf.setFontSize(8);
+                
+                const beneficiary = reg.beneficiary;
+                const orgName = beneficiary?.organization_name || 'N/A';
+                const name = `${beneficiary?.firstname || ''} ${beneficiary?.lastname || ''}`.trim() || 'N/A';
+                const fullName = `${name} (${orgName})`;
+                const email = beneficiary?.account?.email || 'N/A';
+                const phone = beneficiary?.phone_number || 'N/A';
+                const eventTitle = reg.event?.title || 'N/A';
+                const regDate = reg.registration_date || reg.createdAt;
+                const formattedDate = regDate ? formatDate(regDate) : 'N/A';
+
+                // Column widths for text wrapping (in mm)
+                const nameWidth = colNameWidth - 4;
+                const emailWidth = colEmailWidth - 4;
+                const phoneWidth = colPhoneWidth - 4;
+                const eventWidth = colEventWidth - 4;
+                const dateWidth = colDateWidth - 4;
+
+                // Split text to fit column widths
+                const nameLines = pdf.splitTextToSize(fullName, nameWidth);
+                const emailLines = pdf.splitTextToSize(email, emailWidth);
+                const phoneLines = pdf.splitTextToSize(phone, phoneWidth);
+                const eventLines = pdf.splitTextToSize(eventTitle, eventWidth);
+                const dateLines = pdf.splitTextToSize(formattedDate, dateWidth);
+
+                // Find the maximum number of lines needed for this row
+                const maxLines = Math.max(nameLines.length, emailLines.length, phoneLines.length, eventLines.length, dateLines.length);
+                const lineHeight = 4.5;
+                const minRowHeight = 7; // Minimum row height for proper spacing
+                const rowHeight = Math.max(minRowHeight, maxLines * lineHeight + 3);
+                const rowY = yPosition;
+
+                // Check if we need a new page before starting this row
+                checkNewPage(rowHeight);
+                const currentRowY = yPosition;
+
+                // Draw white background for row
+                pdf.setFillColor(255, 255, 255);
+                pdf.rect(margin, currentRowY, pageWidth - (margin * 2), rowHeight, 'F');
+
+                // Draw borders for each cell
+                pdf.setDrawColor(200, 200, 200);
+                pdf.setLineWidth(0.3);
+                
+                // Draw horizontal lines (top and bottom of row)
+                pdf.line(margin, currentRowY, pageWidth - margin, currentRowY);
+                pdf.line(margin, currentRowY + rowHeight, pageWidth - margin, currentRowY + rowHeight);
+                
+                // Draw vertical lines between columns
+                pdf.line(colName, currentRowY, colName, currentRowY + rowHeight);
+                pdf.line(colEmail, currentRowY, colEmail, currentRowY + rowHeight);
+                pdf.line(colPhone, currentRowY, colPhone, currentRowY + rowHeight);
+                pdf.line(colEvent, currentRowY, colEvent, currentRowY + rowHeight);
+                pdf.line(colDate, currentRowY, colDate, currentRowY + rowHeight);
+
+                // Calculate vertical center for text positioning
+                const verticalPadding = 2.5;
+                const textStartY = currentRowY + verticalPadding;
+
+                // Draw each line of the row - with proper spacing
+                for (let lineIndex = 0; lineIndex < maxLines; lineIndex++) {
+                    const currentY = textStartY + (lineIndex * lineHeight);
+                    
+                    // Number (only on first line) - with spacing
+                    if (lineIndex === 0) {
+                        pdf.text(`${index + 1}`, colNo + 2, currentY);
+                    }
+                    
+                    // Name - with spacing
+                    if (nameLines[lineIndex]) {
+                        pdf.text(nameLines[lineIndex], colName + 2, currentY);
+                    }
+                    
+                    // Email - with spacing
+                    if (emailLines[lineIndex]) {
+                        pdf.text(emailLines[lineIndex], colEmail + 2, currentY);
+                    }
+                    
+                    // Phone - with spacing
+                    if (phoneLines[lineIndex]) {
+                        pdf.text(phoneLines[lineIndex], colPhone + 2, currentY);
+                    }
+                    
+                    // Event - with spacing
+                    if (eventLines[lineIndex]) {
+                        pdf.text(eventLines[lineIndex], colEvent + 2, currentY);
+                    }
+                    
+                    // Registration Date - with spacing
+                    if (dateLines[lineIndex]) {
+                        pdf.text(dateLines[lineIndex], colDate + 2, currentY);
+                    }
+                }
+                
+                // Move to next row position
+                yPosition += rowHeight;
+            });
+            
+            // Draw outer border around entire table
+            const tableStartY = headerY;
+            const tableEndY = yPosition;
+            pdf.setDrawColor(200, 200, 200);
+            pdf.setLineWidth(0.5);
+            pdf.rect(margin, tableStartY, pageWidth - (margin * 2), tableEndY - tableStartY);
+
+            yPosition += 10;
+        }
+
+        // Section III: Total of List of Beneficiaries
+        checkNewPage(40);
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        const totalTitle = 'III. Total of List of Beneficiaries';
+        const totalTitleWidth = pdf.getTextWidth(totalTitle);
+        pdf.text(totalTitle, margin, yPosition);
+        
+        // Draw underline
+        pdf.setLineWidth(0.5);
+        pdf.setDrawColor(0, 0, 0);
+        pdf.line(margin, yPosition + 1, margin + totalTitleWidth, yPosition + 1);
+        
+        yPosition += 8;
+
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'normal');
+        
+        // Build total summary
+        const totalBeneficiaries = allBeneficiaries.length;
+        let remarks = `This report contains a total of ${totalBeneficiaries} beneficiary(ies) in the list. `;
+        
+        if (individualBeneficiaries.length > 0 && organizationBeneficiaries.length > 0) {
+            remarks += `This includes ${individualBeneficiaries.length} individual(s) and ${organizationBeneficiaries.length} organization(s). `;
+        } else if (individualBeneficiaries.length > 0) {
+            remarks += `All beneficiaries are individuals. `;
+        } else if (organizationBeneficiaries.length > 0) {
+            remarks += `All beneficiaries are organizations. `;
+        }
+
+        remarks += `This report serves as an official record of all registered beneficiaries.`;
+
+        // Split remarks into multiple lines
+        const remarksLines = pdf.splitTextToSize(remarks, pageWidth - (margin * 2));
+        remarksLines.forEach(line => {
+            checkNewPage(6);
+            pdf.text(line, margin, yPosition);
+            yPosition += 6;
+        });
+
+        // Footer
+        const totalPages = pdf.internal.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+            pdf.setPage(i);
+            pdf.setFontSize(8);
+            pdf.setFont('helvetica', 'italic');
+            pdf.text(
+                `Page ${i} of ${totalPages}`,
+                pageWidth / 2,
+                pageHeight - 10,
+                { align: 'center' }
+            );
+        }
+
+        // Generate safe filename
+        const fileName = `List_of_Beneficiaries_${new Date().toISOString().split('T')[0]}.pdf`;
+        pdf.save(fileName);
+    };
+
     // Generate PDF Report
     const generatePDFReport = async () => {
         if (selectedBeneficiaries.size === 0) {
@@ -822,6 +1328,33 @@ const BeneficiaryRecords = () => {
         });
         
         toast.success(`Successfully generated ${eventEntries.length} PDF report(s)`);
+        setPendingGroupedByEvent(null);
+    };
+
+    // Handle confirmation from modal - generate combined PDF
+    const handleConfirmCombinedReport = async () => {
+        if (!pendingGroupedByEvent) return;
+
+        // Load images once
+        const [uclmCaresLogo, uclmLogo] = await Promise.all([
+            getImageBase64(asset.logo),
+            getImageBase64(asset.uclmLogo)
+        ]);
+
+        const logos = { uclmCaresLogo, uclmLogo };
+        
+        // Generate combined PDF
+        await generateCombinedBeneficiariesPDF(pendingGroupedByEvent, logos);
+
+        // Log report generation activity
+        const totalCount = Object.values(pendingGroupedByEvent).reduce((sum, group) => sum + group.beneficiaries.length, 0);
+        await logReportGeneration('beneficiary', {
+            eventCount: Object.keys(pendingGroupedByEvent).length,
+            recordCount: totalCount,
+            isCombined: true
+        });
+        
+        toast.success('PDF report generated successfully');
         setPendingGroupedByEvent(null);
     };
 
@@ -1016,6 +1549,7 @@ const BeneficiaryRecords = () => {
                 setOpen={setShowMultiEventModal}
                 groupedByEvent={pendingGroupedByEvent || {}}
                 onConfirm={handleConfirmMultiEventReport}
+                onConfirmCombined={handleConfirmCombinedReport}
                 onCancel={() => {
                     setPendingGroupedByEvent(null);
                 }}
