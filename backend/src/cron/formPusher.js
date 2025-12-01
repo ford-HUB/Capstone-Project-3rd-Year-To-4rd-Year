@@ -45,6 +45,7 @@ cron.schedule('0 */5 * * * *', async () => {
                             include: [
                                 {
                                     model: CampusUsers,
+                                    attributes: { exclude: ['gy_id'] },
                                     include: [
                                         {
                                             model: Accounts,

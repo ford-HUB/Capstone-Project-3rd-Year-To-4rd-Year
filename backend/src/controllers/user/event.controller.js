@@ -310,7 +310,10 @@ export const event_registration = async (req, res) => {
 
         const volunterData = await Volunteer.findOne({ where: {campus_user_id: campusUser.campus_user_id}, 
             include: [
-                { model: CampusUsers }
+                { 
+                    model: CampusUsers,
+                    attributes: { exclude: ['gy_id'] }
+                }
             ]
         })
 

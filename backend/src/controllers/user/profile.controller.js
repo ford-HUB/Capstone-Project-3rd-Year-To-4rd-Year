@@ -18,7 +18,9 @@ export const currentUserProfile = async (req, res) => {
         const volunteerData = await Volunteer.findAll({
             where: { campus_user_id: campusUserData.campus_user_id },
             include: [
-                { model: CampusUsers,
+                { 
+                    model: CampusUsers,
+                    attributes: { exclude: ['gy_id'] },
                     include: [
                         { model: Department },
                         { model: Course },

@@ -171,7 +171,10 @@ export const generateCertificateBatch = async (event, category, department, batc
                     model: Volunteer,
                     required: false,
                     include: [
-                        { model: CampusUsers }
+                        { 
+                            model: CampusUsers,
+                            attributes: { exclude: ['gy_id'] }
+                        }
                     ]
                 },
                 { model: Staff, required: false },

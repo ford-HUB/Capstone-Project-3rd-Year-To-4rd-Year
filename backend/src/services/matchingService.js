@@ -30,7 +30,10 @@ export const runMatchingAI = async (volunteer_id) => {
         const volunteer = await Volunteer.findOne({
             where: { volunteer_id },
             include: [
-                { model: CampusUsers },
+                { 
+                    model: CampusUsers,
+                    attributes: { exclude: ['gy_id'] }
+                },
                 { model: Department },
                 { model: Course },
                 { model: YearLevel },

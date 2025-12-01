@@ -359,7 +359,10 @@ export const attendanceLog = async (req, res) => {
                 { 
                     model: Volunteer,
                     required: false,
-                    include: [{ model: CampusUsers }]
+                    include: [{ 
+                        model: CampusUsers,
+                        attributes: { exclude: ['gy_id'] }
+                    }]
                 },
                 { model: Staff, required: false },
                 { model: Director, required: false },
@@ -608,7 +611,11 @@ export const attendanceRecords = async (req, res) => {
                     model: Volunteer,
                     required: false,
                     include: [
-                        { model: CampusUsers, required: false }
+                        { 
+                            model: CampusUsers, 
+                            required: false,
+                            attributes: { exclude: ['gy_id'] }
+                        }
                     ]
                 },
                 { model: Staff, required: false },

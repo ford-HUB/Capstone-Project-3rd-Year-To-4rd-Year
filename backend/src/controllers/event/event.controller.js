@@ -441,6 +441,7 @@ export const getParticipantEvent = async (req, res) => {
                         const volunteer = await Volunteer.findByPk(reg.participant_id, {
                             include: { 
                                 model: CampusUsers,
+                                attributes: { exclude: ['gy_id'] },
                                 include: [
                                     { model: Department },
                                 ]
@@ -798,6 +799,7 @@ export const removeEventRegistration = async (req, res) => {
                 const volunteer = await Volunteer.findByPk(registration.participant_id, {
                     include: { 
                         model: CampusUsers,
+                        attributes: { exclude: ['gy_id'] },
                         include: [{ model: Accounts, attributes: ['email'] }]
                     },
                     transaction: t
