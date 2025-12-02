@@ -80,10 +80,6 @@ const UpdateRegistrationUI = () => {
         valid: false,
         checking: false
     });
-     
-    // Ref to track the last validated file to prevent re-validation
-    const lastValidatedFileRef = React.useRef(null);
-    const isValidationInProgressRef = React.useRef(false);
 
     // Watch form values for dynamic steps
     const isBeneficiary = watch('isBeneficiary') === 'true';
@@ -111,133 +107,6 @@ const UpdateRegistrationUI = () => {
         prevVolunteerTypeRef.current = currentIsBeneficiary;
     }, [currentIsBeneficiary]);
 
-    // Watch form values for ID validation
-    const firstName = watch('firstName');
-    const middleName = watch('middleName');
-    const lastName = watch('lastName');
-    const studentId = watch('studentId');
-    const uploadedFile = watch('studentIdFile');
-    const isBeneficiaryValue = watch('isBeneficiary') === 'true';
-
-    // Effect to auto-validate ID when name fields, studentId, or file changes
-    React.useEffect(() => {
-        const validateID = async () => {
-            // Only validate for regular volunteers (not beneficiaries)
-            if (isBeneficiaryValue || !uploadedFile || !firstName || !middleName || !lastName || !studentId) {
-                lastValidatedFileRef.current = null; // Reset when conditions not met
-                return;
-            }
-
-            // Only validate if we're on step 5 (ID Verification step)
-            if (registrationStep !== 5) {
-                return;
-            }
-
-            // Skip if OCR is already processing or validation is in progress
-            if (isProcessingOCR || isValidationInProgressRef.current) {
-                return;
-            }
-
-            // Check if file is a File object
-            if (!(uploadedFile instanceof File)) {
-                return;
-            }
-
-            // Create a unique identifier for this file (name + size + lastModified)
-            const fileIdentifier = `${uploadedFile.name}-${uploadedFile.size}-${uploadedFile.lastModified}`;
-            const nameIdKey = `${firstName}-${middleName}-${lastName}-${studentId}`;
-            const validationKey = `${fileIdentifier}-${nameIdKey}`;
-
-            // Skip if we've already validated this exact file with these exact name/ID values
-            if (lastValidatedFileRef.current === validationKey) {
-                return;
-            }
-
-            // Mark validation as in progress
-            isValidationInProgressRef.current = true;
-            setIsProcessingOCR(true);
-            
-            try {
-                const extractedText = await extractImageId(uploadedFile);
-                
-                if (!extractedText || typeof extractedText !== 'string') {
-                    setError('studentIdFile', {
-                        type: 'manual',
-                        message: 'Could not extract text from the ID. Please upload a clearer image.'
-                    });
-                    lastValidatedFileRef.current = validationKey; // Mark as validated to prevent re-validation
-                    setIsProcessingOCR(false);
-                    isValidationInProgressRef.current = false;
-                    return;
-                }
-
-                const cleanedText = await CleanReGex(extractedText);
-                const cleanedTextLower = cleanedText.toLowerCase();
-                
-                const studentName = `${firstName} ${middleName} ${lastName}`
-                    .trim()
-                    .toLowerCase();
-                
-                // Check if the extracted text contains the student's name
-                const nameMatches = cleanedTextLower.includes(studentName);
-                
-                // Check if the extracted text contains the student ID number
-                const studentIdTrimmed = studentId.trim();
-                const idMatches = cleanedText.includes(studentIdTrimmed);
-
-                // Mark as validated to prevent re-validation
-                lastValidatedFileRef.current = validationKey;
-
-                // Validate both name and ID number
-                if (!nameMatches && !idMatches) {
-                    setError('studentIdFile', {
-                        type: 'manual',
-                        message: 'ID is not valid. The name and ID number on the ID do not match your provided information. Please check your details or upload a clearer photo.'
-                    });
-                    setIsProcessingOCR(false);
-                    isValidationInProgressRef.current = false;
-                    return;
-                } else if (!nameMatches) {
-                    setError('studentIdFile', {
-                        type: 'manual',
-                        message: 'ID is not valid. The name on the ID does not match your provided information. Please check your details or upload a clearer photo.'
-                    });
-                    setIsProcessingOCR(false);
-                    isValidationInProgressRef.current = false;
-                    return;
-                } else if (!idMatches) {
-                    setError('studentIdFile', {
-                        type: 'manual',
-                        message: 'ID is not valid. The ID number on the ID does not match your provided information. Please check your details or upload a clearer photo.'
-                    });
-                    setIsProcessingOCR(false);
-                    isValidationInProgressRef.current = false;
-                    return;
-                } else {
-                    clearErrors('studentIdFile'); // Clear error if validation passes
-                    setIsProcessingOCR(false);
-                    isValidationInProgressRef.current = false;
-                }
-            } catch (error) {
-                console.error('OCR processing error:', error);
-                setError('studentIdFile', {
-                    type: 'manual',
-                    message: 'Error processing the ID image. Please try again.'
-                });
-                setIsProcessingOCR(false);
-                isValidationInProgressRef.current = false;
-            }
-        };
-
-        // Debounce the validation to avoid too many OCR calls
-        const timeoutId = setTimeout(() => {
-            validateID();
-        }, 500);
-
-        return () => {
-            clearTimeout(timeoutId);
-        };
-    }, [firstName, middleName, lastName, studentId, uploadedFile, isBeneficiaryValue, registrationStep]);
 
     // Step validation - check if current step fields have errors
     const isStepValid = React.useMemo(() => {
@@ -466,8 +335,6 @@ const UpdateRegistrationUI = () => {
         });
         
         // Reset validation tracking
-        lastValidatedFileRef.current = null;
-        isValidationInProgressRef.current = false;
 
         // Force trigger validation to clear any lingering errors
         setTimeout(() => {
@@ -497,10 +364,6 @@ const UpdateRegistrationUI = () => {
         setStudentIdFile(null);
         setIsProcessingOCR(false);
         
-        // Reset validation tracking
-        lastValidatedFileRef.current = null;
-        isValidationInProgressRef.current = false;
-        
         // Reset completed steps and attempted steps to force re-validation
         setCompletedSteps([]);
         setAttemptedSteps(new Set());
@@ -528,10 +391,6 @@ const UpdateRegistrationUI = () => {
             setPreview(previewURL);
             setValue('studentIdFile', file);
             clearErrors('studentIdFile'); // Clear any previous errors
-            
-            // Reset validation tracking for new file
-            lastValidatedFileRef.current = null;
-            isValidationInProgressRef.current = false;
 
             // Get current name and ID values for validation
             const currentFirstName = watch('firstName');
@@ -596,15 +455,16 @@ const UpdateRegistrationUI = () => {
                         clearErrors('studentIdFile'); // Clear error if validation passes
                         setIsProcessingOCR(false);
                     }
+                } else {
+                    // If name/ID not filled yet, just clear processing state
+                    setIsProcessingOCR(false);
                 }
-                // If name fields or studentId are not filled yet, the useEffect will validate when they are filled
             } catch (error) {
                 console.error('OCR processing error:', error);
                 setError('studentIdFile', {
                     type: 'manual',
                     message: 'Error processing the ID image. Please try again.'
                 });
-            } finally {
                 setIsProcessingOCR(false);
             }
         }
@@ -1231,9 +1091,6 @@ const UpdateRegistrationUI = () => {
                                 setPreview(null);
                                 setValue('studentIdFile', undefined);
                                 clearErrors('studentIdFile');
-                                // Reset validation tracking when file is removed
-                                lastValidatedFileRef.current = null;
-                                isValidationInProgressRef.current = false;
                                 setIsProcessingOCR(false);
                             }}
                             isProcessingOCR={isProcessingOCR}
