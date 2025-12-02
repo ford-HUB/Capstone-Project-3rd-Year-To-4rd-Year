@@ -169,18 +169,22 @@ const UpdateRegistrationUI = () => {
                     type: 'manual',
                     message: 'ID does not match your information. The name and ID number on the ID do not match your provided information. Please check your details or upload a clearer photo.'
                 });
+                console.log('Auto-validation Error set: Both name and ID do not match');
             } else if (!nameMatches) {
                 setError('studentIdFile', {
                     type: 'manual',
                     message: 'ID does not match your information. The name on the ID does not match your provided information. Please check your details or upload a clearer photo.'
                 });
+                console.log('Auto-validation Error set: Name does not match');
             } else if (!idMatches) {
                 setError('studentIdFile', {
                     type: 'manual',
                     message: 'ID does not match your information. The ID number on the ID does not match your provided information. Please check your details or upload a clearer photo.'
                 });
+                console.log('Auto-validation Error set: ID number does not match');
             } else {
                 clearErrors('studentIdFile'); // Clear error if validation passes
+                console.log('Auto-validation passed: Both name and ID match');
             }
         };
 
@@ -542,18 +546,22 @@ const UpdateRegistrationUI = () => {
                             type: 'manual',
                             message: 'ID does not match your information. The name and ID number on the ID do not match your provided information. Please check your details or upload a clearer photo.'
                         });
+                        console.log('Error set: Both name and ID do not match');
                     } else if (!nameMatches) {
                         setError('studentIdFile', {
                             type: 'manual',
                             message: 'ID does not match your information. The name on the ID does not match your provided information. Please check your details or upload a clearer photo.'
                         });
+                        console.log('Error set: Name does not match');
                     } else if (!idMatches) {
                         setError('studentIdFile', {
                             type: 'manual',
                             message: 'ID does not match your information. The ID number on the ID does not match your provided information. Please check your details or upload a clearer photo.'
                         });
+                        console.log('Error set: ID number does not match');
                     } else {
                         clearErrors('studentIdFile'); // Clear error if validation passes
+                        console.log('Validation passed: Both name and ID match');
                     }
                 }
                 // If name/ID not filled yet, the useEffect will validate when fields are filled
@@ -1149,7 +1157,8 @@ const UpdateRegistrationUI = () => {
 
     const renderStepContent = () => {
         // Show errors for the current step if it has been attempted
-        const shouldShowErrors = attemptedSteps.has(registrationStep);
+        // Always show errors for step 5 (ID Verification) so validation errors are visible immediately
+        const shouldShowErrors = attemptedSteps.has(registrationStep) || registrationStep === 5;
         const filteredErrors = shouldShowErrors ? errors : {};
 
         const rhfProps = {

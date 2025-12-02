@@ -45,33 +45,47 @@ const isGarbageText = (text) => {
     // Calculate readability score
     const readabilityScore = readableWordCount / Math.max(wordCount, 1);
     
-    // If more than 50% special characters, likely garbage
-    if (specialCharRatio > 0.5) {
+    // If more than 40% special characters, likely garbage (lowered threshold)
+    if (specialCharRatio > 0.4) {
         return true;
     }
     
-    // If more than 60% isolated/short characters, likely garbage
-    if (isolatedCharRatio > 0.6 || shortWordRatio > 0.6) {
+    // If more than 50% isolated/short characters, likely garbage (lowered threshold)
+    if (isolatedCharRatio > 0.5 || shortWordRatio > 0.5) {
         return true;
     }
     
     // If many random patterns found, likely garbage
-    if (randomMatches.length > 3) {
+    if (randomMatches.length > 2) {
         return true;
     }
     
-    // If high case alternation ratio (>15%), likely garbage
-    if (caseAlternationRatio > 0.15) {
+    // If high case alternation ratio (>12%), likely garbage (lowered threshold)
+    if (caseAlternationRatio > 0.12) {
         return true;
     }
     
-    // If very low readability (less than 5% readable words) and high special char ratio, likely garbage
-    if (readabilityScore < 0.05 && specialCharRatio > 0.25) {
+    // If very low readability (less than 3% readable words) and high special char ratio, likely garbage
+    if (readabilityScore < 0.03 && specialCharRatio > 0.2) {
         return true;
     }
     
-    // If more than 70% of words are 1-2 characters and readability is low, likely garbage
-    if (shortWordRatio > 0.7 && readabilityScore < 0.1) {
+    // If more than 60% of words are 1-2 characters and readability is low, likely garbage
+    if (shortWordRatio > 0.6 && readabilityScore < 0.08) {
+        return true;
+    }
+    
+    // Check for patterns like "Ra WEEE", "IR oy", "SERRE piste" - random uppercase words
+    const randomUppercasePattern = /\b[A-Z]{2,}\s+[a-z]{1,3}\b/g;
+    const randomUppercaseMatches = text.match(randomUppercasePattern) || [];
+    if (randomUppercaseMatches.length > 3) {
+        return true;
+    }
+    
+    // Check for excessive symbols and special characters in sequence
+    const symbolSequencePattern = /[%$#@!&*()_+\-=\[\]{};':"\\|,.<>\/?]{2,}/g;
+    const symbolSequences = text.match(symbolSequencePattern) || [];
+    if (symbolSequences.length > 2) {
         return true;
     }
     
