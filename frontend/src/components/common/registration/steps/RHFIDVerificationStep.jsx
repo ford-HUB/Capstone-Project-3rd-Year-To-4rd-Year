@@ -47,16 +47,10 @@ const RHFIDVerificationStep = ({
           </div>
         )}
         
-        {errors.studentIdFile && !isProcessingOCR && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md">
-            <div className="flex items-start space-x-2">
-              <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-red-800 font-medium text-sm">
-                  {errors.studentIdFile.message}
-                </p>
-              </div>
-            </div>
+        {errors.studentIdFile && (
+          <div className="flex items-center space-x-1 text-red-600 text-sm">
+            <AlertCircle className="h-4 w-4" />
+            <span>{errors.studentIdFile.message}</span>
           </div>
         )}
       </div>
