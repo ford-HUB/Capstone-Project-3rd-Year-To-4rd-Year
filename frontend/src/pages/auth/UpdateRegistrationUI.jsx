@@ -107,6 +107,102 @@ const UpdateRegistrationUI = () => {
         prevVolunteerTypeRef.current = currentIsBeneficiary;
     }, [currentIsBeneficiary]);
 
+    // Watch form values for ID validation
+    const firstName = watch('firstName');
+    const middleName = watch('middleName');
+    const lastName = watch('lastName');
+    const studentId = watch('studentId');
+    const uploadedFile = watch('studentIdFile');
+    const isBeneficiaryValue = watch('isBeneficiary') === 'true';
+
+    // Effect to auto-validate ID when name fields, studentId, or file changes
+    React.useEffect(() => {
+        const validateID = async () => {
+            // Only validate for regular volunteers (not beneficiaries)
+            if (isBeneficiaryValue || !uploadedFile || !firstName || !middleName || !lastName || !studentId) {
+                return;
+            }
+
+            // Only validate if we're on step 5 (ID Verification step)
+            if (registrationStep !== 5) {
+                return;
+            }
+
+            // Skip if OCR is already processing
+            if (isProcessingOCR) {
+                return;
+            }
+
+            // Check if file is a File object
+            if (!(uploadedFile instanceof File)) {
+                return;
+            }
+
+            setIsProcessingOCR(true);
+            try {
+                const extractedText = await extractImageId(uploadedFile);
+                
+                if (!extractedText || typeof extractedText !== 'string') {
+                    setError('studentIdFile', {
+                        type: 'manual',
+                        message: 'Could not extract text from the ID. Please upload a clearer image.'
+                    });
+                    setIsProcessingOCR(false);
+                    return;
+                }
+
+                const cleanedText = await CleanReGex(extractedText);
+                const cleanedTextLower = cleanedText.toLowerCase();
+                
+                const studentName = `${firstName} ${middleName} ${lastName}`
+                    .trim()
+                    .toLowerCase();
+                
+                // Check if the extracted text contains the student's name
+                const nameMatches = cleanedTextLower.includes(studentName);
+                
+                // Check if the extracted text contains the student ID number
+                const studentIdTrimmed = studentId.trim();
+                const idMatches = cleanedText.includes(studentIdTrimmed);
+
+                // Validate both name and ID number
+                if (!nameMatches && !idMatches) {
+                    setError('studentIdFile', {
+                        type: 'manual',
+                        message: 'ID is not valid. The name and ID number on the ID do not match your provided information. Please check your details or upload a clearer photo.'
+                    });
+                } else if (!nameMatches) {
+                    setError('studentIdFile', {
+                        type: 'manual',
+                        message: 'ID is not valid. The name on the ID does not match your provided information. Please check your details or upload a clearer photo.'
+                    });
+                } else if (!idMatches) {
+                    setError('studentIdFile', {
+                        type: 'manual',
+                        message: 'ID is not valid. The ID number on the ID does not match your provided information. Please check your details or upload a clearer photo.'
+                    });
+                } else {
+                    clearErrors('studentIdFile'); // Clear error if validation passes
+                }
+            } catch (error) {
+                console.error('OCR processing error:', error);
+                setError('studentIdFile', {
+                    type: 'manual',
+                    message: 'Error processing the ID image. Please try again.'
+                });
+            } finally {
+                setIsProcessingOCR(false);
+            }
+        };
+
+        // Debounce the validation to avoid too many OCR calls
+        const timeoutId = setTimeout(() => {
+            validateID();
+        }, 500);
+
+        return () => clearTimeout(timeoutId);
+    }, [firstName, middleName, lastName, studentId, uploadedFile, isBeneficiaryValue, registrationStep, isProcessingOCR, setError, clearErrors]);
+
     // Step validation - check if current step fields have errors
     const isStepValid = React.useMemo(() => {
         // If step hasn't been attempted yet, consider it valid (don't show errors)
@@ -389,7 +485,13 @@ const UpdateRegistrationUI = () => {
             setValue('studentIdFile', file);
             clearErrors('studentIdFile'); // Clear any previous errors
 
-            // Process OCR for text extraction and validation
+            // Get current name and ID values for validation
+            const currentFirstName = watch('firstName');
+            const currentMiddleName = watch('middleName');
+            const currentLastName = watch('lastName');
+            const currentStudentId = watch('studentId');
+
+            // Process OCR for text extraction and validation immediately
             setIsProcessingOCR(true);
             try {
                 const extractedText = await extractImageId(file);
@@ -405,22 +507,42 @@ const UpdateRegistrationUI = () => {
                 }
 
                 const cleanedText = await CleanReGex(extractedText);
-                const firstName = watch('firstName');
-                const middleName = watch('middleName');
-                const lastName = watch('lastName');
-                const studentName = `${firstName} ${middleName} ${lastName}`
-                    .trim()
-                    .toLowerCase();
+                const cleanedTextLower = cleanedText.toLowerCase();
+                
+                // Only validate if name fields and studentId are already filled
+                if (currentFirstName && currentMiddleName && currentLastName && currentStudentId) {
+                    const studentName = `${currentFirstName} ${currentMiddleName} ${currentLastName}`
+                        .trim()
+                        .toLowerCase();
+                    
+                    // Check if the extracted text contains the student's name
+                    const nameMatches = cleanedTextLower.includes(studentName);
+                    
+                    // Check if the extracted text contains the student ID number
+                    const studentIdTrimmed = currentStudentId.trim();
+                    const idMatches = cleanedText.includes(studentIdTrimmed);
 
-                // Check if the extracted text contains the student's name
-                if (!cleanedText.toLowerCase().includes(studentName)) {
-                    setError('studentIdFile', {
-                        type: 'manual',
-                        message: 'ID is not valid. The name on the ID does not match your provided information. Please check your details or upload a clearer photo.'
-                    });
-                } else {
-                    clearErrors('studentIdFile'); // Clear error if validation passes
+                    // Validate both name and ID number
+                    if (!nameMatches && !idMatches) {
+                        setError('studentIdFile', {
+                            type: 'manual',
+                            message: 'ID is not valid. The name and ID number on the ID do not match your provided information. Please check your details or upload a clearer photo.'
+                        });
+                    } else if (!nameMatches) {
+                        setError('studentIdFile', {
+                            type: 'manual',
+                            message: 'ID is not valid. The name on the ID does not match your provided information. Please check your details or upload a clearer photo.'
+                        });
+                    } else if (!idMatches) {
+                        setError('studentIdFile', {
+                            type: 'manual',
+                            message: 'ID is not valid. The ID number on the ID does not match your provided information. Please check your details or upload a clearer photo.'
+                        });
+                    } else {
+                        clearErrors('studentIdFile'); // Clear error if validation passes
+                    }
                 }
+                // If name fields or studentId are not filled yet, the useEffect will validate when they are filled
             } catch (error) {
                 console.error('OCR processing error:', error);
                 setError('studentIdFile', {
@@ -880,15 +1002,39 @@ const UpdateRegistrationUI = () => {
                 }
 
                 const cleanedText = await CleanReGex(extractedText);
+                const cleanedTextLower = cleanedText.toLowerCase();
+                
                 const studentName =
                     `${data.firstName} ${data.middleName} ${data.lastName}`
                         .trim()
                         .toLowerCase();
+                
+                // Check if the extracted text contains the student's name
+                const nameMatches = cleanedTextLower.includes(studentName);
+                
+                // Check if the extracted text contains the student ID number
+                const studentIdTrimmed = data.studentId.trim();
+                const idMatches = cleanedText.includes(studentIdTrimmed);
 
-                if (!cleanedText.toLowerCase().includes(studentName)) {
+                // Validate both name and ID number
+                if (!nameMatches && !idMatches) {
+                    setError('studentIdFile', {
+                        type: 'manual',
+                        message: 'ID is not valid. The name and ID number on the ID do not match your provided information. Please check your details or upload a clearer photo.'
+                    });
+                    setIsRegistering(false);
+                    return;
+                } else if (!nameMatches) {
                     setError('studentIdFile', {
                         type: 'manual',
                         message: 'ID is not valid. The name on the ID does not match your provided information. Please check your details or upload a clearer photo.'
+                    });
+                    setIsRegistering(false);
+                    return;
+                } else if (!idMatches) {
+                    setError('studentIdFile', {
+                        type: 'manual',
+                        message: 'ID is not valid. The ID number on the ID does not match your provided information. Please check your details or upload a clearer photo.'
                     });
                     setIsRegistering(false);
                     return;
