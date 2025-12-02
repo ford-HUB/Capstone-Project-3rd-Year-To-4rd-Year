@@ -155,6 +155,14 @@ const UpdateRegistrationUI = () => {
             const studentIdTrimmed = studentId.trim();
             const idMatches = cleanedText.includes(studentIdTrimmed);
 
+            console.log('Auto-validation Check:', {
+                nameMatches,
+                idMatches,
+                studentName,
+                studentId: studentIdTrimmed,
+                extractedText: extractedIdText.substring(0, 100) + '...'
+            });
+
             // Validate both name and ID number
             if (!nameMatches && !idMatches) {
                 setError('studentIdFile', {
@@ -504,11 +512,11 @@ const UpdateRegistrationUI = () => {
                 // Store extracted text for later validation
                 setExtractedIdText(extractedText);
                 
-                const cleanedText = await CleanReGex(extractedText);
-                const cleanedTextLower = cleanedText.toLowerCase();
-                
-                // Only validate if name fields and studentId are already filled
+                // Validate immediately if form fields are already filled
                 if (currentFirstName && currentMiddleName && currentLastName && currentStudentId) {
+                    const cleanedText = CleanReGex(extractedText);
+                    const cleanedTextLower = cleanedText.toLowerCase();
+                    
                     const studentName = `${currentFirstName} ${currentMiddleName} ${currentLastName}`
                         .trim()
                         .toLowerCase();
@@ -520,37 +528,38 @@ const UpdateRegistrationUI = () => {
                     const studentIdTrimmed = currentStudentId.trim();
                     const idMatches = cleanedText.includes(studentIdTrimmed);
 
+                    console.log('Validation Check:', {
+                        nameMatches,
+                        idMatches,
+                        studentName,
+                        studentId: studentIdTrimmed,
+                        extractedText: extractedText.substring(0, 100) + '...'
+                    });
+
                     // Validate both name and ID number
                     if (!nameMatches && !idMatches) {
                         setError('studentIdFile', {
                             type: 'manual',
                             message: 'ID does not match your information. The name and ID number on the ID do not match your provided information. Please check your details or upload a clearer photo.'
                         });
-                        setIsProcessingOCR(false);
-                        return;
                     } else if (!nameMatches) {
                         setError('studentIdFile', {
                             type: 'manual',
                             message: 'ID does not match your information. The name on the ID does not match your provided information. Please check your details or upload a clearer photo.'
                         });
-                        setIsProcessingOCR(false);
-                        return;
                     } else if (!idMatches) {
                         setError('studentIdFile', {
                             type: 'manual',
                             message: 'ID does not match your information. The ID number on the ID does not match your provided information. Please check your details or upload a clearer photo.'
                         });
-                        setIsProcessingOCR(false);
-                        return;
                     } else {
                         clearErrors('studentIdFile'); // Clear error if validation passes
-                        setIsProcessingOCR(false);
                     }
-                } else {
-                    // If name/ID not filled yet, just clear processing state
-                    // The useEffect will validate when fields are filled
-                    setIsProcessingOCR(false);
                 }
+                // If name/ID not filled yet, the useEffect will validate when fields are filled
+                
+                // Always stop processing after validation attempt
+                setIsProcessingOCR(false);
             } catch (error) {
                 console.error('OCR processing error:', error);
                 setError('studentIdFile', {
