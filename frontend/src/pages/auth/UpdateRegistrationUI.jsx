@@ -171,18 +171,25 @@ const UpdateRegistrationUI = () => {
                         type: 'manual',
                         message: 'ID is not valid. The name and ID number on the ID do not match your provided information. Please check your details or upload a clearer photo.'
                     });
+                    setIsProcessingOCR(false);
+                    return;
                 } else if (!nameMatches) {
                     setError('studentIdFile', {
                         type: 'manual',
                         message: 'ID is not valid. The name on the ID does not match your provided information. Please check your details or upload a clearer photo.'
                     });
+                    setIsProcessingOCR(false);
+                    return;
                 } else if (!idMatches) {
                     setError('studentIdFile', {
                         type: 'manual',
                         message: 'ID is not valid. The ID number on the ID does not match your provided information. Please check your details or upload a clearer photo.'
                     });
+                    setIsProcessingOCR(false);
+                    return;
                 } else {
                     clearErrors('studentIdFile'); // Clear error if validation passes
+                    setIsProcessingOCR(false);
                 }
             } catch (error) {
                 console.error('OCR processing error:', error);
@@ -528,18 +535,25 @@ const UpdateRegistrationUI = () => {
                             type: 'manual',
                             message: 'ID is not valid. The name and ID number on the ID do not match your provided information. Please check your details or upload a clearer photo.'
                         });
+                        setIsProcessingOCR(false);
+                        return;
                     } else if (!nameMatches) {
                         setError('studentIdFile', {
                             type: 'manual',
                             message: 'ID is not valid. The name on the ID does not match your provided information. Please check your details or upload a clearer photo.'
                         });
+                        setIsProcessingOCR(false);
+                        return;
                     } else if (!idMatches) {
                         setError('studentIdFile', {
                             type: 'manual',
                             message: 'ID is not valid. The ID number on the ID does not match your provided information. Please check your details or upload a clearer photo.'
                         });
+                        setIsProcessingOCR(false);
+                        return;
                     } else {
                         clearErrors('studentIdFile'); // Clear error if validation passes
+                        setIsProcessingOCR(false);
                     }
                 }
                 // If name fields or studentId are not filled yet, the useEffect will validate when they are filled
