@@ -4,7 +4,6 @@ import { useAuthStore } from '../../store/participant/useAuthStore.js';
 import { useDepartment } from '../../context/useDepartmentContext.jsx';
 import extractImageId from '../../services/orcService.js';
 import CleanReGex from '../../utils/CleanReGex.js';
-import toast from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { volunteerRegistrationSchema } from '../../forms/VolunteerSchemas.js';
@@ -376,12 +375,10 @@ const UpdateRegistrationUI = () => {
         const file = e.target.files?.[0];
         if (file) {
             if (file.size > 5 * 1024 * 1024) {
-                toast.error('File size too large (max 5MB)');
                 return;
             }
 
             if (!['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
-                toast.error('Only JPG, JPEG, and PNG files are allowed');
                 return;
             }
 
@@ -396,9 +393,6 @@ const UpdateRegistrationUI = () => {
                 console.log('Raw Extracted Data:', extractedText);
 
                 if (!extractedText || typeof extractedText !== 'string') {
-                    toast.error(
-                        'Could not extract text from the image. Please try a clearer photo.'
-                    );
                     setIsProcessingOCR(false);
                     return;
                 }
@@ -412,18 +406,9 @@ const UpdateRegistrationUI = () => {
                     .toLowerCase();
 
                 // Check if the extracted text contains the student's name
-                if (cleanedText.toLowerCase().includes(studentName)) {
-                    toast.success(
-                        'ID verification successful! Name matches the uploaded ID.'
-                    );
-                } else {
-                    toast.error(
-                        "Name on ID doesn't match the provided information. Please check your details or upload a clearer photo."
-                    );
-                }
+                // Validation is done silently
             } catch (error) {
                 console.error('OCR processing error:', error);
-                toast.error('Error processing the image. Please try again.');
             } finally {
                 setIsProcessingOCR(false);
             }
@@ -821,21 +806,6 @@ const UpdateRegistrationUI = () => {
                         return `• ${formattedField}: ${error.message}`;
                     })
                     .join('\n');
-
-                toast.error(
-                    `Please fix the following errors:\n${errorMessages}`,
-                    {
-                        duration: 5000,
-                        style: {
-                            whiteSpace: 'pre-line',
-                            maxWidth: '400px',
-                        },
-                    }
-                );
-            } else {
-                toast.error(
-                    'Please fill in all required fields correctly before proceeding'
-                );
             }
 
             return; // Don't proceed if validation fails
@@ -864,7 +834,6 @@ const UpdateRegistrationUI = () => {
             if (newStep === 1 && hasReachedLastStep) {
                 resetForm();
                 setRegistrationStep(1);
-                toast.success('Form has been reset. Please start your registration again.');
             } else {
                 setRegistrationStep(newStep);
             }
@@ -884,8 +853,6 @@ const UpdateRegistrationUI = () => {
                 console.log('Final OCR validation:', extractedText);
 
                 if (!extractedText || typeof extractedText !== 'string') {
-                    toast.error('Please attach a valid student ID');
-                    setIsRegistering(false);
                     return;
                 }
 
@@ -896,10 +863,6 @@ const UpdateRegistrationUI = () => {
                         .toLowerCase();
 
                 if (!cleanedText.toLowerCase().includes(studentName)) {
-                    toast.error(
-                        "Name on ID doesn't match your provided information. Please check your details or upload a clearer photo."
-                    );
-                    setIsRegistering(false);
                     return;
                 }
             }
