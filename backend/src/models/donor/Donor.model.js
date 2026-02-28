@@ -39,7 +39,7 @@ Donor.init({
     },
 
     profile_image: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         allowNull: true
     },
 
