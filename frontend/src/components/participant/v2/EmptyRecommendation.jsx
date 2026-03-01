@@ -41,14 +41,14 @@ const EmptyRecommendation = () => {
             </h3>
             
             <p className="text-gray-600 leading-relaxed text-sm">
-              Our AI agent couldn't find any events 
+              Our AI agent could not find any recommended events that might interest you
               <br className="hidden sm:block" />
-              <span className="block sm:inline"> matching your criteria right now.</span>
+              <span className="block sm:inline">for you to join right now.</span>
             </p>
             
             <div className="mt-6 pt-4 border-t border-gray-100">
               <p className="text-sm text-gray-500">
-                Try adjusting your interest or check back later
+                Try updating your interests or check back later for new events.
               </p>
             </div>
           </div>
