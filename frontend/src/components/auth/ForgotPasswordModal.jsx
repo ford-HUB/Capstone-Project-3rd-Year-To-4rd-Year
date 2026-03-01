@@ -11,8 +11,9 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
     const [isLoading, setIsLoading] = useState(false)
     const [emailSent, setEmailSent] = useState(false)
     const [userEmail, setUserEmail] = useState('')
-    const [emailStatus, setEmailStatus] = useState(null) // null, 'checking', 'found', 'not-found', 'restricted'
+    const [emailStatus, setEmailStatus] = useState(null) // null, 'checking', 'found', 'not-found', 'restricted', 'oauth'
     const [emailCheckLoading, setEmailCheckLoading] = useState(false)
+    const [oauthProvider, setOauthProvider] = useState(null)
 
     // Get store functions
     const { checkEmailForPasswordReset, forgotPassword } = useAuthStore()
@@ -54,18 +55,25 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
                 }
 
                 if (result.success && result.exists) {
-                    // Check if account is deactivated or restricted
-                    if (result.account?.is_deactivated) {
+                    // Check if account is OAuth-based, deactivated, or active
+                    if (result.isOAuth) {
+                        setEmailStatus('oauth')
+                        setOauthProvider(result.account?.auth_provider || 'OAuth')
+                    } else if (result.account?.is_deactivated) {
                         setEmailStatus('restricted')
+                        setOauthProvider(null)
                     } else {
                         setEmailStatus('found')
+                        setOauthProvider(null)
                     }
                 } else {
                     setEmailStatus('not-found')
+                    setOauthProvider(null)
                 }
             } catch (error) {
                 console.error('Email check error:', error)
                 setEmailStatus('not-found')
+                setOauthProvider(null)
             } finally {
                 setEmailCheckLoading(false)
             }
@@ -73,12 +81,16 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
 
         const timeoutId = setTimeout(checkEmailStatus, 500) // Debounce for 500ms
         return () => clearTimeout(timeoutId)
-    }, [emailValue])
+    }, [emailValue, checkEmailForPasswordReset, beneficiaryCheckEmail])
 
     const onSubmit = async (data) => {
-        // Prevent submission if email is not found or restricted
-        if (emailStatus === 'not-found' || emailStatus === 'restricted') {
-            toast.error('Please enter a valid email address')
+        // Prevent submission if email is not found, restricted, or OAuth-based
+        if (emailStatus === 'not-found' || emailStatus === 'restricted' || emailStatus === 'oauth') {
+            if (emailStatus === 'oauth') {
+                toast.error(`This account was registered via ${oauthProvider}. Please use your ${oauthProvider} account to sign in.`)
+            } else {
+                toast.error('Please enter a valid email address')
+            }
             return
         }
 
@@ -118,6 +130,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
         setUserEmail('')
         setEmailStatus(null)
         setEmailCheckLoading(false)
+        setOauthProvider(null)
         onClose()
     }
 
@@ -164,7 +177,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
                                                  ? 'border-red-500' 
                                                  : emailStatus === 'found'
                                                  ? 'border-green-500 bg-green-50'
-                                                 : emailStatus === 'not-found' || emailStatus === 'restricted'
+                                                 : emailStatus === 'not-found' || emailStatus === 'restricted' || emailStatus === 'oauth'
                                                  ? 'border-red-500 bg-red-50'
                                                  : 'border-gray-300'
                                          }`}
@@ -179,12 +192,13 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
                                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                              </svg>
                                          )}
-                                         {!emailCheckLoading && (emailStatus === 'not-found' || emailStatus === 'restricted') && (
+                                         {!emailCheckLoading && (emailStatus === 'not-found' || emailStatus === 'restricted' || emailStatus === 'oauth') && (
                                              <button
                                                  type="button"
                                                  onClick={() => {
                                                      reset({ email: '' })
                                                      setEmailStatus(null)
+                                                     setOauthProvider(null)
                                                  }}
                                                  className="text-red-400 hover:text-red-600 transition-colors"
                                              >
@@ -193,7 +207,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
                                                  </svg>
                                              </button>
                                          )}
-                                         {!emailCheckLoading && emailValue && emailStatus !== 'found' && emailStatus !== 'not-found' && emailStatus !== 'restricted' && (
+                                         {!emailCheckLoading && emailValue && emailStatus !== 'found' && emailStatus !== 'not-found' && emailStatus !== 'restricted' && emailStatus !== 'oauth' && (
                                              <button
                                                  type="button"
                                                  onClick={() => {
@@ -235,6 +249,14 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
                                          This account is deactivated. Please contact support.
                                      </p>
                                  )}
+                                 {emailStatus === 'oauth' && (
+                                     <p className="text-red-600 text-sm mt-1 flex items-center">
+                                         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                         </svg>
+                                         This account was registered via {oauthProvider}. Password reset is not available for OAuth accounts. Please use your {oauthProvider} account to sign in.
+                                     </p>
+                                 )}
                                  
                                  {errors.email && (
                                      <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
@@ -251,7 +273,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
                                 </button>
                                  <button
                                      type="submit"
-                                     disabled={isLoading || emailStatus !== 'found' || emailCheckLoading}
+                                  disabled={isLoading || emailStatus !== 'found' || emailCheckLoading || emailStatus === 'oauth'}
                                      className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                  >
                                      {isLoading ? 'Sending...' : emailCheckLoading ? 'Checking...' : 'Send Reset Link'}

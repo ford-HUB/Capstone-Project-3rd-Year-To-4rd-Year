@@ -128,6 +128,7 @@ export const checkEmailForPasswordReset = async (email) => {
             success: response.data.success,
             exists: response.data.exists,
             account: response.data.account,
+            isOAuth: response.data.isOAuth || false,
             message: response.data.message
         };
     } catch (error) {

@@ -513,12 +513,24 @@ export const checkEmailExists = async (req, res) => {
             });
         }
 
-        const { Accounts, VerificationCodes } = models;
+        const { Accounts, VerificationCodes, Role, Donor } = models;
         
         const account = await Accounts.findOne({ 
             where: { email: email }, 
+            include: [
+                {
+                    model: Role,
+                    attributes: ['name'],
+                    required: false
+                },
+                {
+                    model: Donor,
+                    attributes: ['fullname', 'auth_provider'],
+                    required: false
+                }
+            ],
             paranoid: false
-        })
+        });
         
         if (!account) {
             return res.json({ 
@@ -527,6 +539,8 @@ export const checkEmailExists = async (req, res) => {
                 message: 'Email is available'
             });
         }
+
+        const isOAuthAccount = !!(account.Donor && account.Donor.auth_provider && account.Donor.auth_provider !== 'local');
 
         if (account.is_active) {
             return res.json({ 
@@ -537,8 +551,11 @@ export const checkEmailExists = async (req, res) => {
                     email: account.email,
                     is_active: account.is_active,
                     is_deactivated: account.is_deactivated,
-                    activeAt: account.activeAt
+                    activeAt: account.activeAt,
+                    fullname: account.Donor?.fullname || undefined,
+                    auth_provider: account.Donor?.auth_provider || undefined
                 },
+                isOAuth: isOAuthAccount,
                 message: 'Email is already verified - please directly login'
             });
         }
@@ -565,8 +582,11 @@ export const checkEmailExists = async (req, res) => {
                 email: account.email,
                 is_active: account.is_active,
                 is_deactivated: account.is_deactivated,
-                activeAt: account.activeAt
+                activeAt: account.activeAt,
+                fullname: account.Donor?.fullname || undefined,
+                auth_provider: account.Donor?.auth_provider || undefined
             },
+            isOAuth: isOAuthAccount,
             message: 'This email is already registered. Please use a different email address or contact support@uclmcares.online'
         });
     } catch (error) {
@@ -582,7 +602,7 @@ export const forgotPassword = async (req, res) => {
     try {
         const { email } = req.validatedBody;
 
-        const { Accounts, CampusUsers, Beneficiary, Staff, Coordinator, Director, Role, ResetPassword } = models;
+        const { Accounts, CampusUsers, Beneficiary, Staff, Coordinator, Director, Role, ResetPassword, Donor } = models;
         
         // Check if email exists in database
         const account = await Accounts.findOne({ 
@@ -617,9 +637,29 @@ export const forgotPassword = async (req, res) => {
                 attributes: ['firstname'],
                 required: false
             },
+            {
+                model: Donor,
+                attributes: ['fullname', 'auth_provider', 'provider_id'],
+                required: false
+            },
 
         ]
         });
+
+        if (!account) {
+            return res.json({ 
+                success: false, 
+                message: 'Email not found in our system' 
+            });
+        }
+
+        // Block password reset for OAuth donor accounts - they must use OAuth login
+        if (account.Role && account.Role.name === 'donor' && account.Donor && account.Donor.auth_provider && account.Donor.auth_provider !== 'local') {
+            return res.json({ 
+                success: false, 
+                message: `This account was registered via ${account.Donor.auth_provider}. Password reset is not available for OAuth accounts. Please use your ${account.Donor.auth_provider} account to sign in.` 
+            });
+        }
 
         // console.log('test payload data: ', account)
 
@@ -630,14 +670,10 @@ export const forgotPassword = async (req, res) => {
             firstname:             account.Director ? account.Director.firstname :
             account.Staff ? account.Staff.firstname :
             account.Coordinator ? account.Coordinator.firstname :
-            account.CampusUsers ? account.CampusUsers.firstname : 'User'
-        }
-        
-        if (!account) {
-            return res.json({ 
-                success: false, 
-                message: 'Email not found in our system' 
-            });
+            account.CampusUsers ? account.CampusUsers.firstname :
+            account.Beneficiary ? account.Beneficiary.firstname :
+            account.Donor ? account.Donor.fullname :
+            'User'
         }
 
         if (accountData.is_deactivated) {

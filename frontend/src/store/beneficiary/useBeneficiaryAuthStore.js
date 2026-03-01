@@ -149,17 +149,18 @@ export const useBeneficiaryAuthStore = create((set) => ({
         try {
             const response = await checkEmailForPasswordReset(email)
             if(!response.success) {
-                return { success: false, exists: false, account: null, message: response.message }
+                return { success: false, exists: false, account: null, isOAuth: false, message: response.message }
             }
             return { 
                 success: true, 
                 exists: response.exists, 
                 account: response.account, 
+                isOAuth: response.isOAuth || false,
                 message: response.message 
             }
         } catch (error) {
             console.log('beneficiary check email for password reset store failed: ', error.message)
-            return { success: false, exists: false, account: null, message: 'Error checking email' }
+            return { success: false, exists: false, account: null, isOAuth: false, message: 'Error checking email' }
         }
     },
 
