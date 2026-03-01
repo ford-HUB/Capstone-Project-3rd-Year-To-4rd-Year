@@ -86,31 +86,47 @@ export const runMatchingAI = async (volunteer_id) => {
         
         const matchedIds = ai?.matchedIds ?? [];
         const recommendationIds = ai?.recommendations ?? [];
-        const hasResults = matchedIds.length > 0 || recommendationIds.length > 0;
+        let hasResults = matchedIds.length > 0 || recommendationIds.length > 0;
+
+        // Load any existing record so we can fall back to previous matches
+        // when the AI returns an empty result.
+        let record = await models.MatchedEvent.findOne({
+            where: { volunteer_id }
+        });
+
+        let effectiveMatchedIds = matchedIds;
+        let effectiveRecommendationIds = recommendationIds;
+
+        if (!hasResults && record) {
+            effectiveMatchedIds = record.matched_ids || [];
+            effectiveRecommendationIds = record.recommendation_ids || [];
+            hasResults =
+                (effectiveMatchedIds && effectiveMatchedIds.length > 0) ||
+                (effectiveRecommendationIds && effectiveRecommendationIds.length > 0);
+        }
 
         notifyEventMatchingProgress(volunteer_id, { status: 'processing', message: 'Saving results...' });
 
-        // 4) Upsert stored arrays. For existing records, avoid overwriting
-        // non-empty matches with an empty result from a transient AI run.
-        const [record, created] = await models.MatchedEvent.findOrCreate({
-            where: { volunteer_id },
-            defaults: {
-                matched_ids: matchedIds,
-                recommendation_ids: recommendationIds,
+        // 4) Upsert stored arrays.
+        // - For new volunteers, save whatever the AI returned (even if empty).
+        // - For existing records, avoid overwriting non‑empty matches with an empty result.
+        if (!record) {
+            record = await models.MatchedEvent.create({
+                volunteer_id,
+                matched_ids: effectiveMatchedIds,
+                recommendation_ids: effectiveRecommendationIds,
                 last_updated: new Date(),
                 cache_expires_at: new Date(Date.now() + 3600000) // 1 hour cache
-            },
-        })
-
-        if (!created) {
+            });
+        } else {
             const updatePayload = {
                 last_updated: new Date(),
                 cache_expires_at: new Date(Date.now() + 3600000) // 1 hour cache
             };
 
             if (hasResults) {
-                updatePayload.matched_ids = matchedIds;
-                updatePayload.recommendation_ids = recommendationIds;
+                updatePayload.matched_ids = effectiveMatchedIds;
+                updatePayload.recommendation_ids = effectiveRecommendationIds;
             }
 
             await record.update(updatePayload);
@@ -121,7 +137,7 @@ export const runMatchingAI = async (volunteer_id) => {
 
         // 5) Emit real-time update
         const matchedEvents = await Event.findAll({
-            where: { event_id: { [Op.in]: matchedIds } },
+            where: { event_id: { [Op.in]: effectiveMatchedIds } },
             include: [
                 { model: Department, through: { attributes: [] } },
                 { model: Category, through: { attributes: [] } },
@@ -130,7 +146,7 @@ export const runMatchingAI = async (volunteer_id) => {
         });
 
         const recommendationEvents = await Event.findAll({
-            where: { event_id: { [Op.in]: recommendationIds } },
+            where: { event_id: { [Op.in]: effectiveRecommendationIds } },
             include: [
                 { model: Department, through: { attributes: [] } },
                 { model: Category, through: { attributes: [] } },
@@ -139,7 +155,7 @@ export const runMatchingAI = async (volunteer_id) => {
         });
 
         updateVolunteerMatchedEvents(volunteer_id, matchedEvents, recommendationEvents);
-        notifyEventMatchingProgress(volunteer_id, { status: 'completed', message: `Found ${matchedIds.length} matches` });
+        notifyEventMatchingProgress(volunteer_id, { status: 'completed', message: `Found ${effectiveMatchedIds.length} matches` });
 
         return true;
     } catch (error) {

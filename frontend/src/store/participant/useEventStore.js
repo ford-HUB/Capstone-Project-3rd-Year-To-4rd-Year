@@ -15,17 +15,26 @@ export const useEventStore = create((set, get) => ({
 
     checkInterest: async () => {
         try {
+            const prevState = get()
             const response = await currentInterest()
-            if(!response.success) { 
-                set({ interest: [], hasInterests: false }) 
-                return false 
+            if (!response.success) { 
+                // Preserve previous interests on transient failures
+                set({ 
+                    interest: prevState.interest || [], 
+                    hasInterests: prevState.hasInterests || false 
+                }) 
+                return prevState.hasInterests || false 
             }
             set({ interest: response.interest || [], hasInterests: response.hasInterest })
             return response.hasInterest
         } catch (error) {
             console.log('check interest store failed:', error.message)
-            set({ interest: [], hasInterests: false })
-            return false
+            const prevState = get()
+            set({ 
+                interest: prevState.interest || [], 
+                hasInterests: prevState.hasInterests || false 
+            })
+            return prevState.hasInterests || false
         }
     },
 
