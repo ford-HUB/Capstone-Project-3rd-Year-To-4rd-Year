@@ -82,18 +82,33 @@ export const useEventStore = create((set, get) => ({
     getMatchEvent: async () => {
         try {
             set({ isLoading: true })
+            const prevState = get()
             const response = await matchedEvent()
-            if(!response.success) {
+            if (!response.success) {
                 console.log('matched Event failed to fetch')
-                set({ matchedEvents: [], recommendations: [], isLoading: false })
+                // Keep previous matches instead of clearing them on transient failures
+                set({
+                    matchedEvents: prevState.matchedEvents || [],
+                    recommendations: prevState.recommendations || [],
+                    isLoading: false
+                })
                 return false
             }
 
-            set({ matchedEvents: response.events || [], recommendations: response.recommendations || [], isLoading: false })
+            set({
+                matchedEvents: response.events || [],
+                recommendations: response.recommendations || [],
+                isLoading: false
+            })
             return true
         } catch (error) {
             console.log('get matched event failed:', error.message)
-            set({ matchedEvents: [], recommendations: [], isLoading: false })
+            const prevState = get()
+            set({
+                matchedEvents: prevState.matchedEvents || [],
+                recommendations: prevState.recommendations || [],
+                isLoading: false
+            })
             return false
         }
     },

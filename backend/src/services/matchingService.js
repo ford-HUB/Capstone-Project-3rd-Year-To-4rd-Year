@@ -86,10 +86,12 @@ export const runMatchingAI = async (volunteer_id) => {
         
         const matchedIds = ai?.matchedIds ?? [];
         const recommendationIds = ai?.recommendations ?? [];
+        const hasResults = matchedIds.length > 0 || recommendationIds.length > 0;
 
         notifyEventMatchingProgress(volunteer_id, { status: 'processing', message: 'Saving results...' });
 
-        // 4) Upsert and OVERWRITE stored arrays (not union)
+        // 4) Upsert stored arrays. For existing records, avoid overwriting
+        // non-empty matches with an empty result from a transient AI run.
         const [record, created] = await models.MatchedEvent.findOrCreate({
             where: { volunteer_id },
             defaults: {
@@ -101,12 +103,17 @@ export const runMatchingAI = async (volunteer_id) => {
         })
 
         if (!created) {
-            await record.update({
-                matched_ids: matchedIds,
-                recommendation_ids: recommendationIds,
+            const updatePayload = {
                 last_updated: new Date(),
                 cache_expires_at: new Date(Date.now() + 3600000) // 1 hour cache
-            });
+            };
+
+            if (hasResults) {
+                updatePayload.matched_ids = matchedIds;
+                updatePayload.recommendation_ids = recommendationIds;
+            }
+
+            await record.update(updatePayload);
         }
 
         const duration = Date.now() - startTime;

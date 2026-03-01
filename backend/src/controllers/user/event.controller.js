@@ -142,10 +142,10 @@ export const getMatchedEvents = async (req, res) => {
     const user = req.user;
 
     const campusUser = await CampusUsers.findOne({ where: { account_id: user.account_id } })
-    if (!campusUser) return res.json({ message: 'campus user not found' })
+    if (!campusUser) return res.json({ success: false, message: 'campus user not found' })
 
     const volunteer = await Volunteer.findOne({ where: { campus_user_id: campusUser.campus_user_id } })
-    if (!volunteer) return res.json({ message: 'Must complete your profile info' })
+    if (!volunteer) return res.json({ success: false, message: 'Must complete your profile info' })
 
     const record = await MatchedEvent.findOne({ where: { volunteer_id: volunteer.volunteer_id } })
 
@@ -214,7 +214,7 @@ export const getMatchedEvents = async (req, res) => {
     })
 
   } catch (error) {
-    res.json({ message: 'Internal Server Error' })
+    res.json({ success: false, message: 'Internal Server Error' })
     console.log('getMatchedEvents failed:', error.message)
   }
 }

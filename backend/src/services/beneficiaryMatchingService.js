@@ -146,16 +146,22 @@ export const runBeneficiaryMatchingAI = async (beneficiary_id) => {
             where: { beneficiary_id }
         });
 
+        const hasResults = matchedIds.length > 0 || finalRecommendationIds.length > 0;
+
         if (record) {
-            // Update existing record
-            await record.update({
-                matched_ids: matchedIds,
-                recommendation_ids: finalRecommendationIds,
-                near_you_ids: nearYouIds,
-                almost_near_you_ids: almostNearYouIds,
+            const updatePayload = {
                 last_updated: new Date(),
                 cache_expires_at: new Date(Date.now() + 3600000) // 1 hour cache
-            });
+            };
+
+            if (hasResults) {
+                updatePayload.matched_ids = matchedIds;
+                updatePayload.recommendation_ids = finalRecommendationIds;
+                updatePayload.near_you_ids = nearYouIds;
+                updatePayload.almost_near_you_ids = almostNearYouIds;
+            }
+
+            await record.update(updatePayload);
         } else {
             // Create new record with explicit null volunteer_id
             record = await models.MatchedEvent.create({
