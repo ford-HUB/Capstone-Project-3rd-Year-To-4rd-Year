@@ -84,13 +84,8 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
     }, [emailValue, checkEmailForPasswordReset, beneficiaryCheckEmail])
 
     const onSubmit = async (data) => {
-        // Prevent submission if email is not found, restricted, or OAuth-based
+        // Prevent submission if email is not found, restricted, or OAuth-based (message shown below input, no toast)
         if (emailStatus === 'not-found' || emailStatus === 'restricted' || emailStatus === 'oauth') {
-            if (emailStatus === 'oauth') {
-                toast.error(`This account was registered via ${oauthProvider}. Please use your ${oauthProvider} account to sign in.`)
-            } else {
-                toast.error('Please enter a valid email address')
-            }
             return
         }
 
