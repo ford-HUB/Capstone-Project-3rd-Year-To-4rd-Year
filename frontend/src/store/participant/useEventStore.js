@@ -15,26 +15,17 @@ export const useEventStore = create((set, get) => ({
 
     checkInterest: async () => {
         try {
-            const prevState = get()
             const response = await currentInterest()
-            if (!response.success) { 
-                // Preserve previous interests on transient failures
-                set({ 
-                    interest: prevState.interest || [], 
-                    hasInterests: prevState.hasInterests || false 
-                }) 
-                return prevState.hasInterests || false 
+            if(!response.success) { 
+                set({ interest: [], hasInterests: false }) 
+                return false 
             }
             set({ interest: response.interest || [], hasInterests: response.hasInterest })
             return response.hasInterest
         } catch (error) {
             console.log('check interest store failed:', error.message)
-            const prevState = get()
-            set({ 
-                interest: prevState.interest || [], 
-                hasInterests: prevState.hasInterests || false 
-            })
-            return prevState.hasInterests || false
+            set({ interest: [], hasInterests: false })
+            return false
         }
     },
 
@@ -91,33 +82,18 @@ export const useEventStore = create((set, get) => ({
     getMatchEvent: async () => {
         try {
             set({ isLoading: true })
-            const prevState = get()
             const response = await matchedEvent()
-            if (!response.success) {
+            if(!response.success) {
                 console.log('matched Event failed to fetch')
-                // Keep previous matches instead of clearing them on transient failures
-                set({
-                    matchedEvents: prevState.matchedEvents || [],
-                    recommendations: prevState.recommendations || [],
-                    isLoading: false
-                })
+                set({ matchedEvents: [], recommendations: [], isLoading: false })
                 return false
             }
 
-            set({
-                matchedEvents: response.events || [],
-                recommendations: response.recommendations || [],
-                isLoading: false
-            })
+            set({ matchedEvents: response.events || [], recommendations: response.recommendations || [], isLoading: false })
             return true
         } catch (error) {
             console.log('get matched event failed:', error.message)
-            const prevState = get()
-            set({
-                matchedEvents: prevState.matchedEvents || [],
-                recommendations: prevState.recommendations || [],
-                isLoading: false
-            })
+            set({ matchedEvents: [], recommendations: [], isLoading: false })
             return false
         }
     },
