@@ -173,8 +173,8 @@ const RecommendationSidebar = ({ eventData = [] }) => {
               );
 
     return (
-        <div className="flex bg-gray-50 pb-4 rounded-md h-auto lg:h-screen">
-            <div className="w-full lg:w-96 bg-white shadow-2xl overflow-hidden flex flex-col h-full">
+        <div className="flex bg-gray-50 pb-4 rounded-md h-screen">
+            <div className="w-96 bg-white shadow-2xl overflow-hidden flex flex-col h-full">
                 <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 text-white shrink-0">
                     <div className="flex items-center justify-between mb-4">
                         <h1 className="text-2xl font-bold">
@@ -211,8 +211,8 @@ const RecommendationSidebar = ({ eventData = [] }) => {
                             </div>
                         </div>
 
-                        <div className="flex flex-col max-h-[70vh] lg:h-[32rem]">
-                            <div className="flex-1 overflow-y-auto scrollbar-hide">
+                        <div className="flex flex-col h-[32rem]">
+                            <div className="flex-1 overflow-scroll scrollbar-hide">
                                 {filteredEvents.map((event, index) => {
                                     const status =
                                         statusMap[event.event_id] || 'loading';
@@ -235,7 +235,7 @@ const RecommendationSidebar = ({ eventData = [] }) => {
                                                     index * 100
                                                 }ms`,
                                             }}>
-                                            <div className="relative mb-3 overflow-hidden rounded-lg w-full">
+                                            <div className="relative mb-3 overflow-hidden rounded-lg w-[20.5rem]">
                                                 <img
                                                     src={event.event_image}
                                                     alt={event.title}

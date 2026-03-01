@@ -21,8 +21,7 @@ const ParticpantHomePage = () => {
         initializeSocket,
         cleanupSocket,
         checkConnectionStatus,
-        clearLoading,
-        interest
+        clearLoading
     } = useEventStore();
     const { getCertificates, certificateData } = useCertificateStore()
     const [searchQuery, setSearchQuery] = React.useState('');
@@ -109,46 +108,6 @@ const ParticpantHomePage = () => {
         }
     }, [matchedEvents, recommendations, clearLoading])
 
-    const filteredMatchedEvents = React.useMemo(() => {
-        if (!matchedEvents || matchedEvents.length === 0) return [];
-        if (!interest || interest.length === 0) return matchedEvents;
-
-        const normalize = (value) =>
-            (value || '')
-                .toString()
-                .toLowerCase()
-                .trim()
-                .replace(/s\b/, ''); // basic plural handling (e.g. "drives" -> "drive")
-
-        const normalizedInterests = new Set(interest.map(normalize));
-
-        return matchedEvents.filter((event) => {
-            const categories = event.Categories || [];
-
-            // If the event has no categories, keep it as a safe default
-            if (!categories.length) return true;
-
-            return categories.some((cat) => {
-                const normalizedCategory = normalize(cat.name || cat.category_name || '');
-
-                if (normalizedInterests.has(normalizedCategory)) {
-                    return true;
-                }
-
-                for (const interestName of normalizedInterests) {
-                    if (
-                        normalizedCategory.includes(interestName) ||
-                        interestName.includes(normalizedCategory)
-                    ) {
-                        return true;
-                    }
-                }
-
-                return false;
-            });
-        });
-    }, [matchedEvents, interest]);
-
 
     // Show loading only if we have no data and are actually loading
     if (isLoading && (!matchedEvents || matchedEvents.length === 0) && (!recommendations || recommendations.length === 0))
@@ -165,15 +124,12 @@ const ParticpantHomePage = () => {
     console.log('Socket connection status: ', isSocketConnected)
     
     return (
-        <div className="bg-gray-30 min-h-screen">
-            <div className="flex flex-col lg:flex-row lg:items-stretch lg:justify-between gap-4">
-                {/* AI Recommendation sidebar - stacks on small, sidebar on large */}
-                <div className="bg-blue-50 flex-col border-b lg:border-b-0 lg:border-r border-gray-300 overflow-hidden w-full lg:w-[22rem] order-3 lg:order-1">
-                    <RecommendationSidebar eventData={recommendations} />
+        <div className="bg-gray-30">
+            <div className="flex justify-between">
+                <div className="bg-blue-50 flex-col border-r border-gray-300 overflow-hidden">
+                    <RecommendationSidebar eventData={recommendations}/>
                 </div>
-
-                {/* Main personalized matches area */}
-                <div className="flex flex-col p-4 flex-1 order-1 lg:order-2">
+                <div className="flex flex-col p-4">
                     <div className="flex space-x-3.5 items-center pb-4">
                        <BookOpen className='h-12 w-12'/>
                         <h1 className="text-gray-800 text-3xl py-2">
@@ -207,13 +163,13 @@ const ParticpantHomePage = () => {
 
                     <span className='text-xl font-bold pb-2'>In-Progress</span>
 
-                    <div className='flex items-start'>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 pb-10 lg:pb-0 lg:max-h-[calc(100vh-220px)] lg:overflow-y-auto">
-                            {
-                                filteredMatchedEvents?.length > 0 ? (
-                                    filteredMatchedEvents.map((event) => (
-                                        <EventCard key={event.event_id} eventData={event} />
-                                    ))
+                    <div className='flex items-center'>
+                        <div className="grid grid-cols-3 pb-50 gap-2.5 max-h-screen overflow-y-auto">
+                        {
+                            matchedEvents?.length > 0 ? (
+                            matchedEvents.map((event) => (
+                                    <EventCard key={event.event_id} eventData={event} />
+                                ))
                                 ) : (
                                     <div className='text-gray-500'>No matched events found.</div>
                                 )
@@ -221,9 +177,7 @@ const ParticpantHomePage = () => {
                         </div>
                     </div>
                 </div>
-
-                {/* Quick overview sidebar - full width on mobile, sidebar on large */}
-                <div className="flex flex-col border-t lg:border-t-0 lg:border-l border-gray-200 bg-gradient-to-b from-gray-50 to-white w-full lg:w-[21rem] lg:h-screen pb-6 lg:pb-16 overflow-y-auto scrollbar-hide order-2 lg:order-3">
+                <div className="flex flex-col border-l border-gray-200 bg-gradient-to-b from-gray-50 to-white w-[21rem] h-screen pb-16 overflow-y-auto scrollbar-hide">
                     {/* Header Section */}
                     <div className="sticky top-0 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-4 py-3 z-10">
                         <h3 className="text-lg font-semibold text-gray-800">Quick Overview</h3>
@@ -255,7 +209,7 @@ const ParticpantHomePage = () => {
                             <h4 className="text-sm font-medium text-blue-800 mb-3">Quick Stats</h4>
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="text-center">
-                                    <div className="text-2xl font-bold text-blue-600">{filteredMatchedEvents?.length || 0}</div>
+                                    <div className="text-2xl font-bold text-blue-600">{matchedEvents?.length || 0}</div>
                                     <div className="text-xs text-blue-500">Matched Events</div>
                                 </div>
                                 <div className="text-center">
