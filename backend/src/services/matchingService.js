@@ -42,11 +42,12 @@ export const runMatchingAI = async (volunteer_id) => {
         });
 
         if (!volunteer || !Array.isArray(volunteer.interested_events)) {
-            notifyEventMatchingProgress(volunteer_id, { status: 'failed', message: 'No interests found' });
+            notifyEventMatchingProgress(volunteer_id, { status: 'failed', message: 'No interests found' }, volunteer?.CampusUser?.account_id ?? null);
             return null;
         }
 
-        notifyEventMatchingProgress(volunteer_id, { status: 'processing', message: 'Loading events...' });
+        const accountId = volunteer.CampusUser?.account_id ?? null;
+        notifyEventMatchingProgress(volunteer_id, { status: 'processing', message: 'Loading events...' }, accountId);
 
         // 2) Load events with metadata (only active events)
         const events = await Event.findAll({
@@ -74,7 +75,7 @@ export const runMatchingAI = async (volunteer_id) => {
             ByDepartment: volunteer.Department?.department_name || '',
         };
 
-        notifyEventMatchingProgress(volunteer_id, { status: 'processing', message: 'AI matching in progress...' });
+        notifyEventMatchingProgress(volunteer_id, { status: 'processing', message: 'AI matching in progress...' }, accountId);
 
         // 3) Call your AI with timeout
         const ai = await Promise.race([
@@ -87,7 +88,7 @@ export const runMatchingAI = async (volunteer_id) => {
         const matchedIds = ai?.matchedIds ?? [];
         const recommendationIds = ai?.recommendations ?? [];
 
-        notifyEventMatchingProgress(volunteer_id, { status: 'processing', message: 'Saving results...' });
+        notifyEventMatchingProgress(volunteer_id, { status: 'processing', message: 'Saving results...' }, accountId);
 
         // 4) Upsert and OVERWRITE stored arrays (not union)
         const [record, created] = await models.MatchedEvent.findOrCreate({
@@ -131,13 +132,13 @@ export const runMatchingAI = async (volunteer_id) => {
             ]
         });
 
-        updateVolunteerMatchedEvents(volunteer_id, matchedEvents, recommendationEvents);
-        notifyEventMatchingProgress(volunteer_id, { status: 'completed', message: `Found ${matchedIds.length} matches` });
+        updateVolunteerMatchedEvents(volunteer_id, matchedEvents, recommendationEvents, accountId);
+        notifyEventMatchingProgress(volunteer_id, { status: 'completed', message: `Found ${matchedIds.length} matches` }, accountId);
 
         return true;
     } catch (error) {
         console.error(`Matching failed for volunteer ${volunteer_id}:`, error);
-        notifyEventMatchingProgress(volunteer_id, { status: 'failed', message: error.message });
+        notifyEventMatchingProgress(volunteer_id, { status: 'failed', message: error.message }, volunteer?.CampusUser?.account_id ?? null);
         return false;
     }
 };

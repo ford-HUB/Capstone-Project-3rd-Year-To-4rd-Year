@@ -154,6 +154,7 @@ export const getMatchedEvents = async (req, res) => {
         success: true,
         events: [],
         recommendations: [],
+        volunteerId: volunteer.volunteer_id,
         message: 'No matches yet. Update interests or wait for new events.'
       })
     }
@@ -210,7 +211,8 @@ export const getMatchedEvents = async (req, res) => {
     return res.json({
       success: true,
       events: fetchMatchedEvents,
-      recommendations: fetchRecommendationEvents
+      recommendations: fetchRecommendationEvents,
+      volunteerId: volunteer.volunteer_id
     })
 
   } catch (error) {

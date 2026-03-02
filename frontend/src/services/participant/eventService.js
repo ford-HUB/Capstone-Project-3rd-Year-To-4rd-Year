@@ -30,7 +30,8 @@ export const matchedEvent = async () => {
     return {
         success: response.data.success,
         events: response.data.events,
-        recommendations: response.data.recommendations
+        recommendations: response.data.recommendations,
+        volunteerId: response.data.volunteerId
     }
 }
 

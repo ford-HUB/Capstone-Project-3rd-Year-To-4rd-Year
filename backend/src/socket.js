@@ -134,33 +134,40 @@ export const removeNotification = (payload) => {
     io.emit("notification:removed", payload);
 }
 
-// Separate function for volunteer matched events
-export const updateVolunteerMatchedEvents = (volunteerId, matchedEvents, recommendations) => {
+// Emit to a specific user's socket by account_id (if known); otherwise broadcast
+const emitToUserOrBroadcast = (event, payload, accountId) => {
     const io = getSocket();
-    
+    if (accountId != null && activeUsers.has(String(accountId))) {
+        const { socketId } = activeUsers.get(String(accountId));
+        if (socketId) {
+            io.to(socketId).emit(event, payload);
+            return;
+        }
+    }
+    io.emit(event, payload);
+};
+
+// Separate function for volunteer matched events
+export const updateVolunteerMatchedEvents = (volunteerId, matchedEvents, recommendations, accountId = null) => {
     const eventData = {
-        volunteerId, 
+        volunteerId,
         matchedEvents: matchedEvents || [],
         recommendations: recommendations || [],
         timestamp: new Date().toISOString()
     };
-    
-    io.emit("volunteer_matched_events_updated", eventData);
+    emitToUserOrBroadcast("volunteer_matched_events_updated", eventData, accountId);
 }
 
 // Separate function for beneficiary matched events
-export const updateBeneficiaryMatchedEvents = (beneficiaryId, nearYouEvents, almostNearYouEvents, recommendations) => {
-    const io = getSocket();
-    
+export const updateBeneficiaryMatchedEvents = (beneficiaryId, nearYouEvents, almostNearYouEvents, recommendations, accountId = null) => {
     const eventData = {
-        beneficiaryId, 
+        beneficiaryId,
         nearYou: nearYouEvents || [],
         almostNearYou: almostNearYouEvents || [],
         recommendations: recommendations || [],
         timestamp: new Date().toISOString()
     };
-    
-    io.emit("beneficiary_matched_events_updated", eventData);
+    emitToUserOrBroadcast("beneficiary_matched_events_updated", eventData, accountId);
 }
 
 // Legacy function for backward compatibility (deprecated - use specific functions instead)
@@ -193,13 +200,14 @@ export const updateMatchedEvents = (volunteerId, nearYouEvents, almostNearYouEve
     io.emit("matched_events_updated", eventData);
 }
 
-export const notifyEventMatchingProgress = (volunteerId, progress) => {
-    const io = getSocket();
-    io.emit("matching_progress", { 
-        volunteerId, 
+export const notifyEventMatchingProgress = (volunteerIdOrBeneficiaryId, progress, accountId = null) => {
+    const payload = {
+        volunteerId: volunteerIdOrBeneficiaryId,
+        beneficiaryId: volunteerIdOrBeneficiaryId,
         ...progress,
         timestamp: new Date().toISOString()
-    });
+    };
+    emitToUserOrBroadcast("matching_progress", payload, accountId);
 }
 
 export const notifyEventDeleted = (eventId, eventTitle) => {

@@ -13,7 +13,7 @@ export const runBeneficiaryMatchingAI = async (beneficiary_id) => {
     const startTime = Date.now();
     
     try {
-        // Notify progress start (optional - only if socket is available)
+        // Notify progress start (optional - only if socket is available; accountId not yet loaded)
         try {
             notifyEventMatchingProgress(beneficiary_id, { status: 'started', message: 'Starting location-based matching...' });
         } catch (error) {
@@ -43,8 +43,10 @@ export const runBeneficiaryMatchingAI = async (beneficiary_id) => {
             return null;
         }
 
+        const accountId = beneficiary.account_id ?? null;
+
         try {
-            notifyEventMatchingProgress(beneficiary_id, { status: 'processing', message: 'Loading events...' });
+            notifyEventMatchingProgress(beneficiary_id, { status: 'processing', message: 'Loading events...' }, accountId);
         } catch (error) {
             // Socket not available, continue without notifications
         }
@@ -82,7 +84,7 @@ export const runBeneficiaryMatchingAI = async (beneficiary_id) => {
 
         if (events.length === 0) {
             try {
-                notifyEventMatchingProgress(beneficiary_id, { status: 'completed', message: 'No events with location data found' });
+                notifyEventMatchingProgress(beneficiary_id, { status: 'completed', message: 'No events with location data found' }, accountId);
             } catch (error) {
                 // Socket not available, continue without notifications
             }
@@ -102,7 +104,7 @@ export const runBeneficiaryMatchingAI = async (beneficiary_id) => {
 
 
         try {
-            notifyEventMatchingProgress(beneficiary_id, { status: 'processing', message: 'AI location matching in progress...' });
+            notifyEventMatchingProgress(beneficiary_id, { status: 'processing', message: 'AI location matching in progress...' }, accountId);
         } catch (error) {
             // Socket not available, continue without notifications
         }
@@ -135,7 +137,7 @@ export const runBeneficiaryMatchingAI = async (beneficiary_id) => {
         const finalRecommendationIds = filteredRecommendationEvents.map(e => e.event_id);
 
         try {
-            notifyEventMatchingProgress(beneficiary_id, { status: 'processing', message: 'Saving results...' });
+            notifyEventMatchingProgress(beneficiary_id, { status: 'processing', message: 'Saving results...' }, accountId);
         } catch (error) {
             // Socket not available, continue without notifications
         }
@@ -172,13 +174,13 @@ export const runBeneficiaryMatchingAI = async (beneficiary_id) => {
 
         const duration = Date.now() - startTime;
 
-        // 7) Emit real-time update
+        // 7) Emit real-time update (only to this beneficiary's socket)
         try {
-            updateBeneficiaryMatchedEvents(beneficiary_id, nearYouEvents, almostNearYouEvents, filteredRecommendationEvents);
-            notifyEventMatchingProgress(beneficiary_id, { 
-                status: 'completed', 
-                message: `Found ${nearYouEvents.length} near you, ${filteredRecommendationEvents.length} recommendations` 
-            });
+            updateBeneficiaryMatchedEvents(beneficiary_id, nearYouEvents, almostNearYouEvents, filteredRecommendationEvents, accountId);
+            notifyEventMatchingProgress(beneficiary_id, {
+                status: 'completed',
+                message: `Found ${nearYouEvents.length} near you, ${filteredRecommendationEvents.length} recommendations`
+            }, accountId);
         } catch (error) {
             // Socket not available, continue without notifications
         }
@@ -191,7 +193,7 @@ export const runBeneficiaryMatchingAI = async (beneficiary_id) => {
     } catch (error) {
         console.error(`Beneficiary matching failed for beneficiary ${beneficiary_id}:`, error);
         try {
-            notifyEventMatchingProgress(beneficiary_id, { status: 'failed', message: error.message });
+            notifyEventMatchingProgress(beneficiary_id, { status: 'failed', message: error.message }, beneficiary?.account_id ?? null);
         } catch (socketError) {
             // Socket not available, continue without notifications
         }

@@ -12,6 +12,7 @@ export const useEventStore = create((set, get) => ({
     matchingProgress: null,
     isSocketConnected: false,
     isLoading: false,
+    currentVolunteerId: null,
 
     checkInterest: async () => {
         try {
@@ -89,7 +90,12 @@ export const useEventStore = create((set, get) => ({
                 return false
             }
 
-            set({ matchedEvents: response.events || [], recommendations: response.recommendations || [], isLoading: false })
+            set({
+                matchedEvents: response.events || [],
+                recommendations: response.recommendations || [],
+                isLoading: false,
+                currentVolunteerId: response.volunteerId ?? get().currentVolunteerId
+            })
             return true
         } catch (error) {
             console.log('get matched event failed:', error.message)
@@ -242,24 +248,30 @@ export const useEventStore = create((set, get) => ({
                 console.error('Socket connection error:', error);
             });
 
-            // Listen for volunteer matched events updates (separate from beneficiary)
+            // Listen for volunteer matched events updates (only apply when payload is for this user)
             socket.on('volunteer_matched_events_updated', (data) => {
+                const currentVolunteerId = get().currentVolunteerId;
+                if (currentVolunteerId != null && data.volunteerId != null && data.volunteerId !== currentVolunteerId) {
+                    return; // Ignore updates for other users
+                }
                 console.log('Received volunteer matched events update:', data);
-                set({ 
+                set({
                     matchedEvents: data.matchedEvents || [],
                     recommendations: data.recommendations || [],
-                    isLoading: false // Clear loading when new data arrives
+                    isLoading: false
                 });
                 toast.success('New event matches found!');
             });
 
-            // Legacy listener for backward compatibility (can be removed after migration)
+            // Legacy listener for backward compatibility (only apply when payload is for this user)
             socket.on('matched_events_updated', (data) => {
+                const currentVolunteerId = get().currentVolunteerId;
+                if (currentVolunteerId != null && data.volunteerId != null && data.volunteerId !== currentVolunteerId) {
+                    return;
+                }
                 console.log('Received legacy matched events update:', data);
-                
-                // Only handle volunteer data structure in volunteer store
                 if (data.matchedEvents !== undefined) {
-                    set({ 
+                    set({
                         matchedEvents: data.matchedEvents || [],
                         recommendations: data.recommendations || [],
                         isLoading: false
@@ -268,13 +280,16 @@ export const useEventStore = create((set, get) => ({
                 }
             });
 
-            // Listen for matching progress updates
+            // Listen for matching progress updates (only show when for this user)
             socket.on('matching_progress', (data) => {
+                const currentVolunteerId = get().currentVolunteerId;
+                if (currentVolunteerId != null && data.volunteerId != null && data.volunteerId !== currentVolunteerId) {
+                    return;
+                }
                 console.log('Matching progress:', data);
                 set({ matchingProgress: data });
-                
                 if (data.status === 'completed') {
-                    set({ isLoading: false }); // Clear loading when matching completes
+                    set({ isLoading: false });
                     setTimeout(() => {
                         set({ matchingProgress: null });
                     }, 3000);
