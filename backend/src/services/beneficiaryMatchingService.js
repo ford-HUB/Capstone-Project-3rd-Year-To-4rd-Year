@@ -1,7 +1,8 @@
 import models from '../models/index.js';
 import { Op, fn, col } from 'sequelize';
 import { updateBeneficiaryMatchedEvents, notifyEventMatchingProgress } from '../socket.js';
-import { matchBeneficiaryLocationEvents } from '../controllers/ai/match.controller.js';
+import { matchBeneficiaryLocationEvents } from '../controllers/ai/gemini/gemini.controller.js';
+// import { matchBeneficiaryLocationEvents } from '../controllers/ai/match.controller.js';
 import { db } from '../config/db.js';
 
 
