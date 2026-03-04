@@ -52,7 +52,7 @@ export const matchBeneficiaryLocationEvents = async (beneficiaryAddress, events,
             model: 'gemini-3.1-flash-lite-preview',
             contents: fullPrompt
         });
-        const rawResonse = result.text();
+        const rawResonse = result.candidates[0].content;
         const cleanResponseJson = rawResonse.replace(/```json|```/g, '').trim();
         const parsed = JSON.parse(cleanResponseJson);
 
@@ -102,7 +102,7 @@ export const matchInterestedEvents = async (interest, events) => {
             model: 'gemini-3.1-flash-lite-preview',
             contents: fullPrompt
         });
-        const rawResonse = result.text();
+        const rawResonse = result.candidates[0].content;
         const cleanResponseJson = rawResonse.replace(/```json|```/g, '').trim();
         const parsed = JSON.parse(cleanResponseJson);
 
