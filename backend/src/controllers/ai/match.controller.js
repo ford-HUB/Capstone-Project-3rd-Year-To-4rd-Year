@@ -50,13 +50,13 @@ export const matchBeneficiaryLocationEvents = async (beneficiaryAddress, events,
         - EXCLUDE any events the beneficiary has already registered for
         
         3. Find "recommendations":
-        - Events that are NOT in "near_you_events" or "almost_near_you_events".
-        - MUST be within the SAME REGION (e.g., Central Visayas) to ensure the beneficiary can realistically reach the event.
-        - ONLY include events that match the beneficiary's specific needs or the help they are seeking.
-        - Focus on high-priority events that are still geographically relevant.
-        - Status must be "upcoming" or "ongoing" only.
-        - MUST NOT include any events already in near_you_events or almost_near_you_events.
-        - EXCLUDE any events the beneficiary has already registered for.
+        - Events that are NOT already in "near_you_events" or "almost_near_you_events"
+        - Events that might be of interest for broader participation
+        - Events from different cities/provinces that could be worth traveling to
+        - Events that are popular or have special significance
+        - Only include events with status "upcoming" or "ongoing" (exclude completed events)
+        - MUST NOT include any events already in near_you_events or almost_near_you_events
+        - EXCLUDE any events the beneficiary has already registered for
         
         4. Consider Philippine geography:
         - Metro Manila cities (Manila, Quezon City, Makati, etc.)
