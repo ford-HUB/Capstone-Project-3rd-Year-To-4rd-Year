@@ -1,11 +1,5 @@
 import { genAI } from "../../../config/gemini.js";
 
-const model = genAI.getGenerativeModel({ 
-    model: "gemini-1.5-flash-latest",
-    generationConfig: { responseMimeType: "application/json" } 
-});
-
-
 export const matchBeneficiaryLocationEvents = async (beneficiaryAddress, events, registeredEventIds = []) => {
     try {
         const eventList = events.map((event, i) => {
@@ -54,7 +48,10 @@ export const matchBeneficiaryLocationEvents = async (beneficiaryAddress, events,
             "recommendations": [ID, ID]
         }`;
 
-        const result = await model.generateContent(fullPrompt);
+        const result = await genAI.models.generateContent({
+            model: 'gemini-2.0-flash',
+            contents: fullPrompt
+        });
         const aiResponse = result.response.text();
         const parsed = JSON.parse(aiResponse);
 
@@ -100,7 +97,10 @@ export const matchInterestedEvents = async (interest, events) => {
             "recommendations": [ID, ID]
         }`;
 
-        const result = await model.generateContent(fullPrompt);
+        const result = await genAI.models.generateContent({
+            model: 'gemini-2.0-flash',
+            contents: fullPrompt
+        });
         const aiResponse = result.response.text();
         const parsed = JSON.parse(aiResponse);
 
