@@ -1,7 +1,8 @@
 import models from '../models/index.js';
 import { Op } from 'sequelize';
 import { updateVolunteerMatchedEvents, notifyEventMatchingProgress } from '../socket.js';
-import { matchInterestedEvents } from '../controllers/ai/openai/openai.controller.js';
+import { matchInterestedEvents } from '../controllers/ai/gemini/gemini.controller.js';
+// import { matchInterestedEvents } from '../controllers/ai/openai/openai.controller.js';
 import { db } from '../config/db.js';
 
 /**
