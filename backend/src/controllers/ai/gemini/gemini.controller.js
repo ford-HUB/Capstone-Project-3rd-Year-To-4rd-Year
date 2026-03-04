@@ -53,8 +53,11 @@ export const matchBeneficiaryLocationEvents = async (beneficiaryAddress, events,
             contents: fullPrompt
         });
         const rawResonse = result.candidates[0].content;
-        const cleanResponseJson = rawResonse.replace(/```json|```/g, '').trim();
-        const parsed = JSON.parse(cleanResponseJson);
+
+        console.log(typeof result.candidates[0].content);
+        console.log(result.candidates[0].content);
+
+        const parsed = JSON.parse(rawResonse);
 
         return {
             nearYouIds: parsed.near_you_events || [],
@@ -103,8 +106,11 @@ export const matchInterestedEvents = async (interest, events) => {
             contents: fullPrompt
         });
         const rawResonse = result.candidates[0].content;
-        const cleanResponseJson = rawResonse.replace(/```json|```/g, '').trim();
-        const parsed = JSON.parse(cleanResponseJson);
+
+        console.log(typeof result.candidates[0].content);
+        console.log(result.candidates[0].content);
+
+        const parsed = JSON.parse(rawResonse);
 
         return {
             matchedIds: parsed.matched_events || [],
