@@ -49,7 +49,7 @@ export const matchBeneficiaryLocationEvents = async (beneficiaryAddress, events,
         }`;
 
         const result = await genAI.models.generateContent({
-            model: 'gemini-2.0-flash',
+            model: 'gemini-2.1',
             contents: fullPrompt
         });
         const rawResonse = result.text();
@@ -99,7 +99,7 @@ export const matchInterestedEvents = async (interest, events) => {
         }`;
 
         const result = await genAI.models.generateContent({
-            model: 'gemini-2.0-flash',
+            model: 'gemini-2.1',
             contents: fullPrompt
         });
         const rawResonse = result.text();
