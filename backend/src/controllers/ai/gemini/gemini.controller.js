@@ -52,8 +52,9 @@ export const matchBeneficiaryLocationEvents = async (beneficiaryAddress, events,
             model: 'gemini-2.0-flash',
             contents: fullPrompt
         });
-        const aiResponse = result.response.text();
-        const parsed = JSON.parse(aiResponse);
+        const rawResonse = result.text();
+        const cleanResponseJson = rawResonse.replace(/```json|```/g, '').trim();
+        const parsed = JSON.parse(cleanResponseJson);
 
         return {
             nearYouIds: parsed.near_you_events || [],
@@ -101,8 +102,9 @@ export const matchInterestedEvents = async (interest, events) => {
             model: 'gemini-2.0-flash',
             contents: fullPrompt
         });
-        const aiResponse = result.response.text();
-        const parsed = JSON.parse(aiResponse);
+        const rawResonse = result.text();
+        const cleanResponseJson = rawResonse.replace(/```json|```/g, '').trim();
+        const parsed = JSON.parse(cleanResponseJson);
 
         return {
             matchedIds: parsed.matched_events || [],
