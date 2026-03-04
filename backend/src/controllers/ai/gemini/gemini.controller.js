@@ -54,9 +54,6 @@ export const matchBeneficiaryLocationEvents = async (beneficiaryAddress, events,
         });
         const contentResponse = result.candidates[0].content.parts[0].text;
 
-        console.log(typeof result.candidates[0].content);
-        console.log(result.candidates[0].content);
-
         const parsed = JSON.parse(contentResponse);
 
         return {
@@ -106,9 +103,6 @@ export const matchInterestedEvents = async (interest, events) => {
             contents: fullPrompt
         });
         const contentResponse = result.candidates[0].content.parts[0].text;
-
-        console.log(typeof result.candidates[0].content);
-        console.log(result.candidates[0].content);
 
         const parsed = JSON.parse(contentResponse);
 
