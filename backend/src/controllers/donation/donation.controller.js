@@ -1,6 +1,8 @@
 import models from "../../models/index.js"
 import { Op } from "sequelize"
 import { notifyEventAvailableForDonations, notifyNewDonation } from "../../socket.js"
+import { logDonorActivity } from "../../services/activityLogService.js";
+
 
 export const enableOrDisableFunds = async (req, res) => {
     try {
