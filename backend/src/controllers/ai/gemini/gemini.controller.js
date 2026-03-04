@@ -52,17 +52,17 @@ export const matchBeneficiaryLocationEvents = async (beneficiaryAddress, events,
             model: 'gemini-3.1-flash-lite-preview',
             contents: fullPrompt
         });
-        const contentResponse = result.candidates[0].content;
+        const contentResponse = result.candidates[0].content.parts[0].text;
 
         console.log(typeof result.candidates[0].content);
         console.log(result.candidates[0].content);
 
-        // const parsed = JSON.parse(rawResonse);
+        const parsed = JSON.parse(contentResponse);
 
         return {
-            nearYouIds: contentResponse.near_you_events || [],
-            almostNearYouIds: contentResponse.almost_near_you_events || [],
-            recommendations: contentResponse.recommendations || []
+            nearYouIds: parsed.near_you_events || [],
+            almostNearYouIds: parsed.almost_near_you_events || [],
+            recommendations: parsed.recommendations || []
         };
     } catch (err) {
         console.error('Error in matchBeneficiaryLocationEvents:', err);
@@ -105,16 +105,16 @@ export const matchInterestedEvents = async (interest, events) => {
             model: 'gemini-3.1-flash-lite-preview',
             contents: fullPrompt
         });
-        const contentResponse = result.candidates[0].content;
+        const contentResponse = result.candidates[0].content.parts[0].text;
 
         console.log(typeof result.candidates[0].content);
         console.log(result.candidates[0].content);
 
-        // const parsed = JSON.parse(rawResonse);
+        const parsed = JSON.parse(contentResponse);
 
         return {
-            matchedIds: contentResponse.matched_events || [],
-            recommendations: contentResponse.recommendations || []
+            matchedIds: parsed.matched_events || [],
+            recommendations: parsed.recommendations || []
         };
     } catch (err) {
         console.error('Error in matchInterestedEvents:', err);
